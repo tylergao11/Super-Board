@@ -20,6 +20,7 @@ WEB_DIR = ROOT / "web"
 ULTRA_BOARD_RAW = Path(r"C:\Ai\Ultra-Board\data\kaipanla\raw")
 MOOD_CACHE_PATH = ROOT / "data/market_mood_cache.json"
 _MOOD_CACHE: dict[str, dict[str, Any]] | None = None
+_DAY_PRIMARY_CACHE: dict[str, dict[str, str]] = {}
 
 THEME_ACCENTS: dict[str, str] = {
     "商业航天": "coral",
@@ -267,7 +268,7 @@ def get_available_dates() -> list[dict[str, Any]]:
         conn.close()
 
 
-def get_day_payload(date: str | None = None) -> dict[str, Any]:
+def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
     conn = _conn()
     try:
         if not date:
@@ -282,6 +283,12 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                     "SELECT MAX(trade_date) AS trade_date FROM daily_limit_pool"
                 ).fetchone()
             date = row["trade_date"] if row else ""
+
+        prev_row = conn.execute(
+            "SELECT MAX(trade_date) AS prev_date FROM daily_limit_pool WHERE trade_date < ?",
+            (date,),
+        ).fetchone()
+        prev_date = prev_row["prev_date"] if prev_row and prev_row["prev_date"] else None
 
         pool_rows = conn.execute(
             """
@@ -699,13 +706,13 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             else:
                 c_item["event_rank"] = idx
 
-        # Pass 3: Clean, transparent 2-step rule ("主营业务叠加热点"):
+        # Pass 3: Clean 3-step display-theme rule ("热点优先 → 连板继承昨日 → 第一主营兜底"):
         #   Step 1 (叠加今日热点): If the stock belongs to any REAL intraday hot catalyst
         #           (#1 Red, #2 Orange, or a news-backed active catalyst in Top 8),
-        #           show its highest-ranked hot catalyst (100% consistent with the top Catalyst Deck!).
-        #   Step 2 (回归第一主营): Otherwise (not on any intraday hot catalyst),
-        #           show the stock's own #1 core main business (highest revenue_pct in static_tags,
-        #           falling back to dynamic/first verified theme if no revenue split).
+        #           show its highest-ranked hot catalyst.
+        #   Step 2 (连板惯性继承): If it's a multi-board stock (>=2板) not hitting a new hot catalyst
+        #           today, inherit yesterday's primary_theme so its streak theme never abruptly resets!
+        #   Step 3 (回归第一主营): Otherwise fall back cleanly to its #1 core main business.
         hot_theme_ranks: dict[str, int] = {}
         for c_item in catalysts:
             t = c_item.get("theme")
@@ -716,6 +723,19 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             if r <= 2 or (has_news and r <= 8):
                 hot_theme_ranks[t] = r
 
+        # Lazily resolve previous trading day's primary themes only if any multi-board stock needs inheritance
+        need_prev = any(
+            st["height"] >= 2 and st["themes"] and not any(t in hot_theme_ranks for t in st["themes"])
+            for st in raw_stocks.values()
+        )
+        prev_primary_map: dict[str, str] = {}
+        if need_prev and prev_date and _depth < 12:
+            if prev_date not in _DAY_PRIMARY_CACHE:
+                # Close current RO conn not strictly required, but recursive call opens its own RO conn cleanly
+                get_day_payload(prev_date, _depth=_depth + 1)
+            prev_primary_map = _DAY_PRIMARY_CACHE.get(prev_date, {})
+
+        today_primary_map: dict[str, str] = {}
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
             if not own_themes:
@@ -723,21 +743,27 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 st["primary_accent"] = "slate"
                 continue
 
-            # Step 1: Match today's real hot catalysts first (strictly by catalyst rank)
+            # Step 1: Match today's real hot catalysts first
             hot_owned = [t for t in own_themes if t in hot_theme_ranks]
             if hot_owned:
                 chosen = min(hot_owned, key=lambda t: hot_theme_ranks[t])
+            # Step 2: Inherit yesterday's theme for multi-board streaks
+            elif st["height"] >= 2 and prev_primary_map.get(code) in own_themes:
+                chosen = prev_primary_map[code]
             else:
-                # Step 2: Cleanly fall back to the stock's own #1 main business (highest revenue_pct)
+                # Step 3: Cleanly fall back to the stock's own #1 main business (highest revenue_pct)
                 static_rows = static_by_code.get(code, [])
                 if static_rows:
-                    # static_by_code is already sorted by COALESCE(revenue_pct, -1) DESC
                     chosen = _clean_text(static_rows[0]["l1"])
                 else:
                     chosen = own_themes[0]
 
             st["primary_theme"] = chosen
             st["primary_accent"] = _accent_for(chosen)
+            today_primary_map[code] = chosen
+
+        if date:
+            _DAY_PRIMARY_CACHE[date] = today_primary_map
 
         # Build complete theme index (for clicking ANY tag inside Stock Modal or Theme Modal!)
         themes_index: dict[str, dict[str, Any]] = {}
