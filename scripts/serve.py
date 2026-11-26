@@ -756,43 +756,29 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 static_rows = static_by_code.get(code, [])
                 slot1 = _clean_text(static_rows[0]["l1"]) if static_rows else own_themes[0]
 
-            # --- Slot 2 (strictly optional — only when genuinely meaningful!) ---
+            # --- Slot 2 (STRICT: ONLY if 2nd real intraday hot catalyst OR stock's own #1 dominant main business >= 50%) ---
             slot2: str | None = None
             rem = [t for t in own_themes if t != slot1]
             if rem:
-                # 1) Second real intraday hot catalyst
+                # 1) Second real intraday hot catalyst (truly resonating with 2 hot themes today!)
                 rem_hot = [t for t in hot_owned if t != slot1]
                 if rem_hot:
                     slot2 = rem_hot[0]
                 else:
-                    # 2) Active cross-sector dynamic / M&A tag (e.g. 算力/AI应用/华为链/商业航天/海洋经济/并购)
-                    rem_dyn = [t for t in rem if t in stock_dyn_themes[code]]
-                    if rem_dyn:
-                        slot2 = max(rem_dyn, key=_theme_score)
-                    # 3) Multi-board streak inheritance of yesterday's 2nd theme
-                    elif st["height"] >= 2 and prev_second in rem:
-                        slot2 = prev_second
-                    else:
-                        # 4) Genuine core main business (>=25% revenue, prefer sharp industry over broad 机械/基建/环保)
-                        rem_core = [
-                            t
-                            for t in rem
-                            if (stock_theme_pct[code].get(t) or 0.0) >= 25.0
-                            and t not in GENERIC_SECOND_SKIP
-                        ]
-                        if rem_core:
-                            slot2 = max(rem_core, key=lambda t: stock_theme_pct[code].get(t) or 0.0)
-                        elif len(rem) >= 1:
-                            # If company has unsplit multi-L1 core (e.g. 中京电子 PCB -> 通信 with pct=None)
-                            rem_unsplit_sharp = [
-                                t
-                                for t in rem
-                                if stock_theme_pct[code].get(t) is None
-                                and t not in BROAD_BACKGROUND_L1
-                                and len(theme_members[t]) >= 2
-                            ]
-                            if rem_unsplit_sharp:
-                                slot2 = max(rem_unsplit_sharp, key=_theme_score)
+                    # 2) Stock's own #1 dominant core main business (>=50% revenue, excluding broad catch-all 机械/基建/环保)
+                    #    ONLY shown when Slot 1 was a hot/inherited theme different from its #1 main business
+                    static_rows = static_by_code.get(code, [])
+                    if static_rows:
+                        main_l1 = _clean_text(static_rows[0]["l1"])
+                        main_pct = static_rows[0].get("revenue_pct")
+                        if (
+                            main_l1 != slot1
+                            and main_l1 in rem
+                            and main_l1 not in GENERIC_SECOND_SKIP
+                            and main_pct is not None
+                            and float(main_pct) >= 50.0
+                        ):
+                            slot2 = main_l1
 
             pair = [slot1] + ([slot2] if slot2 else [])
             st["primary_theme"] = slot1
