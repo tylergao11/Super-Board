@@ -699,16 +699,22 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             else:
                 c_item["event_rank"] = idx
 
-        # Pass 3: Pick each stock's SINGLE intraday display theme strictly by:
-        #   1) 高标属性优先 (alignment with higher-board leaders' genuine non-broad themes)
-        #   2) 热点属性次之 (today's intraday fermentation rank & news heat; #1/#2 mainlines
-        #      get strong resonance priority over cold non-news minor overlaps)
-        #   3) 核心度兜底 (preventing <15% tiny side-businesses from hijacking equal-height mainlines)
-        def _is_minor_side(c: str, t: str) -> bool:
-            pct = stock_theme_pct[c].get(t)
-            return pct is not None and pct < 15.0
-
-        day_max_h = max((st["height"] for st in raw_stocks.values()), default=1)
+        # Pass 3: Clean, transparent 2-step rule ("主营业务叠加热点"):
+        #   Step 1 (叠加今日热点): If the stock belongs to any REAL intraday hot catalyst
+        #           (#1 Red, #2 Orange, or a news-backed active catalyst in Top 8),
+        #           show its highest-ranked hot catalyst (100% consistent with the top Catalyst Deck!).
+        #   Step 2 (回归第一主营): Otherwise (not on any intraday hot catalyst),
+        #           show the stock's own #1 core main business (highest revenue_pct in static_tags,
+        #           falling back to dynamic/first verified theme if no revenue split).
+        hot_theme_ranks: dict[str, int] = {}
+        for c_item in catalysts:
+            t = c_item.get("theme")
+            if not t:
+                continue
+            r = c_item["heat_rank"]
+            has_news = len(c_item.get("news") or []) > 0
+            if r <= 2 or (has_news and r <= 8):
+                hot_theme_ranks[t] = r
 
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
@@ -717,66 +723,19 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 st["primary_accent"] = "slate"
                 continue
 
-            my_h = st["height"]
+            # Step 1: Match today's real hot catalysts first (strictly by catalyst rank)
+            hot_owned = [t for t in own_themes if t in hot_theme_ranks]
+            if hot_owned:
+                chosen = min(hot_owned, key=lambda t: hot_theme_ranks[t])
+            else:
+                # Step 2: Cleanly fall back to the stock's own #1 main business (highest revenue_pct)
+                static_rows = static_by_code.get(code, [])
+                if static_rows:
+                    # static_by_code is already sorted by COALESCE(revenue_pct, -1) DESC
+                    chosen = _clean_text(static_rows[0]["l1"])
+                else:
+                    chosen = own_themes[0]
 
-            def _leader_then_heat_key(t: str) -> tuple:
-                minor_self = _is_minor_side(code, t)
-                rank = theme_heat_rank.get(t, 99)
-                has_news = t in theme_news_map
-                broad_cold = t in BROAD_BACKGROUND_L1 and not has_news and rank > 4
-
-                # 1) Highest board height among OTHER stocks strictly higher than this stock
-                #    that genuinely carry theme `t` (cold broad L1s like 机械 never exert fake pull)
-                higher_h = 0
-                if not broad_cold:
-                    for other in theme_members[t]:
-                        if other == code:
-                            continue
-                        oh = raw_stocks[other]["height"]
-                        if oh > my_h and not _is_minor_side(other, t):
-                            if oh > higher_h:
-                                higher_h = oh
-
-                # For apex/lead stocks (no stock above them carries `t`), check if they lead followers below
-                follower_h = 0
-                if higher_h == 0 and not broad_cold:
-                    for other in theme_members[t]:
-                        if other == code:
-                            continue
-                        oh = raw_stocks[other]["height"]
-                        if oh >= 2 and not _is_minor_side(other, t):
-                            if oh > follower_h:
-                                follower_h = oh
-
-                eff_leader = higher_h if higher_h > 0 else follower_h
-                # Only allow top-2 market mainlines (#1 Red / #2 Orange) to match high-board gravity
-                if not minor_self and rank == 1:
-                    eff_leader = max(eff_leader, day_max_h)
-                elif not minor_self and rank == 2:
-                    eff_leader = max(eff_leader, max(1, day_max_h - 1))
-                elif minor_self:
-                    eff_leader = max(0, eff_leader - 2)
-
-                # Penalize cold non-news secondary overlap (<30% revenue) vs hot news-backed themes
-                pct = stock_theme_pct[code].get(t)
-                if not has_news and rank > 3 and pct is not None and pct < 30.0 and eff_leader > 0:
-                    eff_leader = max(0, eff_leader - 1)
-
-                # 2) Intraday Hotness (今日催化排名 + 真实发酵热度)
-                hot_tier = (
-                    3 if rank <= 2
-                    else 2 if (has_news and rank <= 6)
-                    else 1 if rank <= 10
-                    else 0
-                )
-                heat_score = _theme_score(t) - (18.0 if minor_self else 0.0)
-
-                # 3) Tie-breaker: company core relevance
-                core_tie = pct if pct is not None else (50.0 if t in stock_dyn_themes[code] else 25.0)
-
-                return (eff_leader, hot_tier, -rank, round(heat_score, 2), core_tie)
-
-            chosen = max(own_themes, key=_leader_then_heat_key)
             st["primary_theme"] = chosen
             st["primary_accent"] = _accent_for(chosen)
 
