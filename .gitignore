@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.pyo
+*.tmp
+data/raw_f10/
+data/raw_ann/
+data/shards/
+data/tagged/
+data/market_raw/
+.venv/
