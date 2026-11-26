@@ -9,6 +9,7 @@ import socket
 import sqlite3
 import urllib.request
 from collections import defaultdict
+from datetime import date as dt_date
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
@@ -379,6 +380,15 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         theme_max_h: dict[str, int] = defaultdict(int)
         stock_theme_pct: dict[str, dict[str, float | None]] = defaultdict(dict)
         stock_dyn_themes: dict[str, set[str]] = defaultdict(set)
+        stock_dyn_dates: dict[str, dict[str, str]] = defaultdict(dict)
+
+        def _days_gap(d1: str | None, d2: str | None) -> int:
+            if not d1 or not d2 or len(d1) < 10 or len(d2) < 10:
+                return 999
+            try:
+                return abs((dt_date.fromisoformat(d1[:10]) - dt_date.fromisoformat(d2[:10])).days)
+            except Exception:
+                return 999
 
         for r in pool_rows:
             code = r["code"]
@@ -398,6 +408,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                     seen_t.add(t)
                     themes.append(t)
                     stock_dyn_themes[code].add(t)
+                    stock_dyn_dates[code][t] = _clean_text(d.get("from_date"))
                     stock_theme_pct[code][t] = None
                     evidences.append(
                         {
@@ -729,7 +740,21 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             prev_display_map = _DAY_DISPLAY_CACHE.get(prev_date, {})
 
         today_display_map: dict[str, list[str]] = {}
-        GENERIC_SECOND_SKIP = {"机械", "基建", "环保"}
+        GENERIC_SECOND_SKIP = {"机械", "基建", "环保", "工业设备"}
+
+        def _is_stale_dyn(c: str, t: str) -> bool:
+            """Dynamic tag confirmed >45 days away from trade_date is stale vs fresh/static tags."""
+            if t not in stock_dyn_themes[c] or t == "并购":
+                return False
+            fdate = stock_dyn_dates[c].get(t)
+            return _days_gap(date, fdate) > 45
+
+        def _is_fresh_dyn(c: str, t: str) -> bool:
+            """Dynamic tag freshly confirmed within 14 days of trade_date (current wave!)."""
+            if t not in stock_dyn_themes[c] or t == "并购":
+                return False
+            fdate = stock_dyn_dates[c].get(t)
+            return _days_gap(date, fdate) <= 14
 
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
@@ -741,31 +766,38 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
 
             prev_pair = prev_display_map.get(code) or []
             prev_first = prev_pair[0] if len(prev_pair) >= 1 else None
-            prev_second = prev_pair[1] if len(prev_pair) >= 2 else None
 
             # --- Slot 1 ---
+            # Fresh/static hot catalysts ALWAYS beat >45-day stale dynamic tags
             hot_owned = sorted(
                 [t for t in own_themes if t in hot_theme_ranks],
-                key=lambda t: hot_theme_ranks[t],
+                key=lambda t: (
+                    1 if _is_stale_dyn(code, t) else 0,
+                    hot_theme_ranks[t],
+                ),
             )
-            if hot_owned:
-                slot1 = hot_owned[0]
+            fresh_hot = [t for t in hot_owned if not _is_stale_dyn(code, t)]
+
+            if fresh_hot:
+                slot1 = fresh_hot[0]
             elif st["height"] >= 2 and prev_first in own_themes:
                 slot1 = prev_first
+            elif hot_owned:
+                slot1 = hot_owned[0]
             else:
                 static_rows = static_by_code.get(code, [])
                 slot1 = _clean_text(static_rows[0]["l1"]) if static_rows else own_themes[0]
 
-            # --- Slot 2 (STRICT: ONLY if 2nd real intraday hot catalyst OR stock's own #1 dominant main business >= 50%) ---
+            # --- Slot 2 (STRICT: ONLY if 2nd fresh hot catalyst OR stock's own #1 dominant main business >= 50%) ---
             slot2: str | None = None
             rem = [t for t in own_themes if t != slot1]
             if rem:
-                # 1) Second real intraday hot catalyst (truly resonating with 2 hot themes today!)
-                rem_hot = [t for t in hot_owned if t != slot1]
-                if rem_hot:
-                    slot2 = rem_hot[0]
+                # 1) Second fresh/static real intraday hot catalyst (never pulling in >45-day stale dynamic tags!)
+                rem_fresh_hot = [t for t in fresh_hot if t != slot1]
+                if rem_fresh_hot:
+                    slot2 = rem_fresh_hot[0]
                 else:
-                    # 2) Stock's own #1 dominant core main business (>=50% revenue, excluding broad catch-all 机械/基建/环保)
+                    # 2) Stock's own #1 dominant core main business (>=50% revenue, excluding broad catch-all 机械/基建/环保/工业设备)
                     #    ONLY shown when Slot 1 was a hot/inherited theme different from its #1 main business
                     static_rows = static_by_code.get(code, [])
                     if static_rows:
