@@ -20,7 +20,7 @@ WEB_DIR = ROOT / "web"
 ULTRA_BOARD_RAW = Path(r"C:\Ai\Ultra-Board\data\kaipanla\raw")
 MOOD_CACHE_PATH = ROOT / "data/market_mood_cache.json"
 _MOOD_CACHE: dict[str, dict[str, Any]] | None = None
-_DAY_PRIMARY_CACHE: dict[str, dict[str, str]] = {}
+_DAY_DISPLAY_CACHE: dict[str, dict[str, list[str]]] = {}
 
 THEME_ACCENTS: dict[str, str] = {
     "商业航天": "coral",
@@ -42,9 +42,8 @@ THEME_ACCENTS: dict[str, str] = {
     "锂电": "teal",
     "光伏": "ochre",
     "汽车": "cyan",
-    "机械": "slate",
+    "工业设备": "slate",
     "消费电子": "indigo",
-    "软件": "blue",
     "传媒": "rose",
     "低空经济": "coral",
     "氢能源": "emerald",
@@ -123,7 +122,7 @@ def _clean_text(text: str | None) -> str:
 
 # Broad background L1 categories that shouldn't overshadow sharp thematic catalysts
 # when a stock carries both a sharp active theme (e.g. 机器人/商业航天/AI应用/芯片/算力) and a broad L1
-BROAD_BACKGROUND_L1 = {"机械", "基建", "环保", "汽车", "农业", "交运", "地产"}
+BROAD_BACKGROUND_L1 = {"工业设备", "基建", "环保", "汽车", "农业", "交运", "地产"}
 
 
 def _accent_for(theme: str) -> str:
@@ -706,13 +705,9 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             else:
                 c_item["event_rank"] = idx
 
-        # Pass 3: Clean 3-step display-theme rule ("热点优先 → 连板继承昨日 → 第一主营兜底"):
-        #   Step 1 (叠加今日热点): If the stock belongs to any REAL intraday hot catalyst
-        #           (#1 Red, #2 Orange, or a news-backed active catalyst in Top 8),
-        #           show its highest-ranked hot catalyst.
-        #   Step 2 (连板惯性继承): If it's a multi-board stock (>=2板) not hitting a new hot catalyst
-        #           today, inherit yesterday's primary_theme so its streak theme never abruptly resets!
-        #   Step 3 (回归第一主营): Otherwise fall back cleanly to its #1 core main business.
+        # Pass 3: Select 1~2 crisp display themes per stock (never padding with <25% cold side-businesses):
+        #   Slot 1 (主位): Today's real hot catalyst (#1/#2 or news-backed Top 8) -> yesterday's streak theme -> #1 main business
+        #   Slot 2 (共振/补位, optional): 2nd hot catalyst -> dynamic cross-sector/M&A tag -> yesterday's 2nd theme -> core main business (>=25% revenue, deprioritizing broad catch-all 机械/基建/环保)
         hot_theme_ranks: dict[str, int] = {}
         for c_item in catalysts:
             t = c_item.get("theme")
@@ -723,47 +718,93 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             if r <= 2 or (has_news and r <= 8):
                 hot_theme_ranks[t] = r
 
-        # Lazily resolve previous trading day's primary themes only if any multi-board stock needs inheritance
         need_prev = any(
-            st["height"] >= 2 and st["themes"] and not any(t in hot_theme_ranks for t in st["themes"])
+            st["height"] >= 2 and st["themes"]
             for st in raw_stocks.values()
         )
-        prev_primary_map: dict[str, str] = {}
+        prev_display_map: dict[str, list[str]] = {}
         if need_prev and prev_date and _depth < 12:
-            if prev_date not in _DAY_PRIMARY_CACHE:
-                # Close current RO conn not strictly required, but recursive call opens its own RO conn cleanly
+            if prev_date not in _DAY_DISPLAY_CACHE:
                 get_day_payload(prev_date, _depth=_depth + 1)
-            prev_primary_map = _DAY_PRIMARY_CACHE.get(prev_date, {})
+            prev_display_map = _DAY_DISPLAY_CACHE.get(prev_date, {})
 
-        today_primary_map: dict[str, str] = {}
+        today_display_map: dict[str, list[str]] = {}
+        GENERIC_SECOND_SKIP = {"机械", "基建", "环保"}
+
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
             if not own_themes:
                 st["primary_theme"] = ""
                 st["primary_accent"] = "slate"
+                st["display_themes"] = []
                 continue
 
-            # Step 1: Match today's real hot catalysts first
-            hot_owned = [t for t in own_themes if t in hot_theme_ranks]
-            if hot_owned:
-                chosen = min(hot_owned, key=lambda t: hot_theme_ranks[t])
-            # Step 2: Inherit yesterday's theme for multi-board streaks
-            elif st["height"] >= 2 and prev_primary_map.get(code) in own_themes:
-                chosen = prev_primary_map[code]
-            else:
-                # Step 3: Cleanly fall back to the stock's own #1 main business (highest revenue_pct)
-                static_rows = static_by_code.get(code, [])
-                if static_rows:
-                    chosen = _clean_text(static_rows[0]["l1"])
-                else:
-                    chosen = own_themes[0]
+            prev_pair = prev_display_map.get(code) or []
+            prev_first = prev_pair[0] if len(prev_pair) >= 1 else None
+            prev_second = prev_pair[1] if len(prev_pair) >= 2 else None
 
-            st["primary_theme"] = chosen
-            st["primary_accent"] = _accent_for(chosen)
-            today_primary_map[code] = chosen
+            # --- Slot 1 ---
+            hot_owned = sorted(
+                [t for t in own_themes if t in hot_theme_ranks],
+                key=lambda t: hot_theme_ranks[t],
+            )
+            if hot_owned:
+                slot1 = hot_owned[0]
+            elif st["height"] >= 2 and prev_first in own_themes:
+                slot1 = prev_first
+            else:
+                static_rows = static_by_code.get(code, [])
+                slot1 = _clean_text(static_rows[0]["l1"]) if static_rows else own_themes[0]
+
+            # --- Slot 2 (strictly optional — only when genuinely meaningful!) ---
+            slot2: str | None = None
+            rem = [t for t in own_themes if t != slot1]
+            if rem:
+                # 1) Second real intraday hot catalyst
+                rem_hot = [t for t in hot_owned if t != slot1]
+                if rem_hot:
+                    slot2 = rem_hot[0]
+                else:
+                    # 2) Active cross-sector dynamic / M&A tag (e.g. 算力/AI应用/华为链/商业航天/海洋经济/并购)
+                    rem_dyn = [t for t in rem if t in stock_dyn_themes[code]]
+                    if rem_dyn:
+                        slot2 = max(rem_dyn, key=_theme_score)
+                    # 3) Multi-board streak inheritance of yesterday's 2nd theme
+                    elif st["height"] >= 2 and prev_second in rem:
+                        slot2 = prev_second
+                    else:
+                        # 4) Genuine core main business (>=25% revenue, prefer sharp industry over broad 机械/基建/环保)
+                        rem_core = [
+                            t
+                            for t in rem
+                            if (stock_theme_pct[code].get(t) or 0.0) >= 25.0
+                            and t not in GENERIC_SECOND_SKIP
+                        ]
+                        if rem_core:
+                            slot2 = max(rem_core, key=lambda t: stock_theme_pct[code].get(t) or 0.0)
+                        elif len(rem) >= 1:
+                            # If company has unsplit multi-L1 core (e.g. 中京电子 PCB -> 通信 with pct=None)
+                            rem_unsplit_sharp = [
+                                t
+                                for t in rem
+                                if stock_theme_pct[code].get(t) is None
+                                and t not in BROAD_BACKGROUND_L1
+                                and len(theme_members[t]) >= 2
+                            ]
+                            if rem_unsplit_sharp:
+                                slot2 = max(rem_unsplit_sharp, key=_theme_score)
+
+            pair = [slot1] + ([slot2] if slot2 else [])
+            st["primary_theme"] = slot1
+            st["primary_accent"] = _accent_for(slot1)
+            st["display_themes"] = [
+                {"name": t, "heat_rank": theme_heat_rank.get(t, 99)}
+                for t in pair
+            ]
+            today_display_map[code] = pair
 
         if date:
-            _DAY_PRIMARY_CACHE[date] = today_primary_map
+            _DAY_DISPLAY_CACHE[date] = today_display_map
 
         # Build complete theme index (for clicking ANY tag inside Stock Modal or Theme Modal!)
         themes_index: dict[str, dict[str, Any]] = {}

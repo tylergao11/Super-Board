@@ -597,15 +597,16 @@ body {
   grid-template-columns: minmax(0, 1fr);
 }
 
-/* Stock Cell — Clean White Tactile Card, 一字 Badge Only (NO red card dye!), Heat #1 Red / #2 Orange Theme Text */
+/* Stock Cell — Clean Minimal Card Supporting 1~2 Crisp Clickable Themes */
 .stock-cell {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 10px;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 3px;
+  min-height: 50px;
+  padding: 7px 10px;
   border-radius: 9px;
   border: 1px solid var(--line-hair);
   background: var(--bg-card);
@@ -616,6 +617,16 @@ body {
     transform 150ms var(--ease-spring),
     border-color 180ms ease,
     background 160ms ease;
+}
+
+/* Full-width single leader row stays sleek single-line */
+.tier-grid.single .stock-cell {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 11px;
 }
 
 .stock-cell:active {
@@ -657,17 +668,28 @@ body {
   flex-shrink: 0;
 }
 
-/* Trailing Intraday Hot Theme Label (Heat #1 Red, Heat #2 Orange, Other Muted Stone) */
+/* 1~2 Intraday Theme Labels (Heat #1 Red, Heat #2 Orange, Other Muted Stone) */
+.cell-themes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.tier-grid.single .cell-themes {
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
 .cell-theme {
   font-size: 11px;
   font-weight: 500;
   color: var(--ink-muted);
   white-space: nowrap;
-  flex-shrink: 0;
-  max-width: 72px;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-align: right;
+  line-height: 1.25;
 }
 
 .cell-theme.heat-1 {
@@ -678,6 +700,13 @@ body {
 .cell-theme.heat-2 {
   color: var(--heat-2);
   font-weight: 600;
+}
+
+.cell-theme-sep {
+  font-size: 10px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+  user-select: none;
 }
 
 /* Expandable First Boards (首板) */

@@ -194,19 +194,31 @@
   }
 
   function stockCellHtml(st) {
-    // Simple 一字 tag beside stock name ONLY; clean white card; Red (#1) / Orange (#2) theme label
+    // Simple 一字 tag beside stock name ONLY; clean neutral card; 1~2 clickable themes (Red #1 / Orange #2)
     const owTag = st.is_one_word ? `<span class="ow-tag">一字</span>` : "";
-    const tHeat = heatCls(st.primary_heat_rank);
-    const themeHtml = st.primary_theme
-      ? `<span class="cell-theme ${tHeat}" data-quick-theme="${esc(st.primary_theme)}">${esc(st.primary_theme)}</span>`
-      : "";
+    const dThemes =
+      st.display_themes && st.display_themes.length
+        ? st.display_themes
+        : st.primary_theme
+          ? [{ name: st.primary_theme, heat_rank: st.primary_heat_rank }]
+          : [];
+
+    const themesInner = dThemes
+      .slice(0, 2)
+      .map((item) => {
+        const tHeat = heatCls(item.heat_rank);
+        return `<span class="cell-theme ${tHeat}" data-quick-theme="${esc(item.name)}">${esc(item.name)}</span>`;
+      })
+      .join(`<span class="cell-theme-sep">·</span>`);
+
+    const themesHtml = themesInner ? `<div class="cell-themes">${themesInner}</div>` : "";
     return `
       <div class="stock-cell" role="button" tabindex="0" data-code="${esc(st.code)}">
         <span class="cell-main">
           <span class="cell-name">${esc(st.name)}</span>
           ${owTag}
         </span>
-        ${themeHtml}
+        ${themesHtml}
       </div>
     `;
   }
