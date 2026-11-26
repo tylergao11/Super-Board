@@ -1,0 +1,148 @@
+"""Pure-stdlib run_workflow script to distill intraday objective hot news per trading day."""
+import json
+import sqlite3
+from pathlib import Path
+
+ROOT = Path(args.get("root", r"C:\Ai\Super-Board")) if "args" in dir() else Path(r"C:\Ai\Super-Board")
+DB_PATH = ROOT / "data/super_board.sqlite"
+RAW_NEWS_DIR = ROOT / "data/raw_news"
+TARGET_DATE = str(args.get("date") or "").strip() if "args" in dir() else ""
+MONTH = str(args.get("month") or "2026-11").strip() if "args" in dir() else "2026-11"
+OUT_PATH = ROOT / (f"data/hot_news/day_{TARGET_DATE}.json" if TARGET_DATE else f"data/hot_news/{MONTH}.json")
+
+OUTPUT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "trade_date": {"type": "string"},
+        "items": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "rank": {"type": "integer"},
+                    "headline": {"type": "string"},
+                    "detail": {"type": "string"},
+                    "hit_count": {"type": "integer"},
+                },
+                "required": ["rank", "headline", "detail", "hit_count"],
+            },
+        },
+    },
+    "required": ["trade_date", "items"],
+}
+
+RULES_PROMPT = """你是A股超短线日内盘面消息提炼专家（只读模式，严禁调用任何工具，直接通过 finish 返回结构化 JSON）。
+
+下方提供某一交易日（`trade_date`）两份客观材料：
+1) `stocks`：当日全部涨停股票及触发原由；
+2) `intraday_news`（如有）：**严格卡在 `(上一交易日 15:00, 当日 15:00]` 窗口内的东财焦点加红快讯**（隔夜外盘/晚间重磅政策 + 早盘/盘中突发催化）。
+
+请融合这两份材料，去重提炼出 **6 到 10 条真正驱动当日日内盘面（截止当日 15:00 收盘）的客观热门消息/催化事件**，按当日盘面影响力 / 带动热度（`hit_count`）从高到低排序（`rank` 从 1 开始连续编号）：
+
+【提炼铁律】
+1. **严格只看日内（截止 15:00），绝不做次日预期**：只提炼推动当天隔夜开盘、早盘或盘中拉升的消息/政策/突发事件/情绪暗线。**严禁写入 15:00 收盘后的监管函、晚间公告、次日展望或“当日涨停复盘汇总帖（XX只股涨停/几连板）”！**
+2. **优先抓真正带起日内异动的消息**：政策发布（如部委文件/6G/AI出海）、监管批准（如SpaceX星座）、隔夜外盘/大厂突发（如美光/英伟达/华为HBM/午后停供东南亚传闻/交期拉长）、权威媒体报道、行业涨价/爆单、显著情绪暗线（如羊年生肖/名称异动）、前夜已公告并触发当日日内涨停的重磅并购/要约。
+3. **`headline`（<= 28字）**：高度凝练的事件标题，建议尽量带出关键时点词（如 `午后突发：英伟达暂停东南亚芯片出货`、`隔夜FCC批SpaceX百万颗卫星星座`、`盘中：八部门支持AI大模型及云计算出海`、`央视财经：国产冰雪装备出口爆单`、`2027农历羊年名称异动暗线`）。
+4. **`detail`（1句话客观摘要）**：写明具体事件内容、时间点与出处，并在句末括号内点明当日日内受其催化的代表涨停/异动股（无则写所涉方向）。
+5. **严禁充数的假消息**：严禁把“据2026年半年报，公司主营某某产品”这类日常经营背景、常规业绩增长、指数日常波动（如“恒生科技涨3%”）或泛泛而谈的宏观数据当成热门消息！
+"""
+
+
+def _load_days_payload(target_date: str, month: str) -> list[dict]:
+    conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+    if target_date:
+        days = [target_date]
+    else:
+        days = [
+            r[0]
+            for r in conn.execute(
+                "SELECT DISTINCT trade_date FROM daily_limit_pool WHERE trade_date LIKE ? ORDER BY trade_date ASC",
+                (f"{month}-%",),
+            ).fetchall()
+        ]
+    out = []
+    for d in days:
+        rows = conn.execute(
+            """
+            SELECT code, name, board_height, kpl_topic, kpl_reason
+            FROM daily_limit_pool
+            WHERE trade_date = ?
+            ORDER BY board_height DESC, first_limit_time ASC, code ASC
+            """,
+            (d,),
+        ).fetchall()
+        raw_p = RAW_NEWS_DIR / f"{d}.json"
+        intraday_news = []
+        if raw_p.exists():
+            raw_doc = json.loads(raw_p.read_text(encoding="utf-8"))
+            raw_items = raw_doc.get("items") or []
+            sum_lim = 80 if len(raw_items) > 120 else 180
+            intraday_news = [
+                {"time": it.get("time", ""), "title": it.get("title", ""), "summary": (it.get("summary") or "")[:sum_lim]}
+                for it in raw_items
+            ]
+        out.append(
+            {
+                "trade_date": d,
+                "intraday_news": intraday_news,
+                "stocks": [
+                    {"code": r[0], "name": r[1], "h": r[2], "reason": r[4] or r[3] or ""}
+                    for r in rows
+                ],
+            }
+        )
+    conn.close()
+    return out
+
+
+def _validate_day(day: str, doc: dict) -> list[str]:
+    errs = []
+    if doc.get("trade_date") != day:
+        errs.append(f"trade_date must be {day}, got {doc.get('trade_date')!r}")
+    items = doc.get("items")
+    if not isinstance(items, list) or not (1 <= len(items) <= 12):
+        errs.append("items must have 1..12 entries")
+        return errs
+    for idx, it in enumerate(items, 1):
+        hl = str(it.get("headline") or "").strip()
+        dt = str(it.get("detail") or "").strip()
+        if not hl or len(hl) > 40:
+            errs.append(f"item[{idx}] invalid headline length: {hl!r}")
+        if not dt:
+            errs.append(f"item[{idx}] empty detail")
+    return errs
+
+
+async def distill_day(payload: dict) -> dict:
+    day = payload["trade_date"]
+    prompt = (
+        RULES_PROMPT
+        + f"\n现在请提炼 {day}（共 {len(payload['stocks'])} 只涨停，{len(payload['intraday_news'])} 条日内焦点快讯）的当日热门消息：\n"
+        + json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    )
+    a = agent(role=f"News {day}", type_name="research")
+    res = await a(prompt, OUTPUT_SCHEMA)
+    errs = _validate_day(day, res)
+    if errs:
+        res = await a("输出不符合要求，请修正后重新输出：\n" + "\n".join(errs), OUTPUT_SCHEMA)
+        errs = _validate_day(day, res)
+    del a
+    if errs:
+        raise RuntimeError(f"{day} hot news validation failed: {errs}")
+    for idx, it in enumerate(res["items"], 1):
+        it["rank"] = idx
+    return res
+
+
+label = TARGET_DATE or MONTH
+phase(f"Distill Intraday Hot News ({label})")
+day_payloads = _load_days_payload(TARGET_DATE, MONTH)
+log(f"Target={label}, days={len(day_payloads)}")
+results = await parallel(day_payloads, distill_day)
+
+OUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+OUT_PATH.write_text(
+    json.dumps({"target": label, "days": results}, ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+)
+log("Hot news written:", str(OUT_PATH), "days=", len(results))

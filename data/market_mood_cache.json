@@ -213,43 +213,50 @@
     "sign": "市场人气低迷",
     "dt_count": 26,
     "up_count": 430,
-    "down_count": 5107
+    "down_count": 5107,
+    "zb_count": 0
   },
   "2026-10-14": {
     "sign": "市场人气低迷",
     "dt_count": 11,
     "up_count": 978,
-    "down_count": 4496
+    "down_count": 4496,
+    "zb_count": 0
   },
   "2026-10-13": {
     "sign": "市场人气较好",
     "dt_count": 8,
     "up_count": 2909,
-    "down_count": 2485
+    "down_count": 2485,
+    "zb_count": 0
   },
   "2026-10-12": {
     "sign": "市场人气一般",
     "dt_count": 19,
     "up_count": 1167,
-    "down_count": 4324
+    "down_count": 4324,
+    "zb_count": 0
   },
   "2026-10-09": {
     "sign": "市场人气较好",
     "dt_count": 8,
     "up_count": 3297,
-    "down_count": 2144
+    "down_count": 2144,
+    "zb_count": 0
   },
   "2026-10-08": {
     "sign": "市场人气一般",
     "dt_count": 13,
     "up_count": 1697,
-    "down_count": 3748
+    "down_count": 3748,
+    "zb_count": 0
   },
   "2026-09-30": {
     "sign": "市场人气较好",
     "dt_count": 9,
     "up_count": 2567,
-    "down_count": 2823
+    "down_count": 2823,
+    "zb_count": 0
   },
   "2026-09-29": {
     "sign": "市场人气较好",

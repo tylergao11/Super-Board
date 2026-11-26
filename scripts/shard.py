@@ -32,7 +32,7 @@ def _load_recent_pool(codes: list[str]) -> dict[str, list[dict[str, Any]]]:
     for c in codes:
         rows = conn.execute(
             """
-            SELECT trade_date, board_height, kpl_topic, kpl_reason
+            SELECT trade_date, board_height, kpl_topic, kpl_reason, name
             FROM daily_limit_pool
             WHERE code = ?
             ORDER BY trade_date DESC LIMIT 50
@@ -41,11 +41,11 @@ def _load_recent_pool(codes: list[str]) -> dict[str, list[dict[str, Any]]]:
         ).fetchall()
         picked = []
         seen_topics: set[str] = set()
-        for dt, bh, topic, reason in rows:
+        for dt, bh, topic, reason, sname in rows:
             t = (topic or "").strip()
             if t not in seen_topics or len(picked) < 3:
                 seen_topics.add(t)
-                picked.append({"date": dt, "height": bh, "topic": t, "reason": reason or ""})
+                picked.append({"date": dt, "height": bh, "topic": t, "reason": reason or "", "name": sname or ""})
             if len(picked) >= 12:
                 break
         out[c] = picked
@@ -80,9 +80,10 @@ def build_stock_evidence(code: str, pool_rows: list[dict[str, Any]], taxonomy: d
         for n in ann.get("notices", [])
     ]
 
+    pool_name = next((r.get("name") for r in pool_rows if r.get("name")), None)
     return {
         "code": code,
-        "name": clean_stock_name(f10.get("name") or code),
+        "name": clean_stock_name(f10.get("name") or pool_name or code),
         "f10_status": f10.get("f10_status", "missing"),
         "province_hint": prov,
         "city_hint": city,

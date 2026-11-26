@@ -21,6 +21,7 @@ SHANGHAI_TZ = timezone(timedelta(hours=8))
 F10_DIR = ROOT / "data/raw_f10"
 ANN_DIR = ROOT / "data/raw_ann"
 MARKET_RAW_DIR = ROOT / "data/market_raw"
+NEWS_RAW_DIR = ROOT / "data/raw_news"
 ORG_MAP_PATH = ROOT / "data/cninfo_org_map.json"
 
 KPL_HISTORY_URL = "https://apphis.longhuvip.com/w1/api/index.php"
@@ -224,10 +225,10 @@ def _get_session():
 
 
 def _secucode(code: str) -> str:
-    if code.startswith(("6", "9")):
-        return "SH" + code
     if code.startswith(("8", "4", "92")):
         return "BJ" + code
+    if code.startswith(("6", "9")):
+        return "SH" + code
     return "SZ" + code
 
 
@@ -268,6 +269,59 @@ def _extract_mix(zygc: list[dict[str, Any]], dt: str | None) -> dict[str, list[d
     return out
 
 
+def _fetch_bj_f10_fallback(code: str, sc: str) -> dict[str, Any] | None:
+    secucode_dot = f"{code}.BJ"
+    base = "https://datacenter.eastmoney.com/securities/api/data/v1/get"
+    hdr = {"Referer": "https://emweb.securities.eastmoney.com/"}
+    org_resp = _fetch_json(f"{base}?reportName=RPT_F10_BASIC_ORGINFO&columns=ALL&filter=(SECUCODE%3D%22{secucode_dot}%22)", hdr)
+    org_rows = (org_resp.get("result") or {}).get("data") or []
+    if not org_rows:
+        return None
+    org = org_rows[0]
+    try:
+        zygc_resp = _fetch_json(f"{base}?reportName=RPT_F10_FN_MAINOP&columns=ALL&pageSize=60&filter=(SECUCODE%3D%22{secucode_dot}%22)", hdr)
+        zygc = (zygc_resp.get("result") or {}).get("data") or []
+    except Exception:
+        zygc = []
+    try:
+        cc_resp = _fetch_json(f"{base}?reportName=RPT_F10_CORETHEME_CONTENT&columns=ALL&pageSize=30&filter=(SECUCODE%3D%22{secucode_dot}%22)", hdr)
+        cc_rows = (cc_resp.get("result") or {}).get("data") or []
+    except Exception:
+        cc_rows = []
+    try:
+        ctrl_resp = _fetch_json(f"{base}?reportName=RPT_F10_EH_SJKZR&columns=ALL&pageSize=5&filter=(SECUCODE%3D%22{secucode_dot}%22)", hdr)
+        ctrl_rows = (ctrl_resp.get("result") or {}).get("data") or []
+        controller = ctrl_rows[0].get("HOLDER_NAME") if ctrl_rows else None
+    except Exception:
+        controller = None
+
+    dates = sorted({(x.get("REPORT_DATE") or "")[:10] for x in zygc if x.get("REPORT_DATE")}, reverse=True)
+    latest_dt = dates[0] if dates else None
+    annual_dt = next((d for d in dates if d.endswith("12-31")), latest_dt)
+    return {
+        "code": code,
+        "secucode": sc,
+        "v": 2,
+        "f10_status": "ok",
+        "name": clean_stock_name(org.get("SECURITY_NAME_ABBR")),
+        "province_raw": org.get("PROVINCE"),
+        "reg_address": org.get("REG_ADDRESS") or org.get("ADDRESS"),
+        "em_industry": org.get("EM2016") or org.get("INDUSTRYCSRC1"),
+        "controller_name": controller,
+        "latest_dt": latest_dt,
+        "latest_mix": _extract_mix(zygc, latest_dt),
+        "annual_dt": annual_dt,
+        "annual_mix": _extract_mix(zygc, annual_dt) if annual_dt and annual_dt != latest_dt else None,
+        "business_scope": (org.get("BUSINESS_SCOPE") or "").strip(),
+        "business_review": (org.get("MAIN_BUSINESS") or org.get("ORG_PROFILE") or "").strip(),
+        "core_conception": [
+            {"keyword": (x.get("KEYWORD") or "").strip(), "content": (x.get("MAINPOINT_CONTENT") or "").strip()}
+            for x in cc_rows
+            if x.get("KEYWORD") or x.get("MAINPOINT_CONTENT")
+        ],
+    }
+
+
 def fetch_f10(code: str, refresh: bool = False) -> dict[str, Any]:
     path = F10_DIR / f"{code}.json"
     if path.exists() and not refresh:
@@ -297,6 +351,16 @@ def fetch_f10(code: str, refresh: bool = False) -> dict[str, Any]:
 
     jbzl_list = cs.get("jbzl") or []
     if not jbzl_list:
+        if sc.startswith("BJ"):
+            try:
+                bj_doc = _fetch_bj_f10_fallback(code, sc)
+                if bj_doc:
+                    tmp = path.with_suffix(".json.tmp")
+                    tmp.write_text(json.dumps(bj_doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                    tmp.replace(path)
+                    return bj_doc
+            except Exception:
+                pass
         doc = {"code": code, "secucode": sc, "v": 2, "f10_status": "missing_or_delisted"}
         path.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
         return doc
@@ -499,6 +563,64 @@ def fetch_evidence_cmd(codes: list[str], f10_only: bool = False, refresh: bool =
     print(json.dumps({"total": len(codes), "f10_ok": f10_ok, "ann_ok": ann_ok if not f10_only else "skipped"}, ensure_ascii=False))
 
 
+def _prev_trade_day(day: str) -> str:
+    if DB_PATH.exists():
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+        row = conn.execute("SELECT MAX(trade_date) FROM daily_limit_pool WHERE trade_date < ?", (day,)).fetchone()
+        conn.close()
+        if row and row[0]:
+            return str(row[0])
+    dt = datetime.strptime(day, "%Y-%m-%d").date()
+    delta = 3 if dt.weekday() == 0 else (2 if dt.weekday() == 6 else 1)
+    return (dt - timedelta(days=delta)).isoformat()
+
+
+def fetch_intraday_news(day: str, max_pages: int = 30) -> Path:
+    prev_day = _prev_trade_day(day)
+    start_ts = f"{prev_day} 15:00:00"
+    end_ts = f"{day} 15:00:00"
+    end_epoch = datetime.strptime(end_ts, "%Y-%m-%d %H:%M:%S").replace(tzinfo=SHANGHAI_TZ).timestamp()
+    sort_end = str(int((end_epoch + 2) * 1_000_000))
+    kept: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for _ in range(max_pages):
+        url = (
+            "https://np-weblist.eastmoney.com/comm/web/getFastNewsList"
+            f"?client=web&biz=web_724&fastColumn=101&sortEnd={urllib.parse.quote(str(sort_end))}&pageSize=50&req_trace=1"
+        )
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=12) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+        data_obj = body.get("data") or {}
+        lst = data_obj.get("fastNewsList") or []
+        if not lst:
+            break
+        for it in lst:
+            show_t = str(it.get("showTime") or "").strip()
+            if start_ts < show_t <= end_ts:
+                title = re.sub(r"\s+", " ", str(it.get("title") or "")).strip()
+                summary = re.sub(r"\s+", " ", str(it.get("summary") or "")).strip()
+                key = (show_t, title)
+                if title and key not in seen:
+                    seen.add(key)
+                    kept.append({"time": show_t, "title": title, "summary": summary})
+        oldest_t = str(lst[-1].get("showTime") or "").strip()
+        next_sort = str(data_obj.get("sortEnd") or "")
+        if (oldest_t and oldest_t <= start_ts) or not next_sort or next_sort == sort_end:
+            break
+        sort_end = next_sort
+
+    kept.sort(key=lambda x: (x["time"], x["title"]))
+    NEWS_RAW_DIR.mkdir(parents=True, exist_ok=True)
+    out_p = NEWS_RAW_DIR / f"{day}.json"
+    doc = {"trade_date": day, "window": [start_ts, end_ts], "count": len(kept), "items": kept}
+    tmp = out_p.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(out_p)
+    print(json.dumps({"date": day, "window": [start_ts, end_ts], "count": len(kept), "path": str(out_p)}, ensure_ascii=False))
+    return out_p
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -514,6 +636,10 @@ def main() -> None:
     pe.add_argument("--f10-only", action="store_true")
     pe.add_argument("--refresh", action="store_true")
 
+    pn = sub.add_parser("news")
+    pn.add_argument("--date", type=str, default=None)
+    pn.add_argument("--month", type=str, default=None)
+
     args = parser.parse_args()
     if args.cmd == "market":
         sync_market(args.from_ultra, args.date)
@@ -527,6 +653,23 @@ def main() -> None:
         else:
             codes = list(args.codes or [])
         fetch_evidence_cmd(codes, f10_only=args.f10_only, refresh=args.refresh)
+    elif args.cmd == "news":
+        if args.month:
+            conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+            days = [
+                r[0]
+                for r in conn.execute(
+                    "SELECT DISTINCT trade_date FROM daily_limit_pool WHERE trade_date LIKE ? ORDER BY trade_date ASC",
+                    (f"{args.month}-%",),
+                ).fetchall()
+            ]
+            conn.close()
+            for d in days:
+                fetch_intraday_news(d)
+        elif args.date:
+            fetch_intraday_news(args.date)
+        else:
+            raise SystemExit("news requires --date or --month")
 
 
 if __name__ == "__main__":
