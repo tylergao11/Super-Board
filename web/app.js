@@ -207,7 +207,7 @@
       .slice(0, 2)
       .map((item) => {
         const tHeat = heatCls(item.heat_rank);
-        return `<span class="cell-theme ${tHeat}" data-quick-theme="${esc(item.name)}">${esc(item.name)}</span>`;
+        return `<span class="cell-theme ${tHeat}">${esc(item.name)}</span>`;
       })
       .join(`<span class="cell-theme-sep">·</span>`);
 
@@ -766,17 +766,8 @@
       openModal({ type: "catalyst", id: card.getAttribute("data-cat-id") });
     });
 
-    // Tier-1 Stock Row: tap theme label -> Theme Modal; tap stock -> Stock Full Profile Modal
+    // Tier-1 Stock Row: tapping anywhere on a stock card opens that Stock's Full-Profile Modal
     const onLadderClick = (e) => {
-      const quickTheme = e.target.closest("[data-quick-theme]");
-      if (quickTheme) {
-        const t = quickTheme.getAttribute("data-quick-theme");
-        if (t && state.day?.themes?.[t]) {
-          e.stopPropagation();
-          openModal({ type: "theme", id: t });
-          return;
-        }
-      }
       const cell = e.target.closest("[data-code]");
       if (!cell) return;
       openModal({ type: "stock", id: cell.getAttribute("data-code") });
