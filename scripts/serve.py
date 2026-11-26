@@ -57,8 +57,10 @@ TOPIC_TO_PURE_THEME: list[tuple[str, str]] = [
     ("交换机", "算力"),
     ("光模块", "通信"),
     ("CPO", "通信"),
+    ("PCB", "通信"),
+    ("覆铜板", "通信"),
+    ("电子铜箔", "通信"),
     ("通信", "通信"),
-    ("PCB", "消费电子"),
     ("元器件", "消费电子"),
     ("消费电子", "消费电子"),
     ("苹果", "苹果链"),
@@ -188,8 +190,9 @@ NEWS_EVENT_SHORT_TITLES: list[tuple[str, str, str]] = [
     ("宇树", "机器人", "cyan"),
     ("具身", "机器人", "cyan"),
     ("机器人", "机器人", "cyan"),
-    ("PCB", "消费电子", "indigo"),
-    ("覆铜板", "消费电子", "indigo"),
+    ("PCB", "通信", "violet"),
+    ("覆铜板", "通信", "violet"),
+    ("电子铜箔", "通信", "violet"),
     ("大模型", "AI应用", "amber"),
     ("云计算", "AI应用", "amber"),
     ("HBM", "芯片", "indigo"),
@@ -236,6 +239,11 @@ def _clean_text(text: str | None) -> str:
         return ""
     s = re.sub(r"\s+", " ", str(text)).strip()
     return s
+
+
+# Broad background L1 categories that shouldn't overshadow sharp thematic catalysts
+# when a stock carries both a sharp active theme (e.g. 机器人/商业航天/AI应用/芯片/算力) and a broad L1
+BROAD_BACKGROUND_L1 = {"机械", "基建", "环保", "汽车", "农业", "交运", "地产"}
 
 
 def _accent_for(theme: str) -> str:
@@ -625,37 +633,17 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 "primary_theme": "",
             }
 
-        # Theme heat score for ranking primary_theme & catalysts
+        # Pure Super-Board intraday theme strength (NEVER blindly copying kpl_topic!)
         def _theme_score(t: str) -> float:
+            broad_penalty = 0.65 if t in BROAD_BACKGROUND_L1 else 1.0
             return (
-                theme_max_h[t] * 5.0
-                + theme_one_word[t] * 6.0
-                + theme_multi[t] * 4.5
-                + len(theme_members[t]) * 1.2
-            )
+                theme_max_h[t] * 4.5
+                + theme_one_word[t] * 4.0
+                + theme_multi[t] * 5.0
+                + len(theme_members[t]) * 1.6
+            ) * broad_penalty
 
-        # Pass 2: pick single cleanest intraday hot theme (`primary_theme`) per stock
-        for code, st in raw_stocks.items():
-            matched = _match_topic_to_themes(st["kpl_topic"], st["themes"])
-            if not matched and st["intraday_reason"]:
-                matched = _match_topic_to_themes(st["intraday_reason"], st["themes"])
-            if not matched and st["themes"]:
-                # Prefer today's hottest pure theme among this stock's verified themes
-                matched = max(st["themes"], key=_theme_score)
-            st["primary_theme"] = matched or ""
-            st["primary_accent"] = _accent_for(st["primary_theme"])
-
-        # Count how many stocks have each theme as their actual intraday primary_theme
-        primary_counts: dict[str, int] = defaultdict(int)
-        primary_multi_counts: dict[str, int] = defaultdict(int)
-        for st in raw_stocks.values():
-            pt = st["primary_theme"]
-            if pt:
-                primary_counts[pt] += 1
-                if st["height"] >= 2:
-                    primary_multi_counts[pt] += 1
-
-        # Pass 3: build Top Catalyst Cards (`daily_hot_news` merged with pure theme ladders)
+        # Pass 2: build Top Catalyst Cards FIRST from daily_hot_news + pure Super-Board ladders
         name_to_code = {st["name"]: code for code, st in raw_stocks.items()}
         theme_news_map: dict[str, list[dict[str, Any]]] = defaultdict(list)
         event_catalysts: list[dict[str, Any]] = []
@@ -665,7 +653,6 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             dt = _clean_text(nw["detail"])
             combined = f"{hl} {dt}"
 
-            # Find all stocks in today's pool mentioned in this news item
             mentioned = [
                 code
                 for sname, code in name_to_code.items()
@@ -679,7 +666,6 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 )
             )
 
-            # Determine if this news maps to a pure theme present today
             mapped_theme: str | None = None
             event_label: str | None = None
             event_accent: str = "amber"
@@ -692,7 +678,6 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                         event_accent = acc
                     break
 
-            # Secondary inference from consensus pure theme of mentioned stocks
             if not mapped_theme and not event_label and mentioned:
                 counts: dict[str, int] = defaultdict(int)
                 for c in mentioned:
@@ -714,7 +699,6 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                     }
                 )
             else:
-                # Keep meaningful event dark-lines (e.g. 2027羊年暗线 with 4 stocks, or high-board catalyst)
                 max_h_m = max((raw_stocks[c]["height"] for c in mentioned), default=0)
                 if len(mentioned) >= 2 or max_h_m >= 3:
                     ev_title = event_label or hl[:6]
@@ -743,7 +727,7 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                                 }
                                 for c in mentioned[:3]
                             ],
-                            "_score": 20.0 + int(nw.get("hit_count") or 1) * 3.0 + max_h_m * 3.0 + ev_ow * 5.0 - nw["rank"] * 0.6,
+                            "_score": 20.0 + int(nw.get("hit_count") or 1) * 3.0 + max_h_m * 3.0 - nw["rank"] * 0.6,
                         }
                     )
 
@@ -786,17 +770,14 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
 
             best_rank = min((n["rank"] for n in news_list), default=14)
             news_hits = sum(int(n.get("hit_count") or 1) for n in news_list)
-            p_cnt = primary_counts.get(t, 0)
-            pm_cnt = primary_multi_counts.get(t, 0)
+            broad_factor = 0.62 if (t in BROAD_BACKGROUND_L1 and not news_list) else 1.0
             score = (
-                (26.0 + news_hits * 2.5 if news_list else 0.0)
-                + pm_cnt * 7.0
-                + p_cnt * 2.4
-                + ow_cnt * 5.0
-                + max_h * 3.0
-                + multi_cnt * 2.0
+                (28.0 + news_hits * 3.0 if news_list else 0.0)
+                + multi_cnt * 5.0
+                + max_h * 3.5
+                + len(codes_t) * 1.4
                 - best_rank * 0.5
-            )
+            ) * broad_factor
             return {
                 "id": f"theme:{t}",
                 "kind": "theme",
@@ -827,11 +808,13 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             included_themes.add(t)
             catalysts.append(_make_theme_catalyst(t, nlist))
 
-        # Add high-momentum pure themes that genuinely drive today's intraday primary themes
+        # Add strong pure ladder themes even if not explicitly named in overnight news
         for t, members in theme_members.items():
             if t in included_themes:
                 continue
-            if primary_counts.get(t, 0) >= 2 or (primary_multi_counts.get(t, 0) >= 1 and theme_multi[t] >= 2):
+            if t in BROAD_BACKGROUND_L1 and theme_multi[t] < 3:
+                continue
+            if theme_multi[t] >= 2 or (theme_max_h[t] >= 3 and len(members) >= 3):
                 included_themes.add(t)
                 catalysts.append(_make_theme_catalyst(t, []))
 
@@ -848,8 +831,30 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             if c_item["theme"]:
                 theme_heat_rank[c_item["theme"]] = idx
             else:
-                # For pure event catalysts, mark member stocks if they aren't already in rank 1/2
                 c_item["event_rank"] = idx
+
+        # Pass 3: Pick each stock's SINGLE intraday hot theme (`primary_theme`) strictly from
+        # its OWN verified Super-Board themes ranked by TODAY'S pure market fermentation
+        # (never letting KaiPanLa's arbitrary daily kpl_topic override today's real mainline!)
+        for code, st in raw_stocks.items():
+            own_themes = st["themes"]
+            if not own_themes:
+                st["primary_theme"] = ""
+                st["primary_accent"] = "slate"
+                continue
+
+            # If a stock has a theme in today's active Catalyst ranking, ALWAYS pick the hottest one!
+            ranked_owned = [t for t in own_themes if t in theme_heat_rank]
+            if ranked_owned:
+                chosen = min(ranked_owned, key=lambda t: (theme_heat_rank[t], -_theme_score(t)))
+            else:
+                # Otherwise pick the hottest pure theme among its verified themes (preferring non-broad L1 with >=2 peers, else highest revenue_pct)
+                multi_owned = [t for t in own_themes if len(theme_members[t]) >= 2]
+                pool_t = multi_owned or own_themes
+                chosen = max(pool_t, key=_theme_score)
+
+            st["primary_theme"] = chosen
+            st["primary_accent"] = _accent_for(chosen)
 
         # Build complete theme index (for clicking ANY tag inside Stock Modal or Theme Modal!)
         themes_index: dict[str, dict[str, Any]] = {}
