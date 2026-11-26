@@ -634,9 +634,7 @@
             `;
           })
           .join("")
-      : st.intraday_reason
-        ? `<div class="ev-item"><div class="ev-text">${esc(st.intraday_reason)}</div></div>`
-        : "";
+      : "";
 
     elSheetBody.innerHTML = `
       <div class="modal-view">

@@ -21,127 +21,6 @@ ULTRA_BOARD_RAW = Path(r"C:\Ai\Ultra-Board\data\kaipanla\raw")
 MOOD_CACHE_PATH = ROOT / "data/market_mood_cache.json"
 _MOOD_CACHE: dict[str, dict[str, Any]] | None = None
 
-# Map noisy market topic labels to clean unified Super-Board themes (never exposing dirty tags)
-TOPIC_TO_PURE_THEME: list[tuple[str, str]] = [
-    ("商业航天", "商业航天"),
-    ("卫星", "商业航天"),
-    ("火箭", "商业航天"),
-    ("低空", "低空经济"),
-    ("飞行汽车", "低空经济"),
-    ("无人机", "低空经济"),
-    ("人形机器人", "机器人"),
-    ("机器人", "机器人"),
-    ("具身", "机器人"),
-    ("电子皮肤", "机器人"),
-    ("丝杠", "机器人"),
-    ("减速器", "机器人"),
-    ("AI应用", "AI应用"),
-    ("人工智能", "AI应用"),
-    ("大模型", "AI应用"),
-    ("智能体", "AI应用"),
-    ("华为", "华为链"),
-    ("昇腾", "华为链"),
-    ("鸿蒙", "华为链"),
-    ("信创", "国产替代/信创"),
-    ("国产替代", "国产替代/信创"),
-    ("光刻", "芯片"),
-    ("半导体", "芯片"),
-    ("芯片", "芯片"),
-    ("GPU", "芯片"),
-    ("存储", "芯片"),
-    ("封装", "芯片"),
-    ("算力", "算力"),
-    ("数据中心", "算力"),
-    ("AIDC", "算力"),
-    ("液冷", "算力"),
-    ("交换机", "算力"),
-    ("光模块", "通信"),
-    ("CPO", "通信"),
-    ("PCB", "通信"),
-    ("覆铜板", "通信"),
-    ("电子铜箔", "通信"),
-    ("通信", "通信"),
-    ("元器件", "消费电子"),
-    ("消费电子", "消费电子"),
-    ("苹果", "苹果链"),
-    ("特斯拉", "特斯拉链"),
-    ("英伟达", "英伟达链"),
-    ("海洋", "海洋经济"),
-    ("水产", "海洋经济"),
-    ("渔业", "海洋经济"),
-    ("氢能", "氢能源"),
-    ("核聚变", "可控核聚变"),
-    ("量子", "量子科技"),
-    ("脑机", "脑机接口"),
-    ("海峡", "海峡两岸"),
-    ("福建", "海峡两岸"),
-    ("并购", "并购"),
-    ("重组", "并购"),
-    ("股权转让", "并购"),
-    ("要约", "并购"),
-    ("控制权", "并购"),
-    ("零售", "消费"),
-    ("免税", "消费"),
-    ("百货", "消费"),
-    ("冰雪", "消费"),
-    ("旅游", "消费"),
-    ("食品", "消费"),
-    ("酿酒", "消费"),
-    ("造纸", "消费"),
-    ("消费", "消费"),
-    ("固态电池", "锂电"),
-    ("锂电", "锂电"),
-    ("储能", "锂电"),
-    ("电池", "锂电"),
-    ("光伏", "光伏"),
-    ("风电", "电力"),
-    ("核电", "电力"),
-    ("绿电", "电力"),
-    ("电力", "电力"),
-    ("电网", "电力"),
-    ("特高压", "电力"),
-    ("军工", "军工"),
-    ("航空", "军工"),
-    ("航展", "军工"),
-    ("舰载机", "军工"),
-    ("智能驾驶", "汽车"),
-    ("汽车", "汽车"),
-    ("机械", "机械"),
-    ("黄金", "有色"),
-    ("稀土", "有色"),
-    ("有色", "有色"),
-    ("铜", "有色"),
-    ("铝", "有色"),
-    ("甲醇", "化工"),
-    ("尿素", "化工"),
-    ("染料", "化工"),
-    ("化工", "化工"),
-    ("医药", "医药"),
-    ("创新药", "医药"),
-    ("中药", "医药"),
-    ("医疗", "医药"),
-    ("农业", "农业"),
-    ("猪肉", "农业"),
-    ("环保", "环保"),
-    ("石油", "石油"),
-    ("油气", "石油"),
-    ("煤炭", "煤炭"),
-    ("地产", "地产"),
-    ("房地产", "地产"),
-    ("基建", "基建"),
-    ("建筑", "基建"),
-    ("金融", "金融"),
-    ("券商", "金融"),
-    ("银行", "金融"),
-    ("传媒", "传媒"),
-    ("游戏", "传媒"),
-    ("影视", "传媒"),
-    ("软件", "软件"),
-    ("交运", "交运"),
-    ("航运", "交运"),
-    ("物流", "交运"),
-]
-
 THEME_ACCENTS: dict[str, str] = {
     "商业航天": "coral",
     "AI应用": "amber",
@@ -388,29 +267,6 @@ def get_available_dates() -> list[dict[str, Any]]:
         conn.close()
 
 
-def _match_topic_to_themes(topic: str, candidate_themes: list[str]) -> str | None:
-    if not topic or not candidate_themes:
-        return None
-    tset = set(candidate_themes)
-    if topic in tset:
-        return topic
-    for kw, mapped in TOPIC_TO_PURE_THEME:
-        if kw in topic and mapped in tset:
-            return mapped
-    return None
-
-
-def _clean_kpl_reason(raw: str | None) -> str:
-    if not raw:
-        return ""
-    s = _clean_text(raw)
-    # Remove redundant leading "概念1+概念2；" prefix if present
-    parts = re.split(r"[；;]", s, maxsplit=1)
-    if len(parts) == 2 and len(parts[0]) <= 24:
-        s = parts[1].strip()
-    return s[:220]
-
-
 def get_day_payload(date: str | None = None) -> dict[str, Any]:
     conn = _conn()
     try:
@@ -429,7 +285,8 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
 
         pool_rows = conn.execute(
             """
-            SELECT *
+            SELECT trade_date, code, name, board_height, boards_desc,
+                   first_limit_time, amount_yi, turnover_rate, is_one_word, is_fanbao
             FROM daily_limit_pool
             WHERE trade_date = ?
             ORDER BY board_height DESC, is_one_word DESC, first_limit_time ASC, amount_yi DESC, code ASC
@@ -510,8 +367,12 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
         raw_stocks: dict[str, dict[str, Any]] = {}
         theme_members: dict[str, list[str]] = defaultdict(list)
         theme_multi: dict[str, int] = defaultdict(int)
+        theme_core_multi: dict[str, float] = defaultdict(float)
+        theme_core_total: dict[str, float] = defaultdict(float)
         theme_one_word: dict[str, int] = defaultdict(int)
         theme_max_h: dict[str, int] = defaultdict(int)
+        stock_theme_pct: dict[str, dict[str, float | None]] = defaultdict(dict)
+        stock_dyn_themes: dict[str, set[str]] = defaultdict(set)
 
         for r in pool_rows:
             code = r["code"]
@@ -530,6 +391,8 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 if t and t not in seen_t:
                     seen_t.add(t)
                     themes.append(t)
+                    stock_dyn_themes[code].add(t)
+                    stock_theme_pct[code][t] = None
                     evidences.append(
                         {
                             "theme": t,
@@ -543,12 +406,12 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 if t and t not in seen_t:
                     seen_t.add(t)
                     themes.append(t)
+                    pct_val = round(float(s["revenue_pct"]), 1) if s["revenue_pct"] is not None else None
+                    stock_theme_pct[code][t] = pct_val
                     evidences.append(
                         {
                             "theme": t,
-                            "pct": round(float(s["revenue_pct"]), 1)
-                            if s["revenue_pct"] is not None
-                            else None,
+                            "pct": pct_val,
                             "text": _clean_text(s["evidence"]),
                         }
                     )
@@ -556,6 +419,8 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             if ma_list and "并购" not in seen_t:
                 seen_t.add("并购")
                 themes.append("并购")
+                stock_dyn_themes[code].add("并购")
+                stock_theme_pct[code]["并购"] = None
                 ma_summary = "；".join(
                     f"{m['event_type']}：{m['target_name']}" for m in ma_list[:2]
                 )
@@ -567,22 +432,22 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                     }
                 )
 
-            # Graceful fallback for older untagged historical dates
-            if not themes and r["kpl_topic"]:
-                fallback_t = _clean_text(r["kpl_topic"])
-                for kw, mapped in TOPIC_TO_PURE_THEME:
-                    if kw in fallback_t:
-                        fallback_t = mapped
-                        break
-                if fallback_t:
-                    themes.append(fallback_t)
-
             h = int(r["board_height"] or 1)
             is_ow = bool(r["is_one_word"])
             for t in themes:
                 theme_members[t].append(code)
+                pct_val = stock_theme_pct[code].get(t)
+                # Minor side-business (<25% revenue) gets lower weight so it doesn't inflate fake sector heat
+                if t in stock_dyn_themes[code]:
+                    w = 1.0
+                elif pct_val is not None:
+                    w = 1.0 if pct_val >= 35.0 else (0.65 if pct_val >= 15.0 else 0.25)
+                else:
+                    w = 0.6
+                theme_core_total[t] += w
                 if h >= 2:
                     theme_multi[t] += 1
+                    theme_core_multi[t] += w
                 if is_ow:
                     theme_one_word[t] += 1
                 if h > theme_max_h[t]:
@@ -628,19 +493,19 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                     }
                     for m in ma_list
                 ],
-                "kpl_topic": _clean_text(r["kpl_topic"]),
-                "intraday_reason": _clean_kpl_reason(r["kpl_reason"]),
                 "primary_theme": "",
             }
 
-        # Pure Super-Board intraday theme strength (NEVER blindly copying kpl_topic!)
+        # Pure Super-Board intraday theme strength (revenue-weighted so tiny side-businesses never inflate fake heat)
         def _theme_score(t: str) -> float:
-            broad_penalty = 0.65 if t in BROAD_BACKGROUND_L1 else 1.0
+            broad_penalty = 0.68 if t in BROAD_BACKGROUND_L1 else 1.0
+            news_bonus = 24.0 if t in theme_news_map else 0.0
             return (
-                theme_max_h[t] * 4.5
-                + theme_one_word[t] * 4.0
-                + theme_multi[t] * 5.0
-                + len(theme_members[t]) * 1.6
+                news_bonus
+                + theme_max_h[t] * 3.5
+                + theme_one_word[t] * 3.5
+                + theme_core_multi[t] * 6.5
+                + theme_core_total[t] * 2.2
             ) * broad_penalty
 
         # Pass 2: build Top Catalyst Cards FIRST from daily_hot_news + pure Super-Board ladders
@@ -773,9 +638,9 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             broad_factor = 0.62 if (t in BROAD_BACKGROUND_L1 and not news_list) else 1.0
             score = (
                 (28.0 + news_hits * 3.0 if news_list else 0.0)
-                + multi_cnt * 5.0
-                + max_h * 3.5
-                + len(codes_t) * 1.4
+                + theme_core_multi[t] * 6.5
+                + max_h * 3.0
+                + theme_core_total[t] * 2.0
                 - best_rank * 0.5
             ) * broad_factor
             return {
@@ -834,8 +699,10 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 c_item["event_rank"] = idx
 
         # Pass 3: Pick each stock's SINGLE intraday hot theme (`primary_theme`) strictly from
-        # its OWN verified Super-Board themes ranked by TODAY'S pure market fermentation
-        # (never letting KaiPanLa's arbitrary daily kpl_topic override today's real mainline!)
+        # its OWN verified Super-Board themes:
+        #   - Respects real intraday catalyzed mainlines (Top-2 Red/Orange or news-backed themes)
+        #   - Never lets a cold non-news minor side-business (<25% revenue, e.g. 赤天化 7.6% 医药)
+        #     override the stock's own dominant core business (e.g. 赤天化 90% 化工)!
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
             if not own_themes:
@@ -843,16 +710,45 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
                 st["primary_accent"] = "slate"
                 continue
 
-            # If a stock has a theme in today's active Catalyst ranking, ALWAYS pick the hottest one!
-            ranked_owned = [t for t in own_themes if t in theme_heat_rank]
-            if ranked_owned:
-                chosen = min(ranked_owned, key=lambda t: (theme_heat_rank[t], -_theme_score(t)))
-            else:
-                # Otherwise pick the hottest pure theme among its verified themes (preferring non-broad L1 with >=2 peers, else highest revenue_pct)
-                multi_owned = [t for t in own_themes if len(theme_members[t]) >= 2]
-                pool_t = multi_owned or own_themes
-                chosen = max(pool_t, key=_theme_score)
+            def _stock_theme_priority(t: str) -> float:
+                rank = theme_heat_rank.get(t, 99)
+                has_news = t in theme_news_map
+                is_dyn = t in stock_dyn_themes[code]
+                pct = stock_theme_pct[code].get(t)
 
+                # Base market heat of this theme today
+                if rank == 1:
+                    market_pts = 108.0
+                elif rank == 2:
+                    market_pts = 84.0
+                elif has_news and rank <= 6:
+                    market_pts = 72.0 - rank * 2.0
+                elif has_news:
+                    market_pts = 56.0
+                elif rank <= 10:
+                    market_pts = 36.0 - rank * 1.5
+                else:
+                    market_pts = min(20.0, theme_core_total[t] * 2.0)
+
+                # Company-level conviction (core main business vs small side-business)
+                if pct is not None:
+                    if pct >= 60.0:
+                        company_pts = 26.0
+                    elif pct >= 35.0:
+                        company_pts = 16.0
+                    elif pct >= 15.0:
+                        company_pts = 6.0
+                    else:
+                        company_pts = -16.0  # tiny <15% side-business cannot hijack main business unless top mainline
+                elif is_dyn:
+                    # Active cross-sector dynamic theme (e.g. 商业航天 / 海洋经济 / AI应用 / 并购)
+                    company_pts = 12.0
+                else:
+                    company_pts = 6.0
+
+                return market_pts + company_pts
+
+            chosen = max(own_themes, key=_stock_theme_priority)
             st["primary_theme"] = chosen
             st["primary_accent"] = _accent_for(chosen)
 
@@ -904,7 +800,6 @@ def get_day_payload(date: str | None = None) -> dict[str, Any]:
             else:
                 st["best_heat_rank"] = pt_rank
             st["primary_heat_rank"] = pt_rank
-            st.pop("kpl_topic", None)
 
         # Build ladder tiers (>=2板) & first_boards (1板)
         tiers_map: dict[int, list[str]] = defaultdict(list)
