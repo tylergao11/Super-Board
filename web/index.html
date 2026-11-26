@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#FFFFFF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>SUPER-BOARD</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div id="viewport-frame">
+    <!-- Tier 1: Editorial Warm-Paper Primary Mobile Surface -->
+    <div id="app-shell" class="app-shell">
+      <header class="topbar">
+        <div class="topbar-left">
+          <span class="brand-seal" aria-hidden="true">板</span>
+          <span class="brand-name">SUPER-BOARD</span>
+        </div>
+
+        <div class="date-stepper">
+          <button id="date-prev" class="step-btn" type="button" aria-label="上一交易日">
+            <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
+              <path d="M7.5 2.5L4 6L7.5 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button id="date-btn" class="date-pill" type="button" aria-label="切换交易日">
+            <span id="date-label">--.--</span>
+            <svg class="chev" viewBox="0 0 12 12" width="10" height="10" fill="none">
+              <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button id="date-next" class="step-btn" type="button" aria-label="下一交易日">
+            <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
+              <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <main id="main-layout" class="main-layout">
+        <!-- Upper Pane: Independently Scrollable Intraday Catalysts -->
+        <section class="catalyst-pane" aria-label="今日催化">
+          <div class="section-head">
+            <h2 class="section-title">今日催化</h2>
+            <span id="catalyst-count" class="section-meta"></span>
+          </div>
+          <div class="catalyst-scroll-wrap">
+            <div id="catalyst-list" class="catalyst-scroll"></div>
+            <div id="catalyst-fade" class="pane-bottom-fade" aria-hidden="true"></div>
+          </div>
+        </section>
+
+        <!-- Lower Pane: Independently Scrollable Consecutive-Board Ladder -->
+        <section class="ladder-pane" aria-label="连板梯队">
+          <div class="section-head ladder-head">
+            <h2 class="section-title">连板梯队</h2>
+            <div id="market-mood" class="market-mood"></div>
+          </div>
+          <div id="ladder-scroll" class="ladder-scroll">
+            <div id="ladder-list" class="ladder-list"></div>
+
+            <!-- Compact Expandable First Boards -->
+            <div id="first-board-wrap" class="first-board-wrap">
+              <button id="first-board-toggle" class="first-board-trigger" type="button">
+                <span class="fb-left">
+                  <span class="fb-label">首板</span>
+                  <span id="fb-count" class="fb-count">0</span>
+                </span>
+                <svg class="fb-chev" viewBox="0 0 12 12" width="12" height="12" fill="none">
+                  <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div id="first-board-grid" class="first-board-grid"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Tier 2: Editorial Bottom Sheet Modal -->
+    <div id="sheet-backdrop" class="sheet-backdrop" aria-hidden="true"></div>
+    <section id="sheet-container" class="sheet-container" role="dialog" aria-modal="true" aria-hidden="true">
+      <div id="sheet-drag-zone" class="sheet-drag-zone">
+        <div class="sheet-handle"></div>
+      </div>
+      <div id="sheet-header" class="sheet-header"></div>
+      <div id="sheet-body" class="sheet-body"></div>
+    </section>
+
+    <!-- Compact Date Picker Sheet -->
+    <div id="date-backdrop" class="sheet-backdrop date-backdrop" aria-hidden="true"></div>
+    <section id="date-sheet" class="date-sheet" role="dialog" aria-modal="true" aria-hidden="true">
+      <div class="sheet-drag-zone">
+        <div class="sheet-handle"></div>
+      </div>
+      <div class="date-sheet-head">
+        <span>交易日</span>
+        <button id="date-close" class="sheet-close-btn" type="button" aria-label="关闭">×</button>
+      </div>
+      <div id="date-list" class="date-list"></div>
+    </section>
+  </div>
+
+  <script src="./app.js" defer></script>
+</body>
+</html>

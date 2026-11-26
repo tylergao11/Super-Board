@@ -1,0 +1,1620 @@
+/* ==========================================================================
+   SUPER-BOARD · Crisp Swiss Neutral Gallery Design System (Mobile-First)
+   纯白画廊底 × 极简冰灰架构 × 碳黑字 × 红(最强) / 橙(次强)
+   ========================================================================== */
+
+:root {
+  /* Pure Achromatic Gallery White & Cool Mist Surfaces (ZERO yellow/cream!) */
+  --bg-outer: #eceef2;
+  --bg-paper: #ffffff;
+  --bg-card: #f5f6f8;
+  --bg-card-hover: #eef0f4;
+  --bg-card-subtle: #f7f8fa;
+  --bg-sheet: #ffffff;
+
+  /* Razor-Crisp Neutral Hairlines */
+  --line-hair: #eceef2;
+  --line-mid: #e2e5ec;
+  --line-strong: #cdd2dc;
+
+  /* High-Contrast Carbon Typography Scale */
+  --ink-primary: #111318;
+  --ink-secondary: #4b5262;
+  --ink-muted: #7c8496;
+  --ink-faint: #a3aab8;
+
+  /* Fermentation Heat Hierarchy (#1 Red, #2 Orange, #3+ Clean Carbon) */
+  --heat-1: #dc2626;          /* 日内最强发酵 · 正红 */
+  --heat-1-bg: #fef4f4;
+  --heat-1-line: rgba(220, 38, 38, 0.22);
+
+  --heat-2: #ea670c;          /* 日内第二发酵 · 亮橙 */
+  --heat-2-bg: #fff7f0;
+  --heat-2-line: rgba(234, 103, 12, 0.24);
+
+  --heat-n: #1f2430;
+  --heat-n-bg: #f5f6f8;
+  --heat-n-line: #e2e5ec;
+
+  /* 一字 Stamp (Crisp carbon badge — never dyes card red) */
+  --ow-ink: #111318;
+  --ow-bg: #e9ecf1;
+  --ow-line: #d4d8e1;
+
+  /* Clean Flat Elevation */
+  --shadow-card: none;
+  --shadow-card-active: none;
+  --shadow-sheet: 0 -14px 44px rgba(15, 19, 28, 0.14);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Fonts */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC",
+    "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg-outer);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.42;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* Mobile-First Portrait Frame (full bleed on phones <= 460px) */
+#viewport-frame {
+  position: relative;
+  width: 100%;
+  max-width: 430px;
+  height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg-paper);
+  overflow: hidden;
+}
+
+@media (min-width: 461px) {
+  #viewport-frame {
+    border-left: 1px solid var(--line-mid);
+    border-right: 1px solid var(--line-mid);
+    box-shadow: 0 16px 60px rgba(15, 20, 32, 0.08);
+  }
+}
+
+/* ==========================================================================
+   Tier 1 Surface & Layered Recede Animation
+   ========================================================================== */
+
+.app-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--bg-paper);
+  transform-origin: center top;
+  transition:
+    transform 420ms var(--ease-spring),
+    border-radius 420ms var(--ease-spring),
+    filter 420ms var(--ease-spring);
+  will-change: transform;
+}
+
+.app-shell.receded {
+  transform: scale(0.955) translateY(6px);
+  border-radius: 18px;
+  filter: brightness(0.92);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Editorial Top Masthead */
+.topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: calc(11px + var(--safe-top)) 15px 10px;
+  border-bottom: 1px solid var(--line-hair);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 10;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.brand-seal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: var(--ink-primary);
+  color: var(--bg-paper);
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.brand-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.11em;
+  color: var(--ink-primary);
+}
+
+/* Prev / Date / Next Trading-Day Stepper */
+.date-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.step-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), opacity 160ms ease, border-color 160ms ease;
+}
+
+.step-btn:active:not(:disabled) {
+  transform: scale(0.92);
+  border-color: var(--line-strong);
+}
+
+.step-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+  border-color: var(--line-hair);
+  background: transparent;
+}
+
+.date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  font-size: 11.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), border-color 180ms ease;
+}
+
+.date-pill:active {
+  transform: scale(0.95);
+}
+
+.date-pill .chev {
+  color: var(--ink-muted);
+}
+
+/* Dual Independent Split-Scroll Layout (Upper Catalysts + Lower Ladder) */
+.main-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.section-head {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 15px 7px;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+
+.section-meta {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+
+/* ==========================================================================
+   Section 1: Independent Scrollable Catalyst Pane (上层独立上下滑动)
+   ========================================================================== */
+
+.catalyst-pane {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--line-mid);
+  background: var(--bg-paper);
+}
+
+.catalyst-scroll-wrap {
+  position: relative;
+  height: clamp(190px, 27dvh, 224px);
+}
+
+.catalyst-scroll {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 1px 15px 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.catalyst-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.pane-bottom-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 26px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 92%);
+  transition: opacity 200ms ease;
+}
+
+.pane-bottom-fade.at-end {
+  opacity: 0;
+}
+
+/* Lower Independent Scrollable Ladder Pane (下层独立上下滑动) */
+.ladder-pane {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ladder-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(28px + var(--safe-bottom));
+  scrollbar-width: none;
+}
+
+.ladder-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.catalyst-card {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px 10px 14px;
+  border-radius: 11px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 160ms var(--ease-spring),
+    box-shadow 160ms ease,
+    border-color 160ms ease;
+}
+
+.catalyst-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--line-mid);
+}
+
+.catalyst-card:active {
+  transform: scale(0.982);
+  box-shadow: var(--shadow-card-active);
+}
+
+/* Heat #1: 正红 (日内最强发酵) */
+.catalyst-card.heat-1 {
+  background: var(--heat-1-bg);
+  border-color: var(--heat-1-line);
+}
+
+.catalyst-card.heat-1::before {
+  background: var(--heat-1);
+}
+
+/* Heat #2: 亮橙 (日内第二发酵) */
+.catalyst-card.heat-2 {
+  background: var(--heat-2-bg);
+  border-color: var(--heat-2-line);
+}
+
+.catalyst-card.heat-2::before {
+  background: var(--heat-2);
+}
+
+.cat-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cat-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cat-rank-tag {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink-faint);
+  min-width: 15px;
+}
+
+.catalyst-card.heat-1 .cat-rank-tag {
+  color: var(--heat-1);
+}
+
+.catalyst-card.heat-2 .cat-rank-tag {
+  color: var(--heat-2);
+}
+
+.cat-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.catalyst-card.heat-1 .cat-name {
+  color: var(--heat-1);
+}
+
+.catalyst-card.heat-2 .cat-name {
+  color: var(--heat-2);
+}
+
+.cat-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cat-headline {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-secondary);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cat-leaders {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.cat-leader-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: rgba(17, 19, 24, 0.05);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.cat-leader-chip em {
+  font-style: normal;
+  font-size: 9.5px;
+  color: var(--ink-muted);
+}
+
+.cat-leader-chip .mini-ow {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: var(--ink-primary);
+  color: #ffffff;
+  line-height: 14px;
+}
+
+/* ==========================================================================
+   Section 2: Architectural Consecutive-Board Ladder + Market Mood
+   ========================================================================== */
+
+.ladder-head {
+  padding-top: 12px;
+  padding-bottom: 6px;
+}
+
+.market-mood {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.mood-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mood-chip b {
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.mood-chip.mood-warn b {
+  color: var(--heat-2);
+}
+
+.mood-chip.mood-hot b {
+  color: var(--heat-1);
+}
+
+.mood-dot {
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+
+/* Ladder Rows */
+.ladder-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0 15px;
+}
+
+.tier-row {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line-hair);
+  align-items: start;
+}
+
+.tier-row:first-child {
+  border-top-color: transparent;
+  padding-top: 4px;
+}
+
+.tier-axis {
+  padding-top: 10px;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  color: var(--ink-muted);
+  line-height: 1;
+}
+
+.tier-axis .axis-num {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink-secondary);
+}
+
+.tier-axis.peak .axis-num {
+  color: var(--ink-primary);
+}
+
+.tier-axis .axis-unit {
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--ink-muted);
+}
+
+.tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.tier-grid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Stock Cell — Clean White Tactile Card, 一字 Badge Only (NO red card dye!), Heat #1 Red / #2 Orange Theme Text */
+.stock-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  color: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 150ms var(--ease-spring),
+    border-color 180ms ease,
+    background 160ms ease;
+}
+
+.stock-cell:active {
+  transform: scale(0.968);
+  border-color: var(--line-strong);
+  background: var(--bg-card-hover);
+}
+
+.cell-main {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.cell-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Crisp Monochromatic Ink-Seal 一字 Badge (Clean, unmistakable, never dyes card red!) */
+.ow-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 4.5px;
+  border-radius: 3.5px;
+  background: var(--ink-primary);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* Trailing Intraday Hot Theme Label (Heat #1 Red, Heat #2 Orange, Other Muted Stone) */
+.cell-theme {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 72px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: right;
+}
+
+.cell-theme.heat-1 {
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.cell-theme.heat-2 {
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+/* Expandable First Boards (首板) */
+.first-board-wrap {
+  margin: 10px 15px 0;
+  border-top: 1px solid var(--line-hair);
+  padding-top: 10px;
+}
+
+.first-board-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card-subtle);
+  color: var(--ink-secondary);
+  cursor: pointer;
+  transition: background 180ms ease;
+}
+
+.first-board-trigger:active {
+  background: var(--bg-card);
+}
+
+.fb-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.fb-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.fb-count {
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.fb-ow-badge {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--ow-bg);
+  color: var(--ink-primary);
+}
+
+.fb-chev {
+  color: var(--ink-faint);
+  transition: transform 280ms var(--ease-spring);
+}
+
+.first-board-wrap.expanded .fb-chev {
+  transform: rotate(90deg);
+}
+
+.first-board-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  margin-top: 0;
+  transition:
+    max-height 380ms var(--ease-spring),
+    opacity 240ms ease,
+    margin-top 280ms var(--ease-spring);
+}
+
+.first-board-wrap.expanded .first-board-grid {
+  max-height: 3000px;
+  opacity: 1;
+  margin-top: 8px;
+}
+
+/* ==========================================================================
+   Tier 2: Editorial Bottom Sheet Modals (FLIP Convergence, ZERO SVG Lines)
+   ========================================================================== */
+
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 18, 26, 0.34);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 320ms var(--ease-out);
+  z-index: 40;
+}
+
+.sheet-backdrop.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sheet-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 90dvh;
+  max-height: calc(100dvh - 36px - var(--safe-top));
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px 22px 0 0;
+  background: var(--bg-sheet);
+  border-top: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-sheet);
+  transform: translate3d(0, 104%, 0);
+  transition: transform 440ms var(--ease-spring);
+  will-change: transform;
+  z-index: 50;
+  overflow: hidden;
+}
+
+.sheet-container.open {
+  transform: translate3d(0, 0, 0);
+}
+
+.sheet-container.dragging {
+  transition: none;
+}
+
+.sheet-drag-zone {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 5px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.sheet-handle {
+  width: 34px;
+  height: 4px;
+  border-radius: 999px;
+  background: #d5d9e2;
+}
+
+.sheet-header {
+  flex: 0 0 auto;
+  padding: 4px 16px 12px;
+  border-bottom: 1px solid var(--line-hair);
+  touch-action: none;
+}
+
+.sheet-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sheet-title-group {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.sheet-back-btn,
+.sheet-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 140ms var(--ease-out), border-color 160ms ease;
+}
+
+.sheet-back-btn:active,
+.sheet-close-btn:active {
+  transform: scale(0.92);
+  border-color: var(--line-strong);
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sheet-title.heat-1 {
+  color: var(--heat-1);
+}
+
+.sheet-title.heat-2 {
+  color: var(--heat-2);
+}
+
+.sheet-height-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #eceef2;
+  color: var(--ink-primary);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.sheet-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 5px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  flex-wrap: wrap;
+}
+
+.sheet-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 13px 16px calc(28px + var(--safe-bottom));
+}
+
+.sheet-body::-webkit-scrollbar {
+  display: none;
+}
+
+.modal-view {
+  animation: viewFadeSlide 280ms var(--ease-spring) both;
+}
+
+@keyframes viewFadeSlide {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   Modal View A: Theme Convergence Stage (屏蔽无关 · FLIP 动画汇聚)
+   ========================================================================== */
+
+.news-dispatch {
+  padding: 11px 13px;
+  border-radius: 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-hair);
+  border-left: 2.5px solid var(--ink-primary);
+  margin-bottom: 12px;
+}
+
+.news-dispatch.heat-1 {
+  border-left-color: var(--heat-1);
+  background: var(--heat-1-bg);
+  border-color: var(--heat-1-line);
+}
+
+.news-dispatch.heat-2 {
+  border-left-color: var(--heat-2);
+  background: var(--heat-2-bg);
+  border-color: var(--heat-2-line);
+}
+
+.news-item + .news-item {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line-hair);
+}
+
+.news-hl {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin-bottom: 2px;
+}
+
+.news-dt {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-secondary);
+}
+
+/* Bug-Free Drag-Scrollable Filter Rail inside Modal */
+.modal-filter-rail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0 12px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.modal-filter-rail.is-dragging {
+  cursor: grabbing;
+}
+
+.modal-filter-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.m-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 27px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: all 180ms var(--ease-out);
+}
+
+.m-pill:active {
+  transform: scale(0.95);
+}
+
+.m-pill.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.m-pill.heat-1.active {
+  background: var(--heat-1);
+  border-color: var(--heat-1);
+  color: #ffffff;
+}
+
+.m-pill.heat-2.active {
+  background: var(--heat-2);
+  border-color: var(--heat-2);
+  color: #ffffff;
+}
+
+.m-pill .p-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-faint);
+}
+
+.m-pill.heat-1 .p-dot {
+  background: var(--heat-1);
+}
+
+.m-pill.heat-2 .p-dot {
+  background: var(--heat-2);
+}
+
+.m-pill.active .p-dot {
+  background: #ffffff;
+}
+
+/* Converged Height Tiers (Zero SVG Lines, Pure FLIP Motion!) */
+.converge-tiers {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.c-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.c-tier-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.c-tier-head .h-tag {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--ink-primary);
+}
+
+.c-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.c-tier-grid.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Gap Divider */
+.c-gap-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  margin: -4px 0;
+}
+
+.c-gap-row::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1px dashed #dcdfe6;
+}
+
+.c-gap-pill {
+  position: relative;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--bg-sheet);
+  border: 1px solid var(--line-hair);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+/* Converged Stock Node Card (Clean White Tactile Card, FLIP-Ready) */
+.c-node {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 11px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  will-change: transform, opacity;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.c-node:active {
+  transform: scale(0.972);
+  border-color: var(--line-strong);
+}
+
+.c-node.entering {
+  animation: nodeConvergeIn 360ms var(--ease-spring) both;
+}
+
+@keyframes nodeConvergeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.c-node-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.c-node-name-wrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.c-node-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.c-node-time {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.c-node-sub {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.c-node-tags {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.c-mini-tag {
+  font-size: 10px;
+  padding: 1.5px 5.5px;
+  border-radius: 4px;
+  background: #eceef2;
+  color: var(--ink-secondary);
+}
+
+.c-mini-tag.heat-1 {
+  background: var(--heat-1-bg);
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.c-mini-tag.heat-2 {
+  background: var(--heat-2-bg);
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+.c-mini-tag.active-filter {
+  background: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   Modal View B: Stock Full-Profile & Multi-Theme Parallel Fermentation
+   ========================================================================== */
+
+.s-block {
+  margin-bottom: 16px;
+}
+
+.s-block-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin: 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.s-tag-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.s-theme-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: transform 150ms var(--ease-spring), border-color 180ms ease;
+}
+
+.s-theme-pill:active {
+  transform: scale(0.95);
+}
+
+.s-theme-pill.heat-1 {
+  background: var(--heat-1-bg);
+  border-color: var(--heat-1-line);
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.s-theme-pill.heat-2 {
+  background: var(--heat-2-bg);
+  border-color: var(--heat-2-line);
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+.s-theme-pill .cnt {
+  font-size: 10.5px;
+  color: var(--ink-muted);
+}
+
+.s-theme-pill.heat-1 .cnt {
+  color: rgba(207, 46, 35, 0.72);
+}
+
+.s-theme-pill.heat-2 .cnt {
+  color: rgba(217, 107, 20, 0.76);
+}
+
+/* Multi-Theme Parallel Lanes (Clean Architectural Cards — Zero SVG Blobs!) */
+.lanes-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.lane-card {
+  border-radius: 11px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-hair);
+  border-left: 2.5px solid var(--ink-secondary);
+  padding: 10px 12px;
+  box-shadow: var(--shadow-card);
+  animation: nodeConvergeIn 320ms var(--ease-spring) both;
+}
+
+.lane-card.heat-1 {
+  border-left-color: var(--heat-1);
+}
+
+.lane-card.heat-2 {
+  border-left-color: var(--heat-2);
+}
+
+.lane-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.lane-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.lane-card.heat-1 .lane-name {
+  color: var(--heat-1);
+}
+
+.lane-card.heat-2 .lane-name {
+  color: var(--heat-2);
+}
+
+.lane-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.lane-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lane-row {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+
+.lane-h {
+  flex: 0 0 24px;
+  font-size: 10.5px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.lane-peers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  flex: 1;
+}
+
+.peer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line-mid);
+  background: #ffffff;
+  color: var(--ink-primary);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), border-color 160ms ease;
+}
+
+.peer-chip:active {
+  transform: scale(0.95);
+}
+
+.peer-chip.is-resonance {
+  border-color: var(--heat-2-line);
+  background: var(--heat-2-bg);
+}
+
+.res-badge {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--heat-2);
+}
+
+.peer-more {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+  padding: 3px 4px;
+  cursor: pointer;
+}
+
+/* Factual Business & M&A Profile Cards */
+.ma-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-mid);
+  border-left: 2.5px solid var(--ink-primary);
+  margin-bottom: 8px;
+}
+
+.ma-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 3px;
+}
+
+.ma-badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.ma-date {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.ma-target {
+  font-size: 12px;
+  line-height: 1.48;
+  color: var(--ink-secondary);
+}
+
+.ev-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ev-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--line-hair);
+}
+
+.ev-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.ev-tag {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.ev-tag.heat-1 {
+  color: var(--heat-1);
+}
+
+.ev-tag.heat-2 {
+  color: var(--heat-2);
+}
+
+.ev-pct {
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-muted);
+}
+
+.ev-text {
+  font-size: 11.5px;
+  line-height: 1.58;
+  color: var(--ink-secondary);
+}
+
+/* ==========================================================================
+   Date Picker Sheet
+   ========================================================================== */
+
+.date-backdrop {
+  z-index: 60;
+}
+
+.date-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 66dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 22px 22px 0 0;
+  background: var(--bg-sheet);
+  box-shadow: var(--shadow-sheet);
+  transform: translate3d(0, 104%, 0);
+  transition: transform 380ms var(--ease-spring);
+  z-index: 70;
+  overflow: hidden;
+}
+
+.date-sheet.open {
+  transform: translate3d(0, 0, 0);
+}
+
+.date-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 16px 10px;
+  border-bottom: 1px solid var(--line-hair);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.date-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 8px 15px calc(22px + var(--safe-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  scrollbar-width: none;
+}
+
+.date-list::-webkit-scrollbar {
+  display: none;
+}
+
+.date-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.date-row.active {
+  border-color: var(--heat-1);
+  background: var(--heat-1-bg);
+}
+
+.date-row-left {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.date-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.empty-state {
+  padding: 32px 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.hidden {
+  display: none !important;
+}
