@@ -76,9 +76,8 @@ def _load_days_payload(target_date: str, month: str) -> list[dict]:
         if raw_p.exists():
             raw_doc = json.loads(raw_p.read_text(encoding="utf-8"))
             raw_items = raw_doc.get("items") or []
-            sum_lim = 80 if len(raw_items) > 120 else 180
             intraday_news = [
-                {"time": it.get("time", ""), "title": it.get("title", ""), "summary": (it.get("summary") or "")[:sum_lim]}
+                {"time": it.get("time", ""), "title": it.get("title", ""), "summary": it.get("summary") or ""}
                 for it in raw_items
             ]
         out.append(

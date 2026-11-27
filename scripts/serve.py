@@ -191,7 +191,7 @@ def _get_day_mood(date: str, zt_count: int, fetch_remote: bool = True) -> dict[s
             with urllib.request.urlopen(req, timeout=3.5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 tc = (data.get("data") or {}).get("tc")
-                if tc is not None:
+                if tc is not None and int(tc) > 0:
                     entry["zb_count"] = int(tc)
                     changed = True
         except Exception:
@@ -203,7 +203,7 @@ def _get_day_mood(date: str, zt_count: int, fetch_remote: bool = True) -> dict[s
 
     zb = entry.get("zb_count")
     zb_rate = None
-    if zb is not None and (zt_count + zb) > 0:
+    if zb is not None and int(zb) > 0 and (zt_count + zb) > 0:
         zb_rate = round(zb * 100.0 / (zt_count + zb), 1)
 
     return {
@@ -222,7 +222,7 @@ def _conn() -> sqlite3.Connection:
     return conn
 
 
-def get_available_dates() -> list[dict[str, Any]]:
+def get_available_dates(limit: int = 250) -> list[dict[str, Any]]:
     conn = _conn()
     try:
         news_counts = {
@@ -243,8 +243,9 @@ def get_available_dates() -> list[dict[str, Any]]:
             FROM daily_limit_pool d
             GROUP BY d.trade_date
             ORDER BY d.trade_date DESC
-            LIMIT 60
-            """
+            LIMIT ?
+            """,
+            (limit,),
         ).fetchall()
         out = []
         for r in rows:
@@ -949,7 +950,7 @@ def export_static_site(limit: int = 30) -> None:
     out_days.mkdir(parents=True, exist_ok=True)
     (WEB_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
-    all_dates = get_available_dates()[:limit]
+    all_dates = get_available_dates(limit=limit)[:limit]
     exported_dates: list[dict[str, Any]] = []
     for d_info in all_dates:
         dt = d_info["date"]

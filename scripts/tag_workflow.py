@@ -19,6 +19,7 @@ TAGGED_DIR.mkdir(parents=True, exist_ok=True)
 PREFIX = args.get("prefix", "day_latest") if "args" in dir() else "day_latest"
 WAVE_SIZE = int(args.get("wave_size", 40)) if "args" in dir() else 40
 MIN_TAG_DATE = str(args.get("min_tag_date", "2025-11-26")) if "args" in dir() else "2025-11-26"
+SKIP_COMPILE = bool(args.get("skip_compile", False)) if "args" in dir() else False
 
 OUTPUT_SCHEMA = {
     "type": "object",
@@ -77,7 +78,7 @@ RULES_PROMPT = f"""你是A股超短线全动态纯净题材库首席研判专家
 【绝对指令】本分片全部股票的完整未截断客观证据（含 F10 经营评述、核心题材、公告原文、近年涨停轨迹）已100%附在下方，**严禁调用任何工具（禁止 read_file / run_command 等）**，通读全文后一次性输出结构化 JSON！
 
 【Super-Board v2 全动态铁律：彻底废除静态/动态分裂，以“跨领域想象力（底层能力同源复用）”为第一性原理】
-1. `tags`（全动态纯净题材唯一列表，**单股严格 1~4 条，按当下市场核心度与近期催化强度从高到低排序**）：
+1. `tags`（全动态纯净题材唯一列表，**不设死板的 4 条上限：有几个实锤可炒的真逻辑就如实给几个，绝不人为硬砍真实题材，也绝不拿废话凑数；按当下市场核心度与近期催化强度从高到低排序**）：
    - **唯一允许词表（40 个标准词 + 盘面多股共振 `XX字辈`）**：
      - 25 个一级赛道：{json.dumps(TAXONOMY["l1_list"], ensure_ascii=False)}
      - 15 个跨界/字辈分组：{json.dumps(TAXONOMY["dynamic_groups"], ensure_ascii=False)}
@@ -101,7 +102,7 @@ RULES_PROMPT = f"""你是A股超短线全动态纯净题材库首席研判专家
    - 已完成并入 `tags`，已终止直接忽略不写；必写 `target_name`、`target_l1`（未定标的填 `null`）、`from_date`、`evidence`。
 
 3. 【唯一 4 条硬剔除红线（直接剔除不给标签）】
-   - **官方辟谣/彻底不涉及**：公告澄清明确否认无业务无合作（注意：不要凭免责声明“营收占比极低/不从事整机本体”误杀真实配套业务或参股/合作实体！）；
+   - **官方辟谣/彻底不涉及**：仅当公告明确斩钉截铁否认**“未开展、无相关技术储备、无相关布局打算、无任何合作关系”**时才剔除！**【严防被免责套话误杀】**：A股异动/风险提示公告极其喜欢写“当前某某业务无收入 / 占比极低 / 尚未形成规模销售 / 尚处于早期培育或研发阶段 / 对本年度业绩无重大影响 / 公司不直接从事整机本体”——**这绝不代表公司没在做或没打算做！**只要公司确有相关配套产品、研发试制、送样验证、产线适配、设立子公司/参股实体、战略合作或明确产业布局打算，**一律算【有】，绝不误杀！**
    - **纯买家内部赋能**：企业内部接 DeepSeek 写文案/客服/画图/辅助研发，或买机器人放自己仓库自用（不是“我的东西往外输出”）；
    - **纯行政/生活泛服务**：给发射场/机房盖办公楼食堂公寓、物业、办展、常规绿电直供、纯品牌经销代理；
    - **软件脏词与陈年僵尸**：业绩增长、超跌、ST摘帽、次新股、以及超 1 年毫无新进展与催化的陈年概念。
@@ -195,6 +196,9 @@ if failed:
     if still_bad:
         raise RuntimeError(f"Shards still failed after retry: {still_bad}")
 
-phase(f"Compile Super-Board v2 DB ({PREFIX})")
-summary = upsert_from_tagged(PREFIX)
-log("Compile done:", json.dumps(summary, ensure_ascii=False))
+if SKIP_COMPILE:
+    log(f"Skipping DB compile for {PREFIX} (skip_compile=True); tagged shards ready.")
+else:
+    phase(f"Compile Super-Board v2 DB ({PREFIX})")
+    summary = upsert_from_tagged(PREFIX)
+    log("Compile done:", json.dumps(summary, ensure_ascii=False))

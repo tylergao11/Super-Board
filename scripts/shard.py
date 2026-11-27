@@ -43,11 +43,10 @@ def _load_recent_pool(codes: list[str]) -> dict[str, list[dict[str, Any]]]:
         seen_topics: set[str] = set()
         for dt, bh, topic, reason, sname in rows:
             t = (topic or "").strip()
-            if t not in seen_topics or len(picked) < 3:
-                seen_topics.add(t)
-                picked.append({"date": dt, "height": bh, "topic": t, "reason": reason or "", "name": sname or ""})
-            if len(picked) >= 12:
-                break
+            if t not in seen_topics or len(picked) < 5 or dt >= "2025-11-26":
+                if t not in seen_topics or len(picked) < 5:
+                    seen_topics.add(t)
+                    picked.append({"date": dt, "height": bh, "topic": t, "reason": reason or "", "name": sname or ""})
         out[c] = picked
     conn.close()
     return out
@@ -71,14 +70,20 @@ def build_stock_evidence(code: str, pool_rows: list[dict[str, Any]], taxonomy: d
     if overseas_pct is None and annual_mix:
         overseas_pct = extract_overseas_pct(annual_mix.get("region"))
 
-    notices = [
-        {
-            "date": n.get("date"),
-            "title": n.get("title"),
-            "text": (n.get("full_text") or n.get("snippet") or "").strip(),
-        }
-        for n in ann.get("notices", [])
-    ]
+    NOISE_NOTICE_KWS = (
+        "三方监管", "四方监管", "监管协议", "专户", "可转债", "债券", "赎回",
+        "转股", "付息", "信用评级", "限售股", "解禁", "上市流通", "发行情况报告书",
+        "募集说明书", "上市公告书", "网下配售", "询价转让",
+    )
+    notices = []
+    for n in ann.get("notices", []):
+        title = str(n.get("title") or "")
+        if any(k in title for k in NOISE_NOTICE_KWS):
+            continue
+        txt = (n.get("full_text") or n.get("snippet") or "").strip()
+        notices.append({"date": n.get("date"), "title": title, "text": txt})
+        if len(notices) >= 5:
+            break
 
     pool_name = next((r.get("name") for r in pool_rows if r.get("name")), None)
     return {
@@ -111,8 +116,8 @@ def main() -> None:
     parser.add_argument("--date", type=str, default=None)
     parser.add_argument("--month", type=str, default=None)
     parser.add_argument("--prefix", type=str, required=True)
-    parser.add_argument("--shard-size", type=int, default=5)
-    parser.add_argument("--max-shard-bytes", type=int, default=110000)
+    parser.add_argument("--shard-size", type=int, default=10)
+    parser.add_argument("--max-shard-bytes", type=int, default=320000)
     args = parser.parse_args()
 
     SHARD_DIR.mkdir(parents=True, exist_ok=True)

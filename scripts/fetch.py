@@ -45,12 +45,18 @@ TITLE_EXCLUDE = (
     "保荐", "回购", "权益分派", "分红", "续聘", "理财", "现金管理", "银行授信",
     "日常关联交易", "关联交易预计", "诉讼", "仲裁", "政府补助", "募集资金存放",
     "管理制度", "制度", "工作细则", "章程", "议事规则",
+    "三方监管", "四方监管", "监管协议", "专户", "可转债", "债券", "赎回",
+    "转股", "付息", "信用评级", "限售股", "解禁", "上市流通", "发行情况报告书",
+    "募集说明书", "上市公告书", "网下配售", "询价转让", "财务报告", "备考", "摘要",
 )
 SIGNAL_REGEX = re.compile(
-    r"(不涉及|未涉及|未开展|无合作|未供货|无直接|无关联|终止|取消|占比|送样|探索|研发|尚未形成|未形成规模|重大影响|收购|重组|控制权|参股|股权|并表|过户)"
+    r"(不涉及|未涉及|未开展|无合作|未供货|无直接|无关联|终止|取消|占比|送样|探索|研发|布局|拓展|战略合作|合资|子公司|产线|验证|试产|订单|中标|定点|协议|尚未形成|未形成规模|重大影响|收购|重组|控制权|参股|股权|并表|过户)"
 )
 
 _THREAD_LOCAL = threading.local()
+_FITZ_LOCK = threading.Lock()
+_CNINFO_RATE_LOCK = threading.Lock()
+_CNINFO_LAST_TS = 0.0
 
 
 def _kpl_post(url: str, params: dict[str, Any]) -> dict[str, Any]:
@@ -424,13 +430,15 @@ def _extract_signal_windows(text: str, max_windows: int = 6, max_chars: int = 30
     return " | ".join(clean[s:e] for s, e in windows)[:max_chars]
 
 
-def _extract_pdf_text(pdf_bytes: bytes, max_pages: int = 10) -> str:
+def _extract_pdf_text(pdf_bytes: bytes, max_pages: int = 20) -> str:
     try:
         import fitz
 
-        doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-        parts = [page.get_text() for page in doc[:max_pages]]
-        doc.close()
+        with _FITZ_LOCK:
+            fitz.TOOLS.mupdf_display_errors(False)
+            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+            parts = [page.get_text() for page in doc[:max_pages]]
+            doc.close()
         return " ".join(parts)
     except Exception:
         return ""
@@ -454,42 +462,57 @@ def _load_org_map() -> dict[str, str]:
     return org_map
 
 
+def _cninfo_query_page(sess, stock_param: str, col: str, start_dt: str, end_dt: str, page_num: int) -> dict[str, Any] | None:
+    global _CNINFO_LAST_TS
+    for attempt in range(4):
+        with _CNINFO_RATE_LOCK:
+            now = time.monotonic()
+            wait = 0.48 - (now - _CNINFO_LAST_TS)
+            if wait > 0:
+                time.sleep(wait)
+            _CNINFO_LAST_TS = time.monotonic()
+        try:
+            r = sess.post(
+                "https://www.cninfo.com.cn/new/hisAnnouncement/query",
+                data={
+                    "stock": stock_param, "tabName": "fulltext", "pageSize": 30, "pageNum": page_num,
+                    "column": col, "category": "", "searchkey": "", "seDate": f"{start_dt}~{end_dt}", "isHLtitle": "false",
+                },
+                headers={"X-Requested-With": "XMLHttpRequest", "Referer": "https://www.cninfo.com.cn/"},
+                timeout=(8, 15),
+            )
+            if r.status_code in (403, 429):
+                time.sleep(2.5 * (attempt + 1))
+                continue
+            r.raise_for_status()
+            return r.json()
+        except Exception:
+            time.sleep(1.2 * (attempt + 1))
+    return None
+
+
 def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) -> dict[str, Any]:
     path = ANN_DIR / f"{code}.json"
     if path.exists() and not refresh:
         try:
             cached = json.loads(path.read_text(encoding="utf-8"))
             if cached.get("ann_status") == "ok":
-                return cached
+                ns = cached.get("notices") or []
+                if not ns or all((n.get("full_text") or "").strip() for n in ns):
+                    return cached
         except Exception:
             pass
     sess = _get_session()
     end_dt = datetime.now().strftime("%Y-%m-%d")
     start_dt = (datetime.now() - timedelta(days=730)).strftime("%Y-%m-%d")
+    one_yr_ago = (datetime.now() - timedelta(days=380)).strftime("%Y-%m-%d")
     col = "sse" if code.startswith(("6", "9")) else ("szse" if code.startswith(("0", "3")) else "bj")
     org_id = org_map.get(code, "")
     stock_param = f"{code},{org_id}" if org_id else code
 
     anns: list[dict[str, Any]] = []
     for page_num in (1, 2):
-        page_resp: dict[str, Any] | None = None
-        for attempt in range(4):
-            try:
-                time.sleep(0.18 * (attempt + 1))
-                r = sess.post(
-                    "https://www.cninfo.com.cn/new/hisAnnouncement/query",
-                    data={
-                        "stock": stock_param, "tabName": "fulltext", "pageSize": 30, "pageNum": page_num,
-                        "column": col, "category": "", "searchkey": "", "seDate": f"{start_dt}~{end_dt}", "isHLtitle": "false",
-                    },
-                    headers={"X-Requested-With": "XMLHttpRequest", "Referer": "https://www.cninfo.com.cn/"},
-                    timeout=15,
-                )
-                r.raise_for_status()
-                page_resp = r.json()
-                break
-            except Exception:
-                time.sleep(0.8 * (2 ** attempt))
+        page_resp = _cninfo_query_page(sess, stock_param, col, start_dt, end_dt, page_num)
         if page_resp is None:
             if page_num == 1:
                 return {"code": code, "ann_status": "error", "notices": []}
@@ -498,11 +521,18 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
         anns.extend(batch)
         if len(batch) < 30:
             break
+        last_ts = batch[-1].get("announcementTime")
+        if isinstance(last_ts, (int, float)):
+            last_dt = datetime.fromtimestamp(last_ts / 1000.0).strftime("%Y-%m-%d")
+            if last_dt < one_yr_ago:
+                break
 
     candidates: list[dict[str, Any]] = []
     for a in anns:
         title = re.sub(r"<[^>]+>", "", str(a.get("announcementTitle") or "")).strip()
         if any(bad in title for bad in TITLE_EXCLUDE) or not any(kw in title for kw in TITLE_INCLUDE):
+            continue
+        if "财务报告" in title or "备考" in title or "摘要" in title:
             continue
         ts = a.get("announcementTime")
         dt = datetime.fromtimestamp(ts / 1000.0).strftime("%Y-%m-%d") if isinstance(ts, (int, float)) else ""
@@ -517,13 +547,14 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
     seen_titles: set[str] = set()
     for c in candidates:
         st = c["title"][:24]
-        if st in seen_titles and len(candidates) > 6:
+        if st in seen_titles and len(candidates) > 5:
             continue
         seen_titles.add(st)
         selected.append(c)
-        if len(selected) >= 8:
+        if len(selected) >= 5:
             break
 
+    pdf_failures = 0
     for item in selected:
         adj = item.get("adjunct_url") or ""
         if not adj.lower().endswith(".pdf"):
@@ -531,24 +562,30 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
             continue
         pdf_url = "https://static.cninfo.com.cn/" + adj.lstrip("/")
         raw_txt = ""
-        for _ in range(2):
+        got_pdf = False
+        for attempt in range(3):
             try:
-                pr = sess.get(pdf_url, timeout=18)
+                pr = sess.get(pdf_url, timeout=(8, 15))
                 if pr.status_code == 200 and pr.content[:4] == b"%PDF":
-                    raw_txt = _extract_pdf_text(pr.content, max_pages=10)
+                    got_pdf = True
+                    raw_txt = _extract_pdf_text(pr.content, max_pages=20)
                     break
             except Exception:
-                time.sleep(0.4)
+                time.sleep(0.5 * (attempt + 1))
+        if not got_pdf:
+            pdf_failures += 1
         clean_txt = re.sub(r"[ \t]+", " ", raw_txt).strip()
-        if len(clean_txt) > 8000:
-            item["full_text"] = clean_txt[:4500] + "\n...[中间略]...\n" + _extract_signal_windows(clean_txt[4500:])
+        if len(clean_txt) > 18000:
+            item["full_text"] = clean_txt[:10000] + "\n...[中间略]...\n" + _extract_signal_windows(clean_txt[10000:], max_windows=12, max_chars=8000)
         else:
             item["full_text"] = clean_txt
 
-    doc = {"code": code, "source": "cninfo", "ann_status": "ok", "notices": selected}
-    tmp = path.with_suffix(".json.tmp")
-    tmp.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    tmp.replace(path)
+    status = "ok" if pdf_failures == 0 else "partial"
+    doc = {"code": code, "source": "cninfo", "ann_status": status, "notices": selected}
+    if status == "ok":
+        tmp = path.with_suffix(".json.tmp")
+        tmp.write_text(json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        tmp.replace(path)
     return doc
 
 
@@ -565,10 +602,14 @@ def fetch_evidence_cmd(codes: list[str], f10_only: bool = False, refresh: bool =
         need = codes if refresh else [c for c in codes if not (ANN_DIR / f"{c}.json").exists()]
         if need:
             org_map = _load_org_map()
-            with ThreadPoolExecutor(max_workers=3) as ex:
+            done_cnt = 0
+            with ThreadPoolExecutor(max_workers=4) as ex:
                 for fut in as_completed([ex.submit(fetch_ann_cninfo, c, org_map, refresh) for c in need]):
+                    done_cnt += 1
                     if fut.result().get("ann_status") == "ok":
                         ann_ok += 1
+                    if done_cnt % 50 == 0 or done_cnt == len(need):
+                        print(f"[ann progress] {done_cnt}/{len(need)} (ok={ann_ok})", flush=True)
         ann_ok += len(codes) - len(need)
     print(json.dumps({"total": len(codes), "f10_ok": f10_ok, "ann_ok": ann_ok if not f10_only else "skipped"}, ensure_ascii=False))
 
@@ -585,7 +626,16 @@ def _prev_trade_day(day: str) -> str:
     return (dt - timedelta(days=delta)).isoformat()
 
 
-def fetch_intraday_news(day: str, max_pages: int = 30) -> Path:
+def fetch_intraday_news(day: str, max_pages: int = 30, refresh: bool = False) -> Path:
+    NEWS_RAW_DIR.mkdir(parents=True, exist_ok=True)
+    out_p = NEWS_RAW_DIR / f"{day}.json"
+    if out_p.exists() and not refresh:
+        try:
+            doc = json.loads(out_p.read_text(encoding="utf-8"))
+            if doc.get("trade_date") == day and doc.get("count", 0) > 0:
+                return out_p
+        except Exception:
+            pass
     prev_day = _prev_trade_day(day)
     start_ts = f"{prev_day} 15:00:00"
     end_ts = f"{day} 15:00:00"

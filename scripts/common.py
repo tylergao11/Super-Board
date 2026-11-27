@@ -316,10 +316,8 @@ def validate_record(
 
     tags = rec.get("tags")
     if not isinstance(tags, list) or not tags:
-        errors.append(f"{code}: tags must be non-empty list (1..4 unified dynamic tags)")
+        errors.append(f"{code}: tags must be non-empty list (unified dynamic tags)")
         tags = []
-    elif len(tags) > 4:
-        errors.append(f"{code}: tags count={len(tags)} > 4 limit")
 
     seen_tags: set[str] = set()
     for idx, item in enumerate(tags):

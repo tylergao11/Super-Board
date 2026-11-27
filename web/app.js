@@ -535,8 +535,7 @@
           peers,
         };
       })
-      .filter(Boolean)
-      .slice(0, 4);
+      .filter(Boolean);
 
     const peerAppearances = {};
     for (const lane of activeLanes) {
