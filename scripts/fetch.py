@@ -16,6 +16,7 @@ from typing import Any
 
 from build_db import ensure_db
 from common import DB_PATH, ROOT, ULTRA_BOARD_RAW, clean_stock_name
+from driver_rules import is_core_stock
 
 SHANGHAI_TZ = timezone(timedelta(hours=8))
 F10_DIR = ROOT / "data/raw_f10"
@@ -727,9 +728,10 @@ def fetch_ann_day(day: str, refresh: bool = False) -> Path:
     codes = [
         r[0]
         for r in conn.execute(
-            "SELECT DISTINCT code FROM daily_limit_pool WHERE trade_date=? ORDER BY code",
+            "SELECT code, board_height, is_fanbao, boards_desc FROM daily_limit_pool WHERE trade_date=? ORDER BY code",
             (day,),
         ).fetchall()
+        if is_core_stock(r[1], r[2], r[3])
     ]
     conn.close()
     prev_day = _prev_trade_day(day)
@@ -790,7 +792,20 @@ def fetch_kline_one(code: str, start_dt: str = "2026-05-01", end_dt: str = "2026
             node = (body.get("data") or {}).get(sc) or {}
             rows = node.get("qfqday") or node.get("day") or []
             days = [[str(r[0]), float(r[2])] for r in rows if isinstance(r, list) and len(r) >= 3]
+            # Append today's quote close if fqkline CDN hasn't propagated the latest bar yet
             if days:
+                try:
+                    q_req = urllib.request.Request(f"https://qt.gtimg.cn/q={sc}", headers={"User-Agent": "Mozilla/5.0"})
+                    with urllib.request.urlopen(q_req, timeout=5) as qr:
+                        q_txt = qr.read().decode("gbk", errors="ignore")
+                    parts = q_txt.split("~")
+                    if len(parts) > 31 and parts[3] and len(parts[30]) >= 8:
+                        q_dt = f"{parts[30][:4]}-{parts[30][4:6]}-{parts[30][6:8]}"
+                        q_px = float(parts[3])
+                        if q_px > 0 and q_dt > days[-1][0] and q_dt <= end_dt:
+                            days.append([q_dt, q_px])
+                except Exception:
+                    pass
                 tmp = out_p.with_suffix(".json.tmp")
                 tmp.write_text(json.dumps({"code": code, "days": days}, ensure_ascii=False), encoding="utf-8")
                 tmp.replace(out_p)

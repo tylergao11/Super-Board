@@ -91,6 +91,8 @@ NEWS_EVENT_SHORT_TITLES: list[tuple[str, str, str]] = [
     ("冰雪", "消费", "rose"),
     ("灵顺寺", "消费", "rose"),
     ("零售", "消费", "rose"),
+    ("平准", "平准稳市", "coral"),
+    ("稳市", "平准稳市", "coral"),
     ("回购", "回购催化", "amber"),
     ("关税", "贸易催化", "ochre"),
     ("301", "贸易催化", "ochre"),

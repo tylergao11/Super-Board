@@ -16,7 +16,6 @@
   const elDateNext = $("date-next");
   const elDateBtn = $("date-btn");
   const elDateLabel = $("date-label");
-  const elCatCount = $("catalyst-count");
   const elCatList = $("catalyst-list");
   const elCatFade = $("catalyst-fade");
   const elMarketMood = $("market-mood");
@@ -233,7 +232,6 @@
   function catalystCardHtml(c, idx) {
     const hCls = heatCls(c.heat_rank);
     const rankNum = String(idx + 1).padStart(2, "0");
-    const leadMeta = c.max_height >= 2 ? `${c.max_height}板 · ${c.total}只` : `反包 · ${c.total}只`;
 
     const leadersHtml = (c.leaders || [])
       .slice(0, 3)
@@ -251,12 +249,6 @@
             <span class="cat-rank-tag">${rankNum}</span>
             <span class="cat-name">${esc(c.title)}</span>
           </span>
-          <span class="cat-stat">
-            ${leadMeta}
-            <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
-              <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </span>
         </div>
         <div class="cat-headline">${esc(c.headline)}</div>
         <div class="cat-leaders">${leadersHtml}</div>
@@ -272,7 +264,6 @@
 
   function renderCatalysts() {
     const cats = state.day.catalysts || [];
-    elCatCount.textContent = cats.length ? `${cats.length} 条` : "";
     if (!cats.length) {
       elCatList.innerHTML = `<div class="empty-state">暂无催化</div>`;
       updateCatalystFade();
@@ -472,8 +463,6 @@
     const d = state.day;
     const hCls = heatCls(ctx.heatRank);
     const allStocks = ctx.codes.map((c) => d.stocks[c]).filter(Boolean);
-    const multiCnt = allStocks.filter((s) => s.height >= 2).length;
-    const fanbaoCnt = allStocks.length - multiCnt;
 
     const hasBack = state.modalStack.length > 1;
     elSheetHeader.innerHTML = `
@@ -483,11 +472,6 @@
           <h3 class="sheet-title ${hCls}">${esc(ctx.title)}</h3>
         </div>
         <button class="sheet-close-btn" id="modal-close" type="button" aria-label="关闭">×</button>
-      </div>
-      <div class="sheet-stats">
-        <span>共 ${allStocks.length} 只</span>
-        <span>连板 ${multiCnt}</span>
-        ${fanbaoCnt > 0 ? `<span>反包 ${fanbaoCnt}</span>` : ""}
       </div>
     `;
 
@@ -561,7 +545,6 @@
         <div class="c-tier">
           <div class="c-tier-head">
             <span class="h-tag">${h === 1 ? "反包" : `${h}板`}</span>
-            <span>${list.length}只</span>
           </div>
           <div class="c-tier-grid ${gridCls}">
             ${nodesHtml}
@@ -721,12 +704,6 @@
                   <div class="lane-card ${lane.heatCls}" style="animation-delay:${lIdx * 45}ms">
                     <div class="lane-head" data-jump-theme="${esc(lane.theme)}">
                       <span class="lane-name">${esc(lane.theme)}</span>
-                      <span class="lane-meta">
-                        连${lane.multi}${lane.first > 0 ? ` · 反${lane.first}` : ""}
-                        <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
-                          <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                      </span>
                     </div>
                     <div class="lane-rows">${rowsHtml}</div>
                   </div>
@@ -777,17 +754,13 @@
         : st.display_source === "main"
           ? `主业 · 主位 ${st.primary_theme}`
           : "";
-    const drv2Tag = st.driver2
-      ? `<span class="ev-tag ${themeHeatCls(st.driver2)}">副 · ${esc(st.driver2)}</span>`
-      : "";
     const driverHtml = st.driver
       ? `<div class="s-block">
            <h4 class="s-block-title"><span>今日驱动</span>${srcNote ? `<span>${esc(srcNote)}</span>` : ""}</h4>
            <div class="ev-item">
              <div class="ev-head">
                <span class="ev-tag ${themeHeatCls(st.driver)}">${esc(st.driver)}</span>
-               ${drv2Tag}
-               ${st.driver_basis_type ? `<span class="ev-pct">${esc(st.driver_basis_type)}</span>` : ""}
+               ${st.driver_basis_type ? `<span class="ev-pct">${esc(({ news: "消息", continue: "延续", resonance: "共振", main: "主业", prev: "沿用", llm: "研判", rule: "规则" })[st.driver_basis_type] || st.driver_basis_type)}</span>` : ""}
              </div>
              ${st.driver_basis ? `<div class="ev-text">${esc(st.driver_basis)}</div>` : ""}
            </div>

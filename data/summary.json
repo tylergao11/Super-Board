@@ -3,9 +3,9 @@
   "total_stocks": 2639,
   "total_tag_assignments": 7533,
   "avg_tags_per_stock": 2.85,
-  "daily_pool_days": 723,
-  "latest_pool_date": "2026-11-26",
-  "hot_news_days": 217,
+  "daily_pool_days": 724,
+  "latest_pool_date": "2026-11-27",
+  "hot_news_days": 218,
   "tag_counts": {
     "汽车": 535,
     "芯片": 509,
@@ -55,8 +55,8 @@
     "资产置换": 7,
     "借壳预期": 2
   },
-  "driver_days_imported": 122,
-  "driver_rows_imported": 2096,
+  "driver_days_imported": 123,
+  "driver_rows_imported": 2131,
   "hysteresis_applied": 34,
   "manual_driver_overrides": 0
 }
