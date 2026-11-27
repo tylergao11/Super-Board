@@ -15,13 +15,18 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlparse
 
+from driver_rules import VOCAB_SET, fanbao_board_count, is_core_stock, is_fanbao_stock, main_business, rule_driver
+
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / "data/super_board.sqlite"
 WEB_DIR = ROOT / "web"
 ULTRA_BOARD_RAW = Path(r"C:\Ai\Ultra-Board\data\kaipanla\raw")
 MOOD_CACHE_PATH = ROOT / "data/market_mood_cache.json"
+KLINE_DIR = ROOT / "data/raw_kline"
 _MOOD_CACHE: dict[str, dict[str, Any]] | None = None
 _DAY_DISPLAY_CACHE: dict[str, dict[str, list[str]]] = {}
+_KLINE_CACHE: dict[str, tuple[list[str], list[float], dict[str, int]]] = {}
+_N_DAY_RE = re.compile(r"(\d+)天(\d+)板")
 
 THEME_ACCENTS: dict[str, str] = {
     "商业航天": "coral",
@@ -121,13 +126,69 @@ def _clean_text(text: str | None) -> str:
     return s
 
 
-# Broad background L1 categories that shouldn't overshadow sharp thematic catalysts
-# when a stock carries both a sharp active theme (e.g. 机器人/商业航天/AI应用/芯片/算力) and a broad L1
-BROAD_BACKGROUND_L1 = {"工业设备", "基建", "环保", "汽车", "农业", "交运", "地产"}
-
-
 def _accent_for(theme: str) -> str:
     return THEME_ACCENTS.get(theme, "slate")
+
+
+def _load_kline(code: str) -> tuple[list[str], list[float], dict[str, int]] | None:
+    if code in _KLINE_CACHE:
+        return _KLINE_CACHE[code]
+    p = KLINE_DIR / f"{code}.json"
+    if not p.exists():
+        return None
+    try:
+        doc = json.loads(p.read_text(encoding="utf-8"))
+        days = doc.get("days") or []
+        dates = [str(d[0]) for d in days]
+        closes = [float(d[1]) for d in days]
+        idx_map = {dt: i for i, dt in enumerate(dates)}
+        val = (dates, closes, idx_map)
+        _KLINE_CACHE[code] = val
+        return val
+    except Exception:
+        return None
+
+
+def _compute_fanbao_gain_pct(
+    conn: sqlite3.Connection, code: str, date: str, boards_desc: str | None
+) -> float | None:
+    """Compute cumulative % gain from pre-first-board close to trade_date close for a fanbao stock."""
+    kl = _load_kline(code)
+    if not kl:
+        return None
+    dates, closes, idx_map = kl
+    cur_idx = idx_map.get(date)
+    if cur_idx is None or cur_idx <= 0:
+        return None
+
+    m = _N_DAY_RE.search(str(boards_desc or ""))
+    base_idx: int | None = None
+    if m:
+        n_days = int(m.group(1))
+        if cur_idx - n_days >= 0:
+            base_idx = cur_idx - n_days
+    if base_idx is None:
+        # Walk backwards across recent limit-up dates (gap <= 3 trading days) to find wave's first board
+        lu_dates = [
+            r[0]
+            for r in conn.execute(
+                "SELECT trade_date FROM daily_limit_pool WHERE code = ? AND trade_date < ? ORDER BY trade_date DESC LIMIT 12",
+                (code, date),
+            ).fetchall()
+        ]
+        wave_start_idx = cur_idx
+        for ld in lu_dates:
+            li = idx_map.get(ld)
+            if li is not None and wave_start_idx - li <= 3:
+                wave_start_idx = li
+            else:
+                break
+        if wave_start_idx - 1 >= 0:
+            base_idx = wave_start_idx - 1
+
+    if base_idx is None or closes[base_idx] <= 0:
+        return None
+    return round((closes[cur_idx] / closes[base_idx] - 1.0) * 100.0, 1)
 
 
 def _load_mood_cache() -> dict[str, dict[str, Any]]:
@@ -285,11 +346,14 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 ).fetchone()
             date = row["trade_date"] if row else ""
 
-        prev_row = conn.execute(
-            "SELECT MAX(trade_date) AS prev_date FROM daily_limit_pool WHERE trade_date < ?",
-            (date,),
-        ).fetchone()
-        prev_date = prev_row["prev_date"] if prev_row and prev_row["prev_date"] else None
+        prev_dates = [
+            r["trade_date"]
+            for r in conn.execute(
+                "SELECT DISTINCT trade_date FROM daily_limit_pool WHERE trade_date < ? ORDER BY trade_date DESC LIMIT 5",
+                (date,),
+            ).fetchall()
+        ]
+        prev_date = prev_dates[0] if prev_dates else None
 
         pool_rows = conn.execute(
             """
@@ -302,13 +366,33 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             (date,),
         ).fetchall()
 
-        codes = [r["code"] for r in pool_rows]
+        total_zt = len(pool_rows)
+        core_rows = [
+            r
+            for r in pool_rows
+            if is_core_stock(r["board_height"], r["is_fanbao"], r["boards_desc"])
+        ]
+        codes = [r["code"] for r in core_rows]
         if not codes:
+            mood = _get_day_mood(date, total_zt, fetch_remote=True)
             return {
                 "date": date,
-                "summary": {"total": 0, "multi": 0, "one_word": 0, "max_height": 0},
+                "summary": {
+                    "total": total_zt,
+                    "core": 0,
+                    "multi": 0,
+                    "fanbao": 0,
+                    "first": 0,
+                    "one_word": 0,
+                    "max_height": 1 if total_zt else 0,
+                    "zb_count": mood["zb_count"],
+                    "zhaban_rate": mood["zhaban_rate"],
+                    "dt_count": mood["dt_count"],
+                    "sign": mood["sign"],
+                },
                 "catalysts": [],
                 "ladder": [],
+                "fanbao_boards": [],
                 "first_boards": [],
                 "stocks": {},
                 "themes": {},
@@ -370,7 +454,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             dict(r)
             for r in conn.execute(
                 """
-                SELECT rank, headline, detail, hit_count
+                SELECT rank, headline, detail, hit_count, theme, codes
                 FROM daily_hot_news
                 WHERE trade_date = ?
                 ORDER BY rank ASC
@@ -379,26 +463,39 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             ).fetchall()
         ]
 
-        # Pass 1: build unified full-dynamic pure themes per stock
+        driver_rows = {
+            r["code"]: dict(r)
+            for r in conn.execute(
+                """
+                SELECT code, driver, driver2, basis_type, basis, source
+                FROM daily_stock_driver
+                WHERE trade_date = ?
+                """,
+                (date,),
+            ).fetchall()
+        }
+
+        prev_driver_map: dict[str, str] = {}
+        for pd in reversed(prev_dates):
+            for r in conn.execute(
+                "SELECT code, driver FROM daily_stock_driver WHERE trade_date = ? AND driver IS NOT NULL",
+                (pd,),
+            ).fetchall():
+                prev_driver_map[r["code"]] = r["driver"]
+
+        # Pass 1: build unified full-dynamic pure themes per core stock (连板+反包) + driver-weighted sector stats
         raw_stocks: dict[str, dict[str, Any]] = {}
         theme_members: dict[str, list[str]] = defaultdict(list)
+        theme_drivers: dict[str, list[str]] = defaultdict(list)
         theme_multi: dict[str, int] = defaultdict(int)
         theme_core_multi: dict[str, float] = defaultdict(float)
         theme_core_total: dict[str, float] = defaultdict(float)
         theme_one_word: dict[str, int] = defaultdict(int)
         theme_max_h: dict[str, int] = defaultdict(int)
-        stock_tag_dates: dict[str, dict[str, str]] = defaultdict(dict)
-        stock_tag_rank: dict[str, dict[str, int]] = defaultdict(dict)
+        ev_text_by_code: dict[str, dict[str, str]] = defaultdict(dict)
+        tag_pop: dict[str, int] = defaultdict(int)
 
-        def _days_gap(d1: str | None, d2: str | None) -> int:
-            if not d1 or not d2 or len(d1) < 10 or len(d2) < 10:
-                return 999
-            try:
-                return abs((dt_date.fromisoformat(d1[:10]) - dt_date.fromisoformat(d2[:10])).days)
-            except Exception:
-                return 999
-
-        for r in pool_rows:
+        for r in core_rows:
             code = r["code"]
             meta = stock_meta.get(code)
             t_list = tags_by_code.get(code, [])
@@ -408,29 +505,28 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             seen_t: set[str] = set()
             evidences: list[dict[str, Any]] = []
 
-            for idx_t, t_row in enumerate(t_list):
+            for t_row in t_list:
                 t = _clean_text(t_row["tag"])
                 if t and t not in seen_t:
                     seen_t.add(t)
                     themes.append(t)
-                    stock_tag_dates[code][t] = _clean_text(t_row.get("from_date"))
-                    stock_tag_rank[code][t] = idx_t
+                    ev_txt = _clean_text(t_row["evidence"])
+                    ev_text_by_code[code][t] = ev_txt
                     evidences.append(
                         {
                             "theme": t,
                             "pct": None,
-                            "text": _clean_text(t_row["evidence"]),
+                            "text": ev_txt,
                         }
                     )
 
             if ma_list and "并购" not in seen_t:
                 seen_t.add("并购")
                 themes.append("并购")
-                stock_tag_dates[code]["并购"] = _clean_text(ma_list[0].get("from_date"))
-                stock_tag_rank[code]["并购"] = len(themes) - 1
                 ma_summary = "；".join(
                     f"{m['event_type']}：{m['target_name']}" for m in ma_list[:2]
                 )
+                ev_text_by_code[code]["并购"] = ma_summary
                 evidences.append(
                     {
                         "theme": "并购",
@@ -443,16 +539,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             is_ow = bool(r["is_one_word"])
             for t in themes:
                 theme_members[t].append(code)
-                rk = stock_tag_rank[code].get(t, 0)
-                w = 1.0 if rk == 0 else (0.85 if rk == 1 else 0.7)
-                theme_core_total[t] += w
-                if h >= 2:
-                    theme_multi[t] += 1
-                    theme_core_multi[t] += w
-                if is_ow:
-                    theme_one_word[t] += 1
-                if h > theme_max_h[t]:
-                    theme_max_h[t] = h
+                tag_pop[t] += 1
 
             prov = _short_prov(meta["province"]) if meta else ""
             ctrl_prov = (
@@ -469,6 +556,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             amount_yi = round(float(r["amount_yi"]), 2) if r["amount_yi"] is not None else None
             turnover = round(float(r["turnover_rate"]), 1) if r["turnover_rate"] is not None else None
 
+            is_fb = is_fanbao_stock(r["is_fanbao"], r["boards_desc"])
             raw_stocks[code] = {
                 "code": code,
                 "name": name,
@@ -478,7 +566,8 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 "amount_yi": amount_yi,
                 "turnover": turnover,
                 "is_one_word": is_ow,
-                "is_fanbao": bool(r["is_fanbao"]),
+                "is_fanbao": is_fb,
+                "fanbao_gain_pct": _compute_fanbao_gain_pct(conn, code, date, r["boards_desc"]) if is_fb else None,
                 "province": prov,
                 "controller_province": ctrl_prov if ctrl_prov and ctrl_prov != prov else "",
                 "controller_type": ctrl_type,
@@ -495,22 +584,76 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                     for m in ma_list
                 ],
                 "primary_theme": "",
+                "driver": None,
+                "driver2": None,
+                "driver_basis": "",
+                "driver_basis_type": "",
+                "driver_source": "",
+                "display_source": "",
             }
 
-        # Pure Super-Board intraday theme strength (revenue-weighted so tiny side-businesses never inflate fake heat)
-        def _theme_score(t: str) -> float:
-            broad_penalty = 0.68 if t in BROAD_BACKGROUND_L1 else 1.0
-            news_bonus = 24.0 if t in theme_news_map else 0.0
-            return (
-                news_bonus
-                + theme_max_h[t] * 3.5
-                + theme_one_word[t] * 3.5
-                + theme_core_multi[t] * 6.5
-                + theme_core_total[t] * 2.2
-            ) * broad_penalty
+        news_text_all = " ".join(
+            f"{_clean_text(nw['headline'])} {_clean_text(nw['detail'])}" for nw in news_rows
+        )
+        for r in core_rows:
+            code = r["code"]
+            st = raw_stocks[code]
+            h = st["height"]
+            is_ow = st["is_one_word"]
+            d_row = driver_rows.get(code)
+            if d_row:
+                drv = d_row.get("driver") or None
+                drv2 = d_row.get("driver2") or None
+                btype = d_row.get("basis_type") or ""
+                basis = _clean_text(d_row.get("basis"))
+                dsrc = d_row.get("source") or "llm"
+            else:
+                drv = rule_driver(
+                    st["themes"],
+                    ev_text_by_code.get(code, {}),
+                    news_text_all,
+                    tag_pop,
+                    prev_driver_map.get(code),
+                    h,
+                )
+                drv2 = None
+                btype = "resonance" if drv else ""
+                basis = "规则兜底：同涨共振/证据匹配" if drv else ""
+                dsrc = "rule"
 
-        # Pass 2: build Top Catalyst Cards FIRST from daily_hot_news + pure Super-Board ladders
+            st["driver"] = drv
+            st["driver2"] = drv2
+            st["driver_basis"] = basis
+            st["driver_basis_type"] = btype
+            st["driver_source"] = dsrc
+
+            for t in (drv, drv2):
+                if t and t not in st["themes"]:
+                    st["themes"].append(t)
+                    theme_members[t].append(code)
+                    tag_pop[t] += 1
+                    ev_text_by_code[code][t] = basis
+                    st["evidences"].append({"theme": t, "pct": None, "text": basis})
+
+            weighted_pairs: list[tuple[str, float]] = []
+            if drv:
+                weighted_pairs.append((drv, 1.0))
+            if drv2 and drv2 != drv:
+                weighted_pairs.append((drv2, 0.4))
+            for t, w in weighted_pairs:
+                theme_drivers[t].append(code)
+                theme_core_total[t] += w
+                if h >= 2:
+                    theme_multi[t] += 1
+                    theme_core_multi[t] += w
+                if is_ow:
+                    theme_one_word[t] += 1
+                if h > theme_max_h[t]:
+                    theme_max_h[t] = h
+
+        # Pass 2: build Top Catalyst Cards FIRST from daily_hot_news + driver-based ladders
         name_to_code = {st["name"]: code for code, st in raw_stocks.items()}
+        pool_set = set(raw_stocks.keys())
         theme_news_map: dict[str, list[dict[str, Any]]] = defaultdict(list)
         event_catalysts: list[dict[str, Any]] = []
 
@@ -519,11 +662,20 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             dt = _clean_text(nw["detail"])
             combined = f"{hl} {dt}"
 
-            mentioned = [
-                code
-                for sname, code in name_to_code.items()
-                if sname and sname in combined
-            ]
+            mentioned: list[str] = []
+            raw_codes = nw.get("codes")
+            if raw_codes:
+                try:
+                    parsed_codes = json.loads(raw_codes) if isinstance(raw_codes, str) else raw_codes
+                    mentioned = [str(c) for c in parsed_codes if str(c) in pool_set]
+                except Exception:
+                    mentioned = []
+            if not mentioned:
+                mentioned = [
+                    code
+                    for sname, code in name_to_code.items()
+                    if sname and sname in combined
+                ]
             mentioned.sort(
                 key=lambda c: (
                     -raw_stocks[c]["height"],
@@ -535,24 +687,20 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             mapped_theme: str | None = None
             event_label: str | None = None
             event_accent: str = "amber"
-            for kw, label, acc in NEWS_EVENT_SHORT_TITLES:
-                if kw in combined:
-                    if label in theme_members:
-                        mapped_theme = label
-                    else:
+            nw_theme = _clean_text(nw.get("theme"))
+            if nw_theme and (nw_theme in VOCAB_SET or nw_theme.endswith("字辈")):
+                if nw_theme in theme_drivers:
+                    mapped_theme = nw_theme
+                else:
+                    event_label = nw_theme
+                    event_accent = _accent_for(nw_theme)
+
+            if not mapped_theme and not event_label:
+                for kw, label, acc in NEWS_EVENT_SHORT_TITLES:
+                    if kw in combined:
                         event_label = label
                         event_accent = acc
-                    break
-
-            if not mapped_theme and not event_label and mentioned:
-                counts: dict[str, int] = defaultdict(int)
-                for c in mentioned:
-                    for t in raw_stocks[c]["themes"]:
-                        counts[t] += 1
-                if counts:
-                    top_t, top_cnt = max(counts.items(), key=lambda kv: (kv[1], _theme_score(kv[0])))
-                    if top_cnt >= max(1, len(mentioned) // 2):
-                        mapped_theme = top_t
+                        break
 
             if mapped_theme:
                 theme_news_map[mapped_theme].append(
@@ -601,7 +749,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         included_themes: set[str] = set()
 
         def _make_theme_catalyst(t: str, news_list: list[dict[str, Any]]) -> dict[str, Any]:
-            codes_t = list(theme_members[t])
+            codes_t = list(theme_drivers[t])
             seen_c = set(codes_t)
             for nw in news_list:
                 for c in nw["mentioned"]:
@@ -629,22 +777,21 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 ]
             else:
                 lead = raw_stocks[codes_t[0]]
-                h_chain = "→".join(f"{x}板" for x in heights_present[:4])
+                h_chain = "→".join(("反包" if x == 1 else f"{x}板") for x in heights_present[:4])
                 ow_note = "一字" if lead["is_one_word"] else ""
-                headline = f"{lead['height']}板{ow_note}{lead['name']}领涨，梯队覆盖 {h_chain}"
+                lead_h = lead["boards_desc"] if lead["height"] == 1 and lead["boards_desc"] else f"{lead['height']}板"
+                headline = f"{lead_h}{ow_note}{lead['name']}领涨，梯队覆盖 {h_chain}"
                 news_payload = []
 
             best_rank = min((n["rank"] for n in news_list), default=14)
             news_hits = sum(int(n.get("hit_count") or 1) for n in news_list)
-            broad_factor = 0.58 if (t in BROAD_BACKGROUND_L1 and not news_list) else 1.0
-            # Catalyst heat combines: Leader Height (高标牵引) + Intraday News & Core Breadth (热点发酵)
             score = (
                 max_h * 9.0
                 + (24.0 + news_hits * 2.5 if news_list else 0.0)
                 + theme_core_multi[t] * 6.5
                 + theme_core_total[t] * 2.0
                 - best_rank * 0.45
-            ) * broad_factor
+            )
             return {
                 "id": f"theme:{t}",
                 "kind": "theme",
@@ -670,18 +817,18 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 "_score": score,
             }
 
-        # Add all news-backed pure themes
+        # Add news-backed pure themes that have >= 1 driving core stock
         for t, nlist in theme_news_map.items():
-            included_themes.add(t)
-            catalysts.append(_make_theme_catalyst(t, nlist))
+            if len(theme_drivers[t]) >= 1:
+                included_themes.add(t)
+                catalysts.append(_make_theme_catalyst(t, nlist))
 
-        # Add strong pure ladder themes even if not explicitly named in overnight news
-        for t, members in theme_members.items():
+        # Add strong driver-backed core ladder themes (>=2 core drivers, or >=3B / >=3-board fanbao leader)
+        for t, drv_codes in theme_drivers.items():
             if t in included_themes:
                 continue
-            if t in BROAD_BACKGROUND_L1 and theme_multi[t] < 3:
-                continue
-            if theme_multi[t] >= 2 or (theme_max_h[t] >= 3 and len(members) >= 3):
+            has_strong_fb = any(fanbao_board_count(raw_stocks[c]["boards_desc"]) >= 3 for c in drv_codes)
+            if len(drv_codes) >= 2 or ((theme_max_h[t] >= 3 or has_strong_fb) and len(drv_codes) >= 1):
                 included_themes.add(t)
                 catalysts.append(_make_theme_catalyst(t, []))
 
@@ -700,83 +847,42 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             else:
                 c_item["event_rank"] = idx
 
-        # Pass 3: Select 1~2 crisp display themes per stock (never padding with <25% cold side-businesses):
-        #   Slot 1 (主位): Today's real hot catalyst (#1/#2 or news-backed Top 8) -> yesterday's streak theme -> #1 main business
-        #   Slot 2 (共振/补位, optional): 2nd hot catalyst -> dynamic cross-sector/M&A tag -> yesterday's 2nd theme -> core main business (>=25% revenue, deprioritizing broad catch-all 机械/基建/环保)
-        hot_theme_ranks: dict[str, int] = {}
-        for c_item in catalysts:
-            t = c_item.get("theme")
-            if not t:
-                continue
-            r = c_item["heat_rank"]
-            has_news = len(c_item.get("news") or []) > 0
-            if r <= 2 or (has_news and r <= 8):
-                hot_theme_ranks[t] = r
+        # Pass 3: Strict User Display Rule (core stocks: 连板+反包):
+        #   1. slot1 = driver if driver in top10
+        #   2. else slot1 = most recent prior primary_theme in last 5 trading days (yesterday for streaks, pre-break for fanbao)
+        #   3. else slot1 = main_business(em_industry, own_tags)
+        top10_themes = {c_item["theme"] for c_item in catalysts if c_item.get("theme")}
 
-        need_prev = any(
-            st["height"] >= 2 and st["themes"]
-            for st in raw_stocks.values()
-        )
         prev_display_map: dict[str, list[str]] = {}
-        if need_prev and prev_date and _depth < 12:
-            if prev_date not in _DAY_DISPLAY_CACHE:
-                get_day_payload(prev_date, _depth=_depth + 1)
-            prev_display_map = _DAY_DISPLAY_CACHE.get(prev_date, {})
+        if prev_dates and _depth < 60:
+            for pd in reversed(prev_dates):
+                if pd not in _DAY_DISPLAY_CACHE:
+                    get_day_payload(pd, _depth=_depth + 1)
+                for c_prev, pair_prev in _DAY_DISPLAY_CACHE.get(pd, {}).items():
+                    if pair_prev:
+                        prev_display_map[c_prev] = pair_prev
 
         today_display_map: dict[str, list[str]] = {}
-        GENERIC_SECOND_SKIP = {"机械", "基建", "环保", "工业设备"}
-
-        def _is_stale_tag(c: str, t: str) -> bool:
-            """Non-primary tag confirmed >60 days away from trade_date yields to fresh hot catalysts."""
-            if t == "并购" or stock_tag_rank[c].get(t, 0) == 0:
-                return False
-            fdate = stock_tag_dates[c].get(t)
-            return _days_gap(date, fdate) > 60
-
         for code, st in raw_stocks.items():
-            own_themes = st["themes"]
-            if not own_themes:
-                st["primary_theme"] = ""
-                st["primary_accent"] = "slate"
-                st["display_themes"] = []
-                continue
-
+            drv = st["driver"]
+            drv2 = st["driver2"]
             prev_pair = prev_display_map.get(code) or []
-            prev_first = prev_pair[0] if len(prev_pair) >= 1 else None
+            prev_first = prev_pair[0] if prev_pair else None
 
-            # --- Slot 1 ---
-            hot_owned = sorted(
-                [t for t in own_themes if t in hot_theme_ranks],
-                key=lambda t: (
-                    1 if _is_stale_tag(code, t) else 0,
-                    hot_theme_ranks[t],
-                    stock_tag_rank[code].get(t, 9),
-                ),
-            )
-            fresh_hot = [t for t in hot_owned if not _is_stale_tag(code, t)]
-
-            if fresh_hot:
-                slot1 = fresh_hot[0]
-            elif st["height"] >= 2 and prev_first in own_themes:
+            if drv and drv in top10_themes:
+                slot1 = drv
+                dsrc = "driver"
+            elif prev_first:
                 slot1 = prev_first
-            elif hot_owned:
-                slot1 = hot_owned[0]
+                dsrc = "prev"
             else:
-                slot1 = own_themes[0]
+                slot1 = main_business(st["industry"], st["themes"])
+                dsrc = "main"
 
-            # --- Slot 2 (2nd fresh hot catalyst OR stock's own #1 core tag if Slot 1 was another catalyst) ---
-            slot2: str | None = None
-            rem = [t for t in own_themes if t != slot1]
-            if rem:
-                rem_fresh_hot = [t for t in fresh_hot if t != slot1]
-                if rem_fresh_hot:
-                    slot2 = rem_fresh_hot[0]
-                elif own_themes[0] != slot1 and own_themes[0] not in GENERIC_SECOND_SKIP:
-                    slot2 = own_themes[0]
-
-            pair = [slot1] + ([slot2] if slot2 else [])
+            pair = [slot1] if slot1 else []
             st["primary_theme"] = slot1
             st["primary_accent"] = _accent_for(slot1)
+            st["display_source"] = dsrc
             st["display_themes"] = [
                 {"name": t, "heat_rank": theme_heat_rank.get(t, 99)}
                 for t in pair
@@ -786,13 +892,16 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         if date:
             _DAY_DISPLAY_CACHE[date] = today_display_map
 
-        # Build complete theme index (for clicking ANY tag inside Stock Modal or Theme Modal!)
+        # Build complete theme index (core stocks only: drivers ordered first, non-driver followers after)
         themes_index: dict[str, dict[str, Any]] = {}
         for t, members in theme_members.items():
+            drv_set = set(theme_drivers.get(t, []))
             sorted_m = sorted(
                 members,
                 key=lambda c: (
+                    0 if c in drv_set else 1,
                     -raw_stocks[c]["height"],
+                    -fanbao_board_count(raw_stocks[c]["boards_desc"]),
                     -int(raw_stocks[c]["is_one_word"]),
                     raw_stocks[c]["first_time"],
                     -(raw_stocks[c]["amount_yi"] or 0),
@@ -807,17 +916,22 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
                 "accent": _accent_for(t),
                 "heat_rank": theme_heat_rank.get(t, 99),
                 "codes": sorted_m,
+                "driver_codes": [c for c in sorted_m if c in drv_set],
                 "total": len(sorted_m),
                 "multi": sum(1 for c in sorted_m if raw_stocks[c]["height"] >= 2),
+                "fanbao": sum(1 for c in sorted_m if raw_stocks[c]["height"] == 1),
                 "one_word": sum(1 for c in sorted_m if raw_stocks[c]["is_one_word"]),
                 "max_height": max((raw_stocks[c]["height"] for c in sorted_m), default=1),
                 "news": news_list,
             }
 
-        # Order each stock's themes so rank-1/rank-2 and primary_theme come first, and attach primary_heat_rank
+        # Order each stock's themes: driver first, driver2 second, then heat & breadth
         for st in raw_stocks.values():
+            drv = st["driver"]
+            drv2 = st["driver2"]
             st["themes"].sort(
                 key=lambda t: (
+                    0 if t == drv else (1 if t == drv2 else 2),
                     theme_heat_rank.get(t, 99),
                     0 if t == st["primary_theme"] else 1,
                     -(themes_index[t]["multi"] * 4 + themes_index[t]["total"])
@@ -828,23 +942,32 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             # If the stock participates in rank-1 or rank-2 intraday hottest theme, check if its primary_theme is that rank
             pt_rank = theme_heat_rank.get(st["primary_theme"], 99)
             if pt_rank > 2:
-                # Check if stock carries rank-1 or rank-2 directly when primary wasn't top-2
                 best_owned = min((theme_heat_rank.get(t, 99) for t in st["themes"]), default=99)
                 st["best_heat_rank"] = best_owned
             else:
                 st["best_heat_rank"] = pt_rank
             st["primary_heat_rank"] = pt_rank
 
-        # Build ladder tiers (>=2板) & first_boards (1板)
+        # Build ladder tiers (>=2板) & fanbao_boards (反包 / N天M板); a stock can appear in BOTH!
         tiers_map: dict[int, list[str]] = defaultdict(list)
-        first_boards: list[str] = []
-        for r in pool_rows:
+        fanbao_boards: list[str] = []
+        for r in core_rows:
             code = r["code"]
-            h = raw_stocks[code]["height"]
-            if h >= 2:
-                tiers_map[h].append(code)
-            else:
-                first_boards.append(code)
+            st = raw_stocks[code]
+            if st["height"] >= 2:
+                tiers_map[st["height"]].append(code)
+            if st["is_fanbao"]:
+                fanbao_boards.append(code)
+
+        fanbao_boards.sort(
+            key=lambda c: (
+                -fanbao_board_count(raw_stocks[c]["boards_desc"]),
+                -raw_stocks[c]["height"],
+                -int(raw_stocks[c]["is_one_word"]),
+                raw_stocks[c]["first_time"],
+                -(raw_stocks[c]["amount_yi"] or 0),
+            )
+        )
 
         ladder = [
             {"height": h, "codes": tiers_map[h]}
@@ -853,15 +976,17 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
 
         multi_total = sum(len(x["codes"]) for x in ladder)
         ow_total = sum(1 for st in raw_stocks.values() if st["is_one_word"])
-        max_height = ladder[0]["height"] if ladder else (1 if first_boards else 0)
-        mood = _get_day_mood(date, len(raw_stocks), fetch_remote=True)
+        max_height = ladder[0]["height"] if ladder else (1 if total_zt else 0)
+        mood = _get_day_mood(date, total_zt, fetch_remote=True)
 
         return {
             "date": date,
             "summary": {
-                "total": len(raw_stocks),
+                "total": total_zt,
+                "core": len(raw_stocks),
                 "multi": multi_total,
-                "first": len(first_boards),
+                "fanbao": len(fanbao_boards),
+                "first": 0,
                 "one_word": ow_total,
                 "max_height": max_height,
                 "zb_count": mood["zb_count"],
@@ -871,7 +996,8 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             },
             "catalysts": catalysts,
             "ladder": ladder,
-            "first_boards": first_boards,
+            "fanbao_boards": fanbao_boards,
+            "first_boards": [],
             "stocks": raw_stocks,
             "themes": themes_index,
         }
@@ -945,20 +1071,27 @@ def _local_ip() -> str:
 
 def export_static_site(limit: int = 30) -> None:
     """Export compact static JSON snapshots into web/data/ for GitHub Pages."""
+    _DAY_DISPLAY_CACHE.clear()
     out_data = WEB_DIR / "data"
     out_days = out_data / "days"
     out_days.mkdir(parents=True, exist_ok=True)
     (WEB_DIR / ".nojekyll").write_text("", encoding="utf-8")
 
     all_dates = get_available_dates(limit=limit)[:limit]
-    exported_dates: list[dict[str, Any]] = []
-    for d_info in all_dates:
+    payloads_by_date: dict[str, dict[str, Any]] = {}
+    for d_info in reversed(all_dates):
         dt = d_info["date"]
         payload = get_day_payload(dt)
+        payloads_by_date[dt] = payload
         (out_days / f"{dt}.json").write_text(
             json.dumps(payload, ensure_ascii=False, separators=(",", ":")),
             encoding="utf-8",
         )
+
+    exported_dates: list[dict[str, Any]] = []
+    for d_info in all_dates:
+        dt = d_info["date"]
+        payload = payloads_by_date[dt]
         d_copy = dict(d_info)
         if payload["summary"].get("zhaban_rate") is not None:
             d_copy["zhaban_rate"] = payload["summary"]["zhaban_rate"]

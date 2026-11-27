@@ -1,0 +1,302 @@
+{
+  "trade_date": "2026-08-04",
+  "mode": "core_ladder_v2",
+  "stocks": [
+    {
+      "code": "003032",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "7连板稳居市场最高标，延续具身智能教学机器人主线，受谷歌发布机器人通用大脑及宇树科技明日IPO询价催化引领机器人梯队",
+      "source": "llm"
+    },
+    {
+      "code": "000820",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "4连板延续独立储能EPC电力主线，受两部门印发《新型电力系统建设“十五五”规划》催化，与新能股份、风范股份等共振",
+      "source": "llm"
+    },
+    {
+      "code": "000593",
+      "driver": "石油",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "3连板一字加速，延续前日权益变动及管道燃气主线行情",
+      "source": "llm"
+    },
+    {
+      "code": "603106",
+      "driver": "AI应用",
+      "driver2": "算力",
+      "basis_type": "news",
+      "basis": "3连板领涨AI应用梯队，延续金融智能体主线，受DeepSeek低成本及海外AI软件龙头Palantir盘后大涨催化，叠加AI算力全线爆发形成双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "000815",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3连板成为算力梯队连板高标，延续IDC智算中心主线，受北美云厂商大涨加码AI算力及高乐股份签31.95亿算力大单催化",
+      "source": "llm"
+    },
+    {
+      "code": "000595",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3连板延续电力主线，受两部门印发《新型电力系统建设“十五五”规划》催化早盘快速封板，与神雾节能、风范股份共振",
+      "source": "llm"
+    },
+    {
+      "code": "002963",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "原消费主线随着前日高标断板及当日热门消息缺位在核心梯队熄火，该股依托重卡换电及光储充电力业务，受两部门印发《新型电力系统建设“十五五”规划》催化早盘09:34紧随新能股份、风范股份同步封板，切换至当日强势电力主线",
+      "source": "llm"
+    },
+    {
+      "code": "002354",
+      "driver": "机器人",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "3连板放量换手晋级，延续具身智能视觉感知机器人主线，午后13:46受谷歌机器人通用大脑及宇树科技明日IPO询价催化封板，同时叠加DeepSeek催化与AI营销共振AI应用",
+      "source": "llm"
+    },
+    {
+      "code": "601858",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "2连板（5天3板）延续自研大模型及AI出版应用主线，受DeepSeek低成本及Palantir盘后大涨催化，与恒银科技、达实智能形成AI应用梯队共振",
+      "source": "llm"
+    },
+    {
+      "code": "300615",
+      "driver": "并购",
+      "driver2": null,
+      "basis_type": "announcement",
+      "basis": "关于控股股东、实际控制人及相关方签署股份转让协议暨控制权拟发生变更的提示性公告",
+      "source": "llm"
+    },
+    {
+      "code": "605167",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "新晋2板早盘竞价缩量秒板，依托核电工程模块主业，受两部门印发《新型电力系统建设“十五五”规划》及核电装机展望催化领涨电力核电方向",
+      "source": "llm"
+    },
+    {
+      "code": "603222",
+      "driver": "医药",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "新晋2板早盘09:34快速封板，精准共振龙头上调指引及第12批国家药品集采公示引爆的创新药大涨行情",
+      "source": "llm"
+    },
+    {
+      "code": "601700",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "新晋2板早盘快速封板，受两部门印发《新型电力系统建设“十五五”规划》催化，作为特高压输电铁塔标的与新能股份、利柏特共振电力主线",
+      "source": "llm"
+    },
+    {
+      "code": "002792",
+      "driver": "通信",
+      "driver2": "商业航天",
+      "basis_type": "news",
+      "basis": "新晋2板早盘快速封板，主营通信射频及参股800G/1.6T光模块，受英伟达新平台及外围光通信大涨催化共振通信硬件主线，同时叠加卫星通信属性与神剑股份共振商业航天",
+      "source": "llm"
+    },
+    {
+      "code": "001331",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "新晋2板早盘强势封板，依托七腾机器人控股及机器人核心部件布局，受谷歌发布机器人通用大脑及宇树科技明日IPO询价催化，紧跟高标传智教育共振机器人梯队",
+      "source": "llm"
+    },
+    {
+      "code": "002421",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "新晋2板早盘放量封板，依托AIoT及AI智能体智慧空间主业，受DeepSeek低成本及Palantir盘后大涨催化，与恒银科技共振AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "000533",
+      "driver": "算力",
+      "driver2": "电力",
+      "basis_type": "news",
+      "basis": "新晋2板爆量晋级，延续AIDC算力配电主线，受北美云厂商加码AI算力及高乐股份算力大单催化，同时叠加《新型电力系统建设“十五五”规划》形成算力与电力双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "002361",
+      "driver": "商业航天",
+      "driver2": null,
+      "basis_type": "resonance",
+      "basis": "新晋2板巨量换手晋级，依托卫星天线、整流罩等商业航天复材配套逻辑，与通宇通讯、魅视科技等形成商业航天核心梯队共振",
+      "source": "llm"
+    },
+    {
+      "code": "001229",
+      "driver": "AI应用",
+      "driver2": "商业航天",
+      "basis_type": "news",
+      "basis": "新晋2板，主营多模态AI视觉应用与边缘智能分析，受DeepSeek低成本及Palantir盘后大涨催化共振AI应用主线，同时叠加航天发射指控光纤KVMS属性联动神剑股份共振商业航天",
+      "source": "llm"
+    },
+    {
+      "code": "000892",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "5天3板断板反包，延续影视与互动影游传媒主线，受北美IMAX票房新高及盘中游戏影视板块拉升催化，同时叠加AI短剧应用共振AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "603629",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板早盘09:31放量快速反包，延续算力租赁核心主线，受亚马逊市值破3万亿美元、北美云厂商大涨及高乐股份31.95亿算力大单强催化",
+      "source": "llm"
+    },
+    {
+      "code": "000048",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板早盘09:35快速反包，延续子夏智算布局的算力主线，受北美云厂商大涨加码AI算力及高乐股份算力大单催化，与美利云、利通电子共振",
+      "source": "llm"
+    },
+    {
+      "code": "002659",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板早盘反包涨停，延续与智谱合资打造AI教育智能体的AI应用主线，受DeepSeek低成本及Palantir盘后大涨催化",
+      "source": "llm"
+    },
+    {
+      "code": "003018",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续AI服务器液冷核心主线，受北美云厂商加码AI资本开支及高乐股份算力大单催化",
+      "source": "llm"
+    },
+    {
+      "code": "002552",
+      "driver": "通信",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续覆铜板及电子铜箔主线，受英伟达新平台及美港股光通信强势催化引爆PCB硬件大涨",
+      "source": "llm"
+    },
+    {
+      "code": "603115",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续AI服务器与算力电源高端电极箔主线，受北美云厂商加码AI算力及高乐股份算力大单催化",
+      "source": "llm"
+    },
+    {
+      "code": "003036",
+      "driver": "通信",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续PCB/覆铜板电子布织机主线，受英伟达新平台及外围光通信大涨催化，与宝鼎科技同步封板共振通信PCB硬件",
+      "source": "llm"
+    },
+    {
+      "code": "300720",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板20cm反包涨停，延续参股砷化镓晶片半导体主线，受国务院公布修订版集成电路保护条例及存储芯片产能售罄催化，跟随早盘半导体板块走高封板",
+      "source": "llm"
+    },
+    {
+      "code": "002929",
+      "driver": "算力",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续五象云谷智算中心算力主线，受北美云厂商加码AI算力及高乐股份算力大单催化，同时叠加DeepSeek催化形成AI应用双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "600712",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "4天2板反包涨停，延续百货商超消费主线活跃度",
+      "source": "llm"
+    },
+    {
+      "code": "301396",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板放量35.58亿强势20cm反包，延续算力租赁主业核心主线，受北美云厂商大涨加码AI算力及高乐股份31.95亿算力大单催化领涨算力租赁板块",
+      "source": "llm"
+    },
+    {
+      "code": "001267",
+      "driver": "通信",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续武汉钧恒高速光模块通信主线，受英伟达新平台及美港股光通信大涨引爆CPO涨停潮催化",
+      "source": "llm"
+    },
+    {
+      "code": "605287",
+      "driver": "AI应用",
+      "driver2": "传媒",
+      "basis_type": "news",
+      "basis": "3天2板反包涨停，延续奇想无限AIGC创意引擎及互动影游Agent的AI应用主线，受DeepSeek低成本与Palantir盘后大涨催化，同时叠加盘中游戏影视拉升形成传媒双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "603738",
+      "driver": "通信",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板午后反包涨停，延续800G/1.6T光模块超低抖动差分晶振的通信主线，受英伟达新平台及午后光库科技20cm涨停引爆CPO硬件高潮催化",
+      "source": "llm"
+    },
+    {
+      "code": "600673",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3天2板放量19.64亿反包涨停，延续算力租赁、全栈液冷及AI服务器电源的算力核心主线，受北美云厂商大涨加码AI算力及高乐股份算力大单催化",
+      "source": "llm"
+    },
+    {
+      "code": "002957",
+      "driver": "通信",
+      "driver2": "机器人",
+      "basis_type": "news",
+      "basis": "3天2板午后反包涨停，延续800G/1.6T光模块耦合等通信设备主线，受英伟达新平台引爆CPO硬件潮催化，同时叠加午后宇树科技IPO询价发酵形成机器人双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "603466",
+      "driver": "机器人",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "3天2板午后反包涨停，延续联手宇树科技落地具身智能场景的机器人主线，受谷歌机器人通用大脑及午后宇树科技明日IPO询价消息催化，同时叠加物理AI仿真数据共振AI应用",
+      "source": "llm"
+    }
+  ]
+}

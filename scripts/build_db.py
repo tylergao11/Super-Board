@@ -15,11 +15,13 @@ from common import (
     load_taxonomy,
     validate_record,
 )
+from driver_rules import candidates, is_core_stock
 
 SHARD_DIR = ROOT / "data/shards"
 TAGGED_DIR = ROOT / "data/tagged"
 AUDIT_OUT_DIR = ROOT / "data/audit_out"
 HOT_NEWS_DIR = ROOT / "data/hot_news"
+DRIVERS_DIR = ROOT / "data/drivers"
 OVERRIDES_PATH = ROOT / "manual_overrides.json"
 SUMMARY_PATH = ROOT / "data/summary.json"
 
@@ -84,7 +86,20 @@ CREATE TABLE IF NOT EXISTS daily_hot_news (
     headline TEXT NOT NULL,
     detail TEXT NOT NULL,
     hit_count INTEGER DEFAULT 0,
+    theme TEXT,
+    codes TEXT,
     UNIQUE(trade_date, rank)
+);
+
+CREATE TABLE IF NOT EXISTS daily_stock_driver (
+    trade_date TEXT NOT NULL,
+    code TEXT NOT NULL,
+    driver TEXT,
+    driver2 TEXT,
+    basis_type TEXT,
+    basis TEXT,
+    source TEXT NOT NULL,
+    PRIMARY KEY (trade_date, code)
 );
 
 CREATE INDEX IF NOT EXISTS idx_stock_tags_tag ON stock_tags(tag);
@@ -93,6 +108,7 @@ CREATE INDEX IF NOT EXISTS idx_ma_code ON ma_events(code);
 CREATE INDEX IF NOT EXISTS idx_ma_target_l1 ON ma_events(target_l1);
 CREATE INDEX IF NOT EXISTS idx_pool_code ON daily_limit_pool(code);
 CREATE INDEX IF NOT EXISTS idx_hot_news_date ON daily_hot_news(trade_date);
+CREATE INDEX IF NOT EXISTS idx_driver_date ON daily_stock_driver(trade_date);
 """
 
 
@@ -107,6 +123,11 @@ def ensure_db(db_path: Path = DB_PATH, drop_legacy: bool = False) -> sqlite3.Con
     if "status" in ma_cols:
         conn.execute("DROP TABLE ma_events")
     conn.executescript(SCHEMA_SQL)
+    news_cols = {r[1] for r in conn.execute("PRAGMA table_info(daily_hot_news)").fetchall()}
+    if "theme" not in news_cols:
+        conn.execute("ALTER TABLE daily_hot_news ADD COLUMN theme TEXT")
+    if "codes" not in news_cols:
+        conn.execute("ALTER TABLE daily_hot_news ADD COLUMN codes TEXT")
     conn.commit()
     return conn
 
@@ -114,7 +135,16 @@ def ensure_db(db_path: Path = DB_PATH, drop_legacy: bool = False) -> sqlite3.Con
 def load_overrides() -> dict[str, dict[str, Any]]:
     if not OVERRIDES_PATH.exists():
         return {}
-    return json.loads(OVERRIDES_PATH.read_text(encoding="utf-8"))
+    raw = json.loads(OVERRIDES_PATH.read_text(encoding="utf-8"))
+    return {k: v for k, v in raw.items() if not str(k).startswith("__")}
+
+
+def load_driver_overrides() -> dict[str, dict[str, str]]:
+    if not OVERRIDES_PATH.exists():
+        return {}
+    raw = json.loads(OVERRIDES_PATH.read_text(encoding="utf-8"))
+    drv_ov = raw.get("__drivers__")
+    return dict(drv_ov) if isinstance(drv_ov, dict) else {}
 
 
 def apply_override(rec: dict[str, Any], ov: dict[str, Any] | None) -> dict[str, Any]:
@@ -418,9 +448,12 @@ def _sync_hot_news_conn(conn: sqlite3.Connection, news_dir: Path) -> int:
                 continue
             conn.execute("DELETE FROM daily_hot_news WHERE trade_date=?", (td,))
             for idx, it in enumerate(day_obj.get("items") or [], start=1):
+                theme = str(it["theme"]).strip() if it.get("theme") else None
+                codes_val = it.get("codes")
+                codes_json = json.dumps([str(c) for c in codes_val], ensure_ascii=False) if isinstance(codes_val, list) else None
                 conn.execute(
-                    "INSERT INTO daily_hot_news(trade_date, rank, headline, detail, hit_count) VALUES(?,?,?,?,?)",
-                    (td, int(it.get("rank") or idx), str(it["headline"]).strip(), str(it["detail"]).strip(), int(it.get("hit_count") or 0)),
+                    "INSERT INTO daily_hot_news(trade_date, rank, headline, detail, hit_count, theme, codes) VALUES(?,?,?,?,?,?,?)",
+                    (td, int(it.get("rank") or idx), str(it["headline"]).strip(), str(it["detail"]).strip(), int(it.get("hit_count") or 0), theme, codes_json),
                 )
             days_imported += 1
     return days_imported
@@ -431,6 +464,132 @@ def upsert_hot_news(news_dir: Path = HOT_NEWS_DIR, db_path: Path = DB_PATH) -> d
     _sync_hot_news_conn(conn, news_dir)
     conn.commit()
     summary = compute_summary(conn)
+    conn.close()
+    SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    SUMMARY_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return summary
+
+
+def import_drivers(drivers_dir: Path = DRIVERS_DIR, db_path: Path = DB_PATH) -> dict[str, Any]:
+    """Import per-stock daily driver attributions in ascending date order with hysteresis & manual overrides."""
+    conn = ensure_db(db_path)
+    driver_overrides = load_driver_overrides()
+    docs_by_date: dict[str, list[dict[str, Any]]] = {}
+    if drivers_dir.exists():
+        for p in sorted(drivers_dir.glob("*.json")):
+            if p.name.startswith("_"):
+                continue
+            doc = json.loads(p.read_text(encoding="utf-8"))
+            td = str(doc.get("trade_date") or "").strip()
+            if td:
+                docs_by_date[td] = list(doc.get("stocks") or [])
+
+    total_rows = 0
+    hysteresis_cnt = 0
+    manual_cnt = 0
+    for td in sorted(docs_by_date.keys()):
+        conn.execute("DELETE FROM daily_stock_driver WHERE trade_date=?", (td,))
+        prev_dates = [
+            r[0]
+            for r in conn.execute(
+                "SELECT DISTINCT trade_date FROM daily_limit_pool WHERE trade_date < ? ORDER BY trade_date DESC LIMIT 5",
+                (td,),
+            ).fetchall()
+        ]
+        prev_drivers: dict[str, str] = {}
+        for pd in reversed(prev_dates):
+            for c_prev, d_prev in conn.execute(
+                "SELECT code, driver FROM daily_stock_driver WHERE trade_date=? AND driver IS NOT NULL",
+                (pd,),
+            ).fetchall():
+                prev_drivers[c_prev] = d_prev
+
+        pool_info = {
+            r[0]: (int(r[1] or 1), int(r[2] or 0), r[3] or "")
+            for r in conn.execute(
+                "SELECT code, board_height, is_fanbao, boards_desc FROM daily_limit_pool WHERE trade_date=?",
+                (td,),
+            ).fetchall()
+        }
+        news_themes = {
+            str(r[0]).strip()
+            for r in conn.execute(
+                "SELECT theme FROM daily_hot_news WHERE trade_date=? AND theme IS NOT NULL",
+                (td,),
+            ).fetchall()
+            if str(r[0] or "").strip()
+        }
+
+        # Count raw core drivers on td so hysteresis knows which prior themes are still alive today
+        today_drv_cnt: dict[str, int] = {}
+        for st in docs_by_date[td]:
+            d0 = str(st.get("driver") or "").strip()
+            if d0:
+                today_drv_cnt[d0] = today_drv_cnt.get(d0, 0) + 1
+
+        day_map: dict[str, tuple[str | None, str | None, str | None, str, str]] = {}
+        for st in docs_by_date[td]:
+            code = str(st.get("code") or "").strip()
+            if not code:
+                continue
+            drv = str(st["driver"]).strip() if st.get("driver") else None
+            drv2 = str(st["driver2"]).strip() if st.get("driver2") else None
+            btype = str(st["basis_type"]).strip() if st.get("basis_type") else None
+            basis = str(st.get("basis") or "").strip()
+            src = str(st.get("source") or "llm").strip()
+
+            bh, fb, bdesc = pool_info.get(code, (1, 0, ""))
+            if is_core_stock(bh, fb, bdesc):
+                prev_p = prev_drivers.get(code)
+                if prev_p and drv != prev_p and btype != "announcement":
+                    cands = candidates(conn, code, td)
+                    prev_valid = prev_p in cands or prev_p.endswith("字辈")
+                    prev_still_alive = (
+                        btype not in ("news", "announcement")
+                        or drv2 == prev_p
+                        or prev_p in news_themes
+                        or today_drv_cnt.get(prev_p, 0) >= 2
+                    )
+                    if prev_valid and prev_still_alive:
+                        if drv and drv != prev_p:
+                            drv2 = drv
+                        drv = prev_p
+                        src = "hysteresis"
+                        hysteresis_cnt += 1
+
+            if drv2 == drv:
+                drv2 = None
+            day_map[code] = (drv, drv2, btype, basis, src)
+
+        for ov_code, ov_drv in (driver_overrides.get(td) or {}).items():
+            ov_code_s = str(ov_code).strip()
+            ov_drv_s = str(ov_drv).strip()
+            if ov_code_s and ov_drv_s:
+                prev_entry = day_map.get(ov_code_s)
+                old_drv2 = prev_entry[1] if prev_entry else None
+                old_btype = prev_entry[2] if prev_entry else "manual"
+                old_basis = prev_entry[3] if prev_entry else "人工指定"
+                if old_drv2 == ov_drv_s:
+                    old_drv2 = None
+                day_map[ov_code_s] = (ov_drv_s, old_drv2, old_btype, old_basis, "manual")
+                manual_cnt += 1
+
+        for code, (drv, drv2, btype, basis, src) in sorted(day_map.items()):
+            conn.execute(
+                """
+                INSERT INTO daily_stock_driver(trade_date, code, driver, driver2, basis_type, basis, source)
+                VALUES(?,?,?,?,?,?,?)
+                """,
+                (td, code, drv, drv2, btype, basis, src),
+            )
+            total_rows += 1
+
+    conn.commit()
+    summary = compute_summary(conn)
+    summary["driver_days_imported"] = len(docs_by_date)
+    summary["driver_rows_imported"] = total_rows
+    summary["hysteresis_applied"] = hysteresis_cnt
+    summary["manual_driver_overrides"] = manual_cnt
     conn.close()
     SUMMARY_PATH.parent.mkdir(parents=True, exist_ok=True)
     SUMMARY_PATH.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -483,6 +642,9 @@ def main() -> None:
     p_news = sub.add_parser("import-news")
     p_news.add_argument("--news-dir", type=Path, default=HOT_NEWS_DIR)
 
+    p_drv = sub.add_parser("import-drivers")
+    p_drv.add_argument("--drivers-dir", type=Path, default=DRIVERS_DIR)
+
     sub.add_parser("summary")
 
     args = parser.parse_args()
@@ -501,6 +663,9 @@ def main() -> None:
         print(json.dumps({"status": "ok", "summary": summary}, ensure_ascii=False, indent=2))
     elif args.cmd == "import-news":
         summary = upsert_hot_news(args.news_dir)
+        print(json.dumps({"status": "ok", "summary": summary}, ensure_ascii=False, indent=2))
+    elif args.cmd == "import-drivers":
+        summary = import_drivers(args.drivers_dir)
         print(json.dumps({"status": "ok", "summary": summary}, ensure_ascii=False, indent=2))
     elif args.cmd == "summary":
         conn = ensure_db()

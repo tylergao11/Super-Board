@@ -1,0 +1,198 @@
+{
+  "trade_date": "2026-09-01",
+  "mode": "core_ladder_v2",
+  "stocks": [
+    {
+      "code": "002084",
+      "driver": "并购",
+      "driver2": "消费",
+      "basis_type": "continue",
+      "basis": "7连板一字延续博泰车联拟受让控股权并购主线，并获隔夜英力特控股权拟变更激活并购线及七部门商品消费扩容升级政策双重助攻",
+      "source": "llm"
+    },
+    {
+      "code": "002855",
+      "driver": "消费电子",
+      "driver2": "华为链",
+      "basis_type": "news",
+      "basis": "早盘多家手机厂商统一调价且华为多款手机涨价千元，6连板延续消费电子及华为链龙头主线",
+      "source": "llm"
+    },
+    {
+      "code": "600371",
+      "driver": "农业",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "8月彭博农业现货指数涨超13%创14年最大单月涨幅催化种业板块爆发，6连板延续农业龙头主线",
+      "source": "llm"
+    },
+    {
+      "code": "600540",
+      "driver": "农业",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "8月彭博农业现货指数暴涨创14年最大单月涨幅引发农业板块涨停潮，4连板延续农业主线",
+      "source": "llm"
+    },
+    {
+      "code": "000560",
+      "driver": "地产",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "6天4板（3连板）延续周末多部委房地产政策组合拳催化下的地产核心主线",
+      "source": "llm"
+    },
+    {
+      "code": "002679",
+      "driver": "农业",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "8月彭博农业现货指数暴涨创14年最大单月涨幅催化农业板块走强，3连板一字延续农业主线",
+      "source": "llm"
+    },
+    {
+      "code": "003005",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "原主线机器人今日在核心梯队与热门消息中彻底熄火，盘后工信部启动AI应用服务商培育专项行动及字节上调豆包估值引爆AI应用（核心梯队9股），3连板一字切换并引领AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "600551",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜首部AIGC上星长剧《后西游记》首播收视夺冠燃爆传媒短剧，叠加盘后工信部启动AI应用服务商培育专项行动，3连板延续传媒+AI应用双主线领涨",
+      "source": "llm"
+    },
+    {
+      "code": "601086",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "盘后商务部等七部门发文推动商品消费扩容升级（锚定2030年社零60万亿元），3连板延续零售百货及大消费主线",
+      "source": "llm"
+    },
+    {
+      "code": "000892",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播飘红引爆AIGC短剧与影视传媒，叠加AI应用服务商培育专项行动，2连板一字延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "603721",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播收视居省级卫视第一燃爆短剧与AI漫剧概念，叠加AI应用政策催化，2连板延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "600892",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播飘红燃爆短剧概念，叠加工信部启动AI应用服务商培育专项行动，2连板延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "300413",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "公司出品及播出平台的首部AIGC上星长剧《后西游记》首播收视夺冠，叠加工信部AI应用政策催化，2连板延续传媒+AI应用核心主线",
+      "source": "llm"
+    },
+    {
+      "code": "603533",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播飘红燃爆短剧与AI视频概念，叠加AI应用服务商培育专项行动催化，2连板延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "605577",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播飘红带动AI漫剧与出版传媒走强，叠加工信部AI应用政策催化，2连板延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "600121",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "原主线煤炭今日在核心梯队与热门消息中彻底熄火，早间Anthropic签350亿美元云计算长单催化算力基础设施活跃（核心梯队3股含同为2板的集泰股份），2连板切换至算力主线",
+      "source": "llm"
+    },
+    {
+      "code": "001330",
+      "driver": "传媒",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "隔夜《后西游记》首播飘红燃爆影视短剧板块，叠加工信部启动AI应用服务商培育专项行动，2连板延续传媒+AI应用主线",
+      "source": "llm"
+    },
+    {
+      "code": "002909",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜Anthropic签350亿美元算力长单叠加液冷市场利好发酵，2连板延续算力（液冷）核心主线",
+      "source": "llm"
+    },
+    {
+      "code": "600479",
+      "driver": "医药",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "5天4板反包延续中药及医药主线，与精华制药、沃华医药组成核心梯队医药3股共振走强",
+      "source": "llm"
+    },
+    {
+      "code": "600127",
+      "driver": "农业",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "8月彭博农业现货指数暴涨创14年最大单月涨幅催化农业板块走强，6天3板反包延续农业主线",
+      "source": "llm"
+    },
+    {
+      "code": "605188",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "盘后商务部等七部门发文推动商品消费扩容升级带动零售百货走强，3天2板反包延续大消费主线",
+      "source": "llm"
+    },
+    {
+      "code": "600354",
+      "driver": "农业",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "8月彭博农业现货指数暴涨创14年最大单月涨幅引爆种业板块，3天2板反包延续农业主线",
+      "source": "llm"
+    },
+    {
+      "code": "002349",
+      "driver": "医药",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "3天2板反包延续中药及医药主线，盘中率先封板并与沃华医药、千金药业形成核心梯队医药3股共振",
+      "source": "llm"
+    },
+    {
+      "code": "002107",
+      "driver": "医药",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "3天2板反包延续中药及医药主线，午后封板并与精华制药、千金药业形成核心梯队医药3股共振",
+      "source": "llm"
+    }
+  ]
+}

@@ -51,6 +51,73 @@
   const heatCls = (rank) => (rank === 1 ? "heat-1" : rank === 2 ? "heat-2" : "");
   const themeHeatCls = (themeName) => heatCls(state.day?.themes?.[themeName]?.heat_rank);
 
+  // ========================================================================
+  // Motion helpers (View Transitions with graceful fallback)
+  // ========================================================================
+  const elMainLayout = $("main-layout");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const canVT = typeof document.startViewTransition === "function" && !reduceMotion;
+  let vtToken = 0;
+
+  function withTransition(kind, update) {
+    if (!canVT) {
+      update();
+      return Promise.resolve(false);
+    }
+    const root = document.documentElement;
+    const token = ++vtToken;
+    root.dataset.vt = kind;
+    // Guarantee the DOM update runs exactly once, even if the transition is skipped or aborted
+    let ran = false;
+    const run = () => {
+      if (ran) return;
+      ran = true;
+      update();
+    };
+    let vt;
+    try {
+      vt = document.startViewTransition(run);
+    } catch {
+      delete root.dataset.vt;
+      run();
+      return Promise.resolve(false);
+    }
+    vt.updateCallbackDone.catch(run);
+    return vt.finished
+      .catch(() => {})
+      .then(() => {
+        run();
+        if (token === vtToken) delete root.dataset.vt;
+        return true;
+      });
+  }
+
+  function replayClass(el, cls) {
+    if (!el) return;
+    el.classList.remove("day-in-older", "day-in-newer");
+    void el.offsetWidth;
+    el.classList.add(cls);
+    el.addEventListener("animationend", () => el.classList.remove(cls), { once: true });
+  }
+
+  function playEntrance() {
+    if (reduceMotion) return;
+    const stamp = (el, i) => {
+      el.style.setProperty("--i", Math.min(i, 14));
+      el.classList.add("enter");
+      el.addEventListener(
+        "animationend",
+        () => {
+          el.classList.remove("enter");
+          el.style.removeProperty("--i");
+        },
+        { once: true }
+      );
+    };
+    Array.from(elCatList.children).forEach((el, i) => stamp(el, i));
+    Array.from(elLadderList.children).forEach((el, i) => stamp(el, i + 2));
+  }
+
   // Detect local Python API server vs static GitHub Pages hosting
   const USE_LIVE_API =
     /^(localhost|127\.|192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(window.location.hostname) &&
@@ -71,6 +138,7 @@
         state.dates.find((d) => d.news_count > 0 && d.tagged > 0) ||
         state.dates[0];
       await loadDay(preferred ? preferred.date : "");
+      playEntrance();
     } catch {
       elLadderList.innerHTML = `<div class="empty-state">数据加载失败</div>`;
     }
@@ -89,25 +157,46 @@
     elDatePrev.disabled = idx < 0 || idx >= state.dates.length - 1;
   }
 
-  async function loadDay(date) {
-    const url = USE_LIVE_API
-      ? date
-        ? `./api/day?date=${encodeURIComponent(date)}`
-        : "./api/day"
-      : `./data/days/${encodeURIComponent(date || state.dates[0]?.date || "")}.json`;
-    const res = await fetch(url);
-    state.day = await res.json();
-    // Sync freshly fetched zhaban_rate back into state.dates cache for the Date Picker
-    const idx = currentDateIndex();
-    if (idx >= 0 && state.day.summary?.zhaban_rate != null) {
-      state.dates[idx].zhaban_rate = state.day.summary.zhaban_rate;
+  let loadingDay = false;
+
+  async function loadDay(date, dir = null) {
+    if (loadingDay) return;
+    loadingDay = true;
+    elDateBtn.classList.add("is-loading");
+    try {
+      const url = USE_LIVE_API
+        ? date
+          ? `./api/day?date=${encodeURIComponent(date)}`
+          : "./api/day"
+        : `./data/days/${encodeURIComponent(date || state.dates[0]?.date || "")}.json`;
+      const res = await fetch(url);
+      const day = await res.json();
+
+      const apply = () => {
+        state.day = day;
+        // Sync freshly fetched zhaban_rate back into state.dates cache for the Date Picker
+        const idx = currentDateIndex();
+        if (idx >= 0 && state.day.summary?.zhaban_rate != null) {
+          state.dates[idx].zhaban_rate = state.day.summary.zhaban_rate;
+        }
+        state.fbExpanded = false;
+        if (elFbWrap) elFbWrap.classList.remove("expanded");
+        elCatList.scrollTop = 0;
+        elLadderScroll.scrollTop = 0;
+        closeAllSheets(true);
+        renderTier1();
+      };
+
+      if (dir && state.day) {
+        const animated = await withTransition(`day-${dir}`, apply);
+        if (!animated && !reduceMotion) replayClass(elMainLayout, `day-in-${dir}`);
+      } else {
+        apply();
+      }
+    } finally {
+      loadingDay = false;
+      elDateBtn.classList.remove("is-loading");
     }
-    state.fbExpanded = false;
-    elFbWrap.classList.remove("expanded");
-    elCatList.scrollTop = 0;
-    elLadderScroll.scrollTop = 0;
-    closeAllSheets(true);
-    renderTier1();
   }
 
   // ========================================================================
@@ -144,13 +233,14 @@
   function catalystCardHtml(c, idx) {
     const hCls = heatCls(c.heat_rank);
     const rankNum = String(idx + 1).padStart(2, "0");
-    const leadMeta = `${c.max_height}板 · ${c.total}只`;
+    const leadMeta = c.max_height >= 2 ? `${c.max_height}板 · ${c.total}只` : `反包 · ${c.total}只`;
 
     const leadersHtml = (c.leaders || [])
       .slice(0, 3)
       .map((l) => {
         const ow = l.is_one_word ? `<span class="mini-ow">一字</span>` : "";
-        return `<span class="cat-leader-chip">${esc(l.name)}<em>${l.height}B</em>${ow}</span>`;
+        const hLbl = l.height >= 2 ? `${l.height}B` : "反包";
+        return `<span class="cat-leader-chip">${esc(l.name)}<em>${hLbl}</em>${ow}</span>`;
       })
       .join("");
 
@@ -193,9 +283,15 @@
     requestAnimationFrame(updateCatalystFade);
   }
 
-  function stockCellHtml(st) {
-    // Simple 一字 tag beside stock name ONLY; clean neutral card; 1~2 clickable themes (Red #1 / Orange #2)
+  function stockCellHtml(st, inFanbaoRow = false) {
+    // Consecutive row: clean name + 一字 (plus N天M板 badge if also fanbao); Fanbao row: N天M板 + 首板至今涨幅
     const owTag = st.is_one_word ? `<span class="ow-tag">一字</span>` : "";
+    const showDesc = (inFanbaoRow || st.is_fanbao) && st.boards_desc && st.boards_desc !== "首板" && st.boards_desc !== `${st.height}连板`;
+    const fbTag = showDesc ? `<span class="fb-desc-tag">${esc(st.boards_desc)}</span>` : "";
+    const fbGainTag =
+      inFanbaoRow && st.fanbao_gain_pct != null
+        ? `<span class="fb-gain-tag">${st.fanbao_gain_pct >= 0 ? "+" : ""}${st.fanbao_gain_pct}%</span>`
+        : "";
     const dThemes =
       st.display_themes && st.display_themes.length
         ? st.display_themes
@@ -204,18 +300,20 @@
           : [];
 
     const themesInner = dThemes
-      .slice(0, 2)
+      .slice(0, 1)
       .map((item) => {
         const tHeat = heatCls(item.heat_rank);
         return `<span class="cell-theme ${tHeat}">${esc(item.name)}</span>`;
       })
-      .join(`<span class="cell-theme-sep">·</span>`);
+      .join("");
 
     const themesHtml = themesInner ? `<div class="cell-themes">${themesInner}</div>` : "";
     return `
       <div class="stock-cell" role="button" tabindex="0" data-code="${esc(st.code)}">
         <span class="cell-main">
           <span class="cell-name">${esc(st.name)}</span>
+          ${fbTag}
+          ${fbGainTag}
           ${owTag}
         </span>
         ${themesHtml}
@@ -241,7 +339,22 @@
             <span class="axis-num">${tier.height}</span><span class="axis-unit">板</span>
           </div>
           <div class="tier-grid ${gridCls}">
-            ${stocks.map(stockCellHtml).join("")}
+            ${stocks.map((st) => stockCellHtml(st, false)).join("")}
+          </div>
+        </div>
+      `);
+    }
+
+    const fanbaoStocks = (d.fanbao_boards || []).map((c) => d.stocks[c]).filter(Boolean);
+    if (fanbaoStocks.length) {
+      const gridCls = fanbaoStocks.length === 1 ? "single" : "";
+      tiersHtml.push(`
+        <div class="tier-row">
+          <div class="tier-axis fanbao">
+            <span class="axis-unit">反包</span>
+          </div>
+          <div class="tier-grid ${gridCls}">
+            ${fanbaoStocks.map((st) => stockCellHtml(st, true)).join("")}
           </div>
         </div>
       `);
@@ -249,11 +362,7 @@
 
     elLadderList.innerHTML = tiersHtml.length
       ? tiersHtml.join("")
-      : `<div class="empty-state">暂无连板</div>`;
-
-    const fbStocks = (d.first_boards || []).map((c) => d.stocks[c]).filter(Boolean);
-    elFbCount.textContent = `${fbStocks.length}`;
-    elFbGrid.innerHTML = fbStocks.map(stockCellHtml).join("");
+      : `<div class="empty-state">暂无连板/反包</div>`;
   }
 
   // ========================================================================
@@ -262,6 +371,8 @@
 
   function openModal(entry) {
     state.modalStack.push(entry);
+    elSheet.dataset.dir = "";
+    elSheetBody.classList.remove("vt-swap");
     renderCurrentModal();
 
     requestAnimationFrame(() => {
@@ -272,9 +383,18 @@
     });
   }
 
+  // In-sheet navigation: push slides forward (from right), pop slides back (from left)
+  function swapModal(dir, mutate) {
+    elSheet.dataset.dir = dir;
+    elSheetBody.classList.toggle("vt-swap", canVT);
+    withTransition(dir, () => {
+      mutate();
+      renderCurrentModal();
+    });
+  }
+
   function pushModal(entry) {
-    state.modalStack.push(entry);
-    renderCurrentModal();
+    swapModal("push", () => state.modalStack.push(entry));
   }
 
   function popModal() {
@@ -282,16 +402,18 @@
       closeAllSheets();
       return;
     }
-    state.modalStack.pop();
-    renderCurrentModal();
+    swapModal("pop", () => state.modalStack.pop());
   }
 
   function closeAllSheets(instant = false) {
     state.modalStack = [];
-    elShell.classList.remove("receded");
-    elBackdrop.classList.remove("open");
-    elSheet.classList.remove("open");
+    elShell.classList.remove("receded", "dragging");
+    elBackdrop.classList.remove("open", "dragging");
+    elSheet.classList.remove("open", "dragging");
     elSheet.style.transform = "";
+    elShell.style.transform = "";
+    elShell.style.filter = "";
+    elBackdrop.style.opacity = "";
     elSheet.setAttribute("aria-hidden", "true");
     closeDateSheet();
     if (instant) {
@@ -351,7 +473,7 @@
     const hCls = heatCls(ctx.heatRank);
     const allStocks = ctx.codes.map((c) => d.stocks[c]).filter(Boolean);
     const multiCnt = allStocks.filter((s) => s.height >= 2).length;
-    const firstCnt = allStocks.length - multiCnt;
+    const fanbaoCnt = allStocks.length - multiCnt;
 
     const hasBack = state.modalStack.length > 1;
     elSheetHeader.innerHTML = `
@@ -365,7 +487,7 @@
       <div class="sheet-stats">
         <span>共 ${allStocks.length} 只</span>
         <span>连板 ${multiCnt}</span>
-        <span>首板 ${firstCnt}</span>
+        ${fanbaoCnt > 0 ? `<span>反包 ${fanbaoCnt}</span>` : ""}
       </div>
     `;
 
@@ -415,7 +537,8 @@
       const nodesHtml = list
         .map((st) => {
           const descText = st.boards_desc && st.boards_desc !== `${st.height}连板` ? st.boards_desc : "";
-          const subText = [descText, st.province].filter(Boolean).join(" · ");
+          const gainText = st.fanbao_gain_pct != null ? `波段${st.fanbao_gain_pct >= 0 ? "+" : ""}${st.fanbao_gain_pct}%` : "";
+          const subText = [descText, gainText, st.province].filter(Boolean).join(" · ");
           const delay = Math.min(cardIdx * 28, 240);
           cardIdx++;
 
@@ -437,7 +560,7 @@
       tiersDom.push(`
         <div class="c-tier">
           <div class="c-tier-head">
-            <span class="h-tag">${h}板</span>
+            <span class="h-tag">${h === 1 ? "反包" : `${h}板`}</span>
             <span>${list.length}只</span>
           </div>
           <div class="c-tier-grid ${gridCls}">
@@ -482,6 +605,7 @@
     const metaParts = [
       st.code,
       st.boards_desc || `${st.height}板`,
+      st.fanbao_gain_pct != null ? `首板至今${st.fanbao_gain_pct >= 0 ? "+" : ""}${st.fanbao_gain_pct}%` : "",
       st.first_time ? `${st.first_time}封` : "",
       st.amount_yi != null ? `${st.amount_yi}亿` : "",
       st.turnover != null ? `换手${st.turnover}%` : "",
@@ -586,7 +710,7 @@
 
                     return `
                       <div class="lane-row">
-                        <span class="lane-h">${h}板</span>
+                        <span class="lane-h">${h === 1 ? "反包" : `${h}板`}</span>
                         <div class="lane-peers">${chips}${moreHtml}</div>
                       </div>
                     `;
@@ -598,7 +722,7 @@
                     <div class="lane-head" data-jump-theme="${esc(lane.theme)}">
                       <span class="lane-name">${esc(lane.theme)}</span>
                       <span class="lane-meta">
-                        连${lane.multi} · 首${lane.first}
+                        连${lane.multi}${lane.first > 0 ? ` · 反${lane.first}` : ""}
                         <svg viewBox="0 0 12 12" width="10" height="10" fill="none">
                           <path d="M4.5 2.5L8 6L4.5 9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
@@ -647,8 +771,36 @@
           .join("")
       : "";
 
+    const srcNote =
+      st.display_source === "prev"
+        ? `沿用昨日 · 主位 ${st.primary_theme}`
+        : st.display_source === "main"
+          ? `主业 · 主位 ${st.primary_theme}`
+          : "";
+    const drv2Tag = st.driver2
+      ? `<span class="ev-tag ${themeHeatCls(st.driver2)}">副 · ${esc(st.driver2)}</span>`
+      : "";
+    const driverHtml = st.driver
+      ? `<div class="s-block">
+           <h4 class="s-block-title"><span>今日驱动</span>${srcNote ? `<span>${esc(srcNote)}</span>` : ""}</h4>
+           <div class="ev-item">
+             <div class="ev-head">
+               <span class="ev-tag ${themeHeatCls(st.driver)}">${esc(st.driver)}</span>
+               ${drv2Tag}
+               ${st.driver_basis_type ? `<span class="ev-pct">${esc(st.driver_basis_type)}</span>` : ""}
+             </div>
+             ${st.driver_basis ? `<div class="ev-text">${esc(st.driver_basis)}</div>` : ""}
+           </div>
+         </div>`
+      : srcNote
+        ? `<div class="s-block">
+             <h4 class="s-block-title"><span>今日驱动</span><span>${esc(srcNote)}</span></h4>
+           </div>`
+        : "";
+
     elSheetBody.innerHTML = `
       <div class="modal-view">
+        ${driverHtml}
         ${
           themePillsHtml
             ? `<div class="s-block">
@@ -720,9 +872,23 @@
       btn.addEventListener("click", () => {
         const dt = btn.getAttribute("data-pick-date");
         closeDateSheet();
-        if (dt && dt !== current) loadDay(dt);
+        if (dt && dt !== current) {
+          // state.dates is descending: a larger index means an older trading day
+          const from = currentDateIndex();
+          const to = state.dates.findIndex((x) => x.date === dt);
+          loadDay(dt, from < 0 || to < 0 ? null : to > from ? "older" : "newer");
+        }
       });
     });
+
+    // Center the current trading day in the list before the sheet slides up
+    const activeRow = elDateList.querySelector(".date-row.active");
+    if (activeRow) {
+      elDateList.scrollTop = Math.max(
+        0,
+        activeRow.offsetTop - elDateList.offsetTop - elDateList.clientHeight / 2 + activeRow.offsetHeight / 2
+      );
+    }
 
     elDateBackdrop.classList.add("open");
     elDateSheet.classList.add("open");
@@ -744,14 +910,14 @@
     elDatePrev.addEventListener("click", () => {
       const idx = currentDateIndex();
       if (idx >= 0 && idx < state.dates.length - 1) {
-        loadDay(state.dates[idx + 1].date);
+        loadDay(state.dates[idx + 1].date, "older");
       }
     });
 
     elDateNext.addEventListener("click", () => {
       const idx = currentDateIndex();
       if (idx > 0) {
-        loadDay(state.dates[idx - 1].date);
+        loadDay(state.dates[idx - 1].date, "newer");
       }
     });
 
@@ -772,12 +938,14 @@
       openModal({ type: "stock", id: cell.getAttribute("data-code") });
     };
     elLadderList.addEventListener("click", onLadderClick);
-    elFbGrid.addEventListener("click", onLadderClick);
+    if (elFbGrid) elFbGrid.addEventListener("click", onLadderClick);
 
-    elFbToggle.addEventListener("click", () => {
-      state.fbExpanded = !state.fbExpanded;
-      elFbWrap.classList.toggle("expanded", state.fbExpanded);
-    });
+    if (elFbToggle && elFbWrap) {
+      elFbToggle.addEventListener("click", () => {
+        state.fbExpanded = !state.fbExpanded;
+        elFbWrap.classList.toggle("expanded", state.fbExpanded);
+      });
+    }
 
     elDateBtn.addEventListener("click", openDateSheet);
     elDateClose.addEventListener("click", closeDateSheet);
@@ -802,6 +970,8 @@
       dragStartT = performance.now();
       currentDy = 0;
       elSheet.classList.add("dragging");
+      elShell.classList.add("dragging");
+      elBackdrop.classList.add("dragging");
     };
 
     const onTouchMove = (e) => {
@@ -809,14 +979,25 @@
       const dy = e.touches[0].clientY - dragStartY;
       currentDy = dy < 0 ? dy * 0.16 : dy;
       elSheet.style.transform = `translate3d(0, ${currentDy}px, 0)`;
+      // Backdrop fades and the receded page grows back as the sheet is pulled down
+      const p = Math.min(1, Math.max(0, currentDy) / Math.max(1, elSheet.offsetHeight));
+      elBackdrop.style.opacity = String(1 - p);
+      elShell.style.transform = `scale(${0.955 + 0.045 * p}) translateY(${6 * (1 - p)}px)`;
+      elShell.style.filter = `brightness(${0.92 + 0.08 * p})`;
     };
 
     const onTouchEnd = () => {
       if (!dragging) return;
       dragging = false;
-      elSheet.classList.remove("dragging");
       const dt = Math.max(1, performance.now() - dragStartT);
       const velocity = currentDy / dt;
+      // Re-enable transitions and release inline styles together so everything springs from where the finger left it
+      elSheet.classList.remove("dragging");
+      elShell.classList.remove("dragging");
+      elBackdrop.classList.remove("dragging");
+      elShell.style.transform = "";
+      elShell.style.filter = "";
+      elBackdrop.style.opacity = "";
       if (currentDy > 95 || velocity > 0.45) {
         closeAllSheets();
       } else {

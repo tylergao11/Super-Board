@@ -1,0 +1,150 @@
+{
+  "trade_date": "2026-08-03",
+  "mode": "core_ladder_v2",
+  "stocks": [
+    {
+      "code": "003032",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "6连板一字晋升市场最高标，延续具身智能教学机器人主线并引领机器人核心梯队",
+      "source": "llm"
+    },
+    {
+      "code": "605179",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "5连板尾盘高换手封板，延续政治局会议与国常会扩内需消费主线惯性",
+      "source": "llm"
+    },
+    {
+      "code": "002827",
+      "driver": "并购",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "4连板早盘秒板延续并购主线，叠加欣天科技溢价90%拟易主复牌及华新建材海外收购激活并购重组暗线催化",
+      "source": "llm"
+    },
+    {
+      "code": "000820",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "3连板延续独立储能EPC电力主线，受益国常会核准8台核电机组及部署新型电网建设引爆早盘电力板块涨停潮",
+      "source": "llm"
+    },
+    {
+      "code": "003001",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "原主线通信今日在热门消息与核心梯队熄火，公司深度参与多座核电项目及固化土集约采购，早盘09:30秒板明显切换至国常会核准8台核电机组引爆的电力核电最强主线",
+      "source": "llm"
+    },
+    {
+      "code": "000593",
+      "driver": "石油",
+      "driver2": null,
+      "basis_type": "announcement",
+      "basis": "关于股东持股比例达到5%以上暨权益变动的提示性公告",
+      "source": "llm"
+    },
+    {
+      "code": "002354",
+      "driver": "机器人",
+      "driver2": "AI应用",
+      "basis_type": "continue",
+      "basis": "2连板延续具身智能视觉感知机器人主线（呼应6板龙头传智教育与中大力德），并叠加DeepSeek与千问办公AI智能体催化形成AI应用双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "603106",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "2连板延续AI应用主线，早间DeepSeek智能体能力跃升及阿里千问办公公测催化金融智能体方向领涨",
+      "source": "llm"
+    },
+    {
+      "code": "002896",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "2连板早盘快速封板，延续机器人减速器核心主线并与6板最高标传智教育、天娱数科等形成机器人梯队共振",
+      "source": "llm"
+    },
+    {
+      "code": "603682",
+      "driver": "地产",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "2连板延续政治局会议定调下的地产链物业运营主线，叠加早间7月百城房价上海新房环比涨幅领跑消息催化",
+      "source": "llm"
+    },
+    {
+      "code": "603261",
+      "driver": "军工",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "2连板早盘快速封板，延续前期军工航空装备主线惯性",
+      "source": "llm"
+    },
+    {
+      "code": "000967",
+      "driver": "算力",
+      "driver2": "电力",
+      "basis_type": "continue",
+      "basis": "2连板延续算力租赁主线（与美利云早盘同步封板呼应海外云巨头资本开支），同时子公司上风高科具备核电通风设备业务，叠加国常会核准8台核电机组催化形成电力双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "000815",
+      "driver": "算力",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "2连板放量封板，延续IDC与智算中心算力主线，与盈峰环境早盘同步封板共振",
+      "source": "llm"
+    },
+    {
+      "code": "002963",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "2连板缩量快速封板，延续政治局会议与国常会扩内需背景下的智慧文旅消费主线，与5连板消费高标一鸣食品呼应",
+      "source": "llm"
+    },
+    {
+      "code": "000595",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "2连板延续电力主线，受益国常会核准8台核电机组及新型电网建设汇报引爆早盘电力板块涨停潮，与神雾节能、中岩大地形成电力梯队共振",
+      "source": "llm"
+    },
+    {
+      "code": "002131",
+      "driver": "AI应用",
+      "driver2": "算力",
+      "basis_type": "news",
+      "basis": "70亿巨量2连板成为AI应用容量中军，受早间DeepSeek智能体更新及千问办公公测催化，同时叠加液冷泵算力概念与核心梯队双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "001223",
+      "driver": "通信",
+      "driver2": "消费电子",
+      "basis_type": "continue",
+      "basis": "2连板延续PCB设备及FCCL通信主线，午间受iPhone与苹果折叠新机提价预期及小米手机涨价等消费电子热点催化，13:00开盘迅速封板形成双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "601858",
+      "driver": "AI应用",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "原7月29日传媒影视游戏主线今日在热门消息与核心梯队彻底熄火，该股午后13:16反包涨停明显切换至当日核心主线AI应用，受DeepSeek智能体更新与午后阿里千问办公公测催化，与恒银科技、利欧股份等形成AI应用梯队共振",
+      "source": "llm"
+    }
+  ]
+}

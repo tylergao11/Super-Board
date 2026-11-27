@@ -1,0 +1,222 @@
+{
+  "trade_date": "2026-07-01",
+  "mode": "core_ladder_v2",
+  "stocks": [
+    {
+      "code": "600113",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "延续昨日消费主线强势惯性，早盘09:30快速晋级3连板领涨消费梯队",
+      "source": "llm"
+    },
+    {
+      "code": "002407",
+      "driver": "芯片",
+      "driver2": "锂电",
+      "basis_type": "news",
+      "basis": "隔夜半导体涨价潮叠加盘中晶圆巨头抢购电子级氢氟酸涨价三成延续芯片主线，同时叠加隔夜锂电材料行业量价齐升催化锂电双线共振晋级3连板",
+      "source": "llm"
+    },
+    {
+      "code": "000566",
+      "driver": "医药",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "延续创新药主线强势，午后率先封板晋级3连板并与创新药板块走强形成共振",
+      "source": "llm"
+    },
+    {
+      "code": "002273",
+      "driver": "消费电子",
+      "driver2": "通信",
+      "basis_type": "news",
+      "basis": "一字板延续光学光电子及玻璃基板主线强势，叠加隔夜至盘中消费电子元器件涨价催化，并与CPO光电玻璃基板通信方向双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "603137",
+      "driver": "并购",
+      "driver2": null,
+      "basis_type": "announcement",
+      "basis": "恒尚节能：发行股份及支付现金购买资产并募集配套资金暨关联交易预案",
+      "source": "llm"
+    },
+    {
+      "code": "002738",
+      "driver": "锂电",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜锂电材料行业量价齐升催化锂电及上游锂矿资源方向集体走强，早盘秒板延续锂电主线晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "603379",
+      "driver": "芯片",
+      "driver2": "化工",
+      "basis_type": "news",
+      "basis": "延续半导体湿电子化学品主线，盘中晶圆巨头抢购电子级氢氟酸涨价三成催化芯片与氟化工双线共振晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "002747",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "延续昨日机器人板块涨停潮主线强势惯性，早盘09:31放量晋级2连板领涨机器人梯队",
+      "source": "llm"
+    },
+    {
+      "code": "600076",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜英飞凌调价与早盘芯联集成拟涨价催化半导体设备及材料板块走强，延续芯片主线快速晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "002167",
+      "driver": "锂电",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜锂电材料行业量价齐升催化锂电材料方向走强，延续固态电池及锂电材料主线早盘快速晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "002396",
+      "driver": "通信",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "延续昨日交换机与CPO通信主线早盘快速晋级2连板，叠加八部门印发工业互联网实施意见催化AI应用方向双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "300518",
+      "driver": "芯片",
+      "driver2": "锂电",
+      "basis_type": "news",
+      "basis": "受半导体涨价潮与存储紧缺催化延续光芯片主线晋级2连板，叠加隔夜锂电材料行业量价齐升催化锂矿方向双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "002053",
+      "driver": "电力",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "延续绿色电力主线早盘快速晋级2连板，引领午后电力板块持续反弹并掀起涨停潮",
+      "source": "llm"
+    },
+    {
+      "code": "603120",
+      "driver": "芯片",
+      "driver2": "化工",
+      "basis_type": "news",
+      "basis": "延续半导体材料与光刻胶电子化学品主线晋级2连板，叠加盘中电子级氢氟酸涨价带动的化工板块景气扩散双线共振",
+      "source": "llm"
+    },
+    {
+      "code": "600783",
+      "driver": "商业航天",
+      "driver2": "金融",
+      "basis_type": "news",
+      "basis": "隔夜国家级创新中心开启太空算力产业合作催化延续商业航天主线早盘晋级2连板，并叠加两市放量引爆大金融创投方向共振",
+      "source": "llm"
+    },
+    {
+      "code": "603991",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜至盘中半导体涨价潮与存储紧缺持续发酵，延续芯片及先进封装主线晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "600641",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜英飞凌调价、早盘芯联集成拟涨价及AI存储紧缺催化半导体设备板块反复走强，放量晋级2连板延续芯片主线中军地位",
+      "source": "llm"
+    },
+    {
+      "code": "000603",
+      "driver": "有色",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜消息称全球央行计划继续购金催化贵金属方向，延续昨日有色金属主线晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "001331",
+      "driver": "机器人",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "延续昨日机器人板块涨停潮主线惯性，随中军埃斯顿2连板共振走强晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "002929",
+      "driver": "算力",
+      "driver2": "AI应用",
+      "basis_type": "news",
+      "basis": "受八部门重磅印发工业互联网及AI算力政策、鹏城云脑Ⅲ性能登顶与Claude Science发布催化，延续算力与AI应用双主线晋级2连板",
+      "source": "llm"
+    },
+    {
+      "code": "603212",
+      "driver": "商业航天",
+      "driver2": "锂电",
+      "basis_type": "news",
+      "basis": "在光伏赛道盘中大跌背景下逆势走强，受隔夜太空算力产业合作消息催化延续商业航天主线并随鲁信创投联动晋级2连板，叠加锂电材料板块走强共振",
+      "source": "llm"
+    },
+    {
+      "code": "688728",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜英飞凌与早盘芯联集成涨价叠加午后SK海力士长约不设价格上限催化半导体全面爆发，放量20cm晋级2连板延续芯片主线",
+      "source": "llm"
+    },
+    {
+      "code": "600857",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "延续断板前商贸零售消费主线，受高标浙江东日早盘3连板带动实现反包录得5天3板",
+      "source": "llm"
+    },
+    {
+      "code": "002559",
+      "driver": "芯片",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜英飞凌调价与闪迪目标价大升催化存储及半导体设备材料爆发，早盘一字反包延续芯片主线录得4天2板",
+      "source": "llm"
+    },
+    {
+      "code": "605178",
+      "driver": "芯片",
+      "driver2": "并购",
+      "basis_type": "news",
+      "basis": "隔夜闪迪目标价大幅上调与AI存储紧缺延续催化存储芯片爆发，叠加恒尚节能跨界收购存储器标的连板带动芯片并购方向共振，早盘反包录得3天2板",
+      "source": "llm"
+    },
+    {
+      "code": "002277",
+      "driver": "并购",
+      "driver2": null,
+      "basis_type": "news",
+      "basis": "隔夜英飞凌与早盘芯联集成涨价催化功率半导体方向，叠加恒尚节能与安洁科技跨界硬科技收购催化并购线活跃，延续拟收购尚阳通并购主线反包录得3天2板",
+      "source": "llm"
+    },
+    {
+      "code": "000521",
+      "driver": "消费",
+      "driver2": null,
+      "basis_type": "continue",
+      "basis": "延续断板前家电消费主线，受高标浙江东日3连板及宁波中百反包带动，午后反包涨停录得3天2板",
+      "source": "llm"
+    }
+  ]
+}

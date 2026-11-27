@@ -20,9 +20,17 @@ from common import DB_PATH, ROOT, ULTRA_BOARD_RAW, clean_stock_name
 SHANGHAI_TZ = timezone(timedelta(hours=8))
 F10_DIR = ROOT / "data/raw_f10"
 ANN_DIR = ROOT / "data/raw_ann"
+RAW_ANN_DAY_DIR = ROOT / "data/raw_ann_day"
+KLINE_DIR = ROOT / "data/raw_kline"
 MARKET_RAW_DIR = ROOT / "data/market_raw"
 NEWS_RAW_DIR = ROOT / "data/raw_news"
 ORG_MAP_PATH = ROOT / "data/cninfo_org_map.json"
+
+NOISE_NOTICE_KWS = (
+    "三方监管", "四方监管", "监管协议", "专户", "可转债", "债券", "赎回",
+    "转股", "付息", "信用评级", "限售股", "解禁", "上市流通", "发行情况报告书",
+    "募集说明书", "上市公告书", "网下配售", "询价转让",
+)
 
 KPL_HISTORY_URL = "https://apphis.longhuvip.com/w1/api/index.php"
 KPL_LIVE_URL = "https://apphq.longhuvip.com/w1/api/index.php"
@@ -681,6 +689,130 @@ def fetch_intraday_news(day: str, max_pages: int = 30, refresh: bool = False) ->
     return out_p
 
 
+def _fetch_one_ann_day(code: str, col: str, stock_param: str, prev_day: str, day: str) -> tuple[str, list[dict[str, str]], bool]:
+    sess = _get_session()
+    resp = _cninfo_query_page(sess, stock_param, col, prev_day, day, 1)
+    if resp is None:
+        return code, [], False
+    items: list[dict[str, str]] = []
+    seen_t: set[str] = set()
+    for a in resp.get("announcements") or []:
+        title = re.sub(r"<[^>]+>", "", str(a.get("announcementTitle") or "")).strip()
+        if not title or any(k in title for k in NOISE_NOTICE_KWS):
+            continue
+        ts = a.get("announcementTime")
+        if not isinstance(ts, (int, float)):
+            continue
+        dt = datetime.fromtimestamp(ts / 1000.0, tz=SHANGHAI_TZ).strftime("%Y-%m-%d")
+        if dt not in (prev_day, day):
+            continue
+        if title not in seen_t:
+            seen_t.add(title)
+            items.append({"date": dt, "title": title})
+    return code, items, True
+
+
+def fetch_ann_day(day: str, refresh: bool = False) -> Path:
+    RAW_ANN_DAY_DIR.mkdir(parents=True, exist_ok=True)
+    out_p = RAW_ANN_DAY_DIR / f"{day}.json"
+    if out_p.exists() and not refresh:
+        try:
+            doc = json.loads(out_p.read_text(encoding="utf-8"))
+            if isinstance(doc, dict):
+                return out_p
+        except Exception:
+            pass
+
+    conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+    codes = [
+        r[0]
+        for r in conn.execute(
+            "SELECT DISTINCT code FROM daily_limit_pool WHERE trade_date=? ORDER BY code",
+            (day,),
+        ).fetchall()
+    ]
+    conn.close()
+    prev_day = _prev_trade_day(day)
+    org_map = _load_org_map()
+
+    out: dict[str, list[dict[str, str]]] = {}
+    ok_cnt = 0
+    err_cnt = 0
+    with ThreadPoolExecutor(max_workers=4) as ex:
+        futs = []
+        for code in codes:
+            col = "sse" if code.startswith(("6", "9")) else ("szse" if code.startswith(("0", "3")) else "bj")
+            org_id = org_map.get(code, "")
+            stock_param = f"{code},{org_id}" if org_id else code
+            futs.append(ex.submit(_fetch_one_ann_day, code, col, stock_param, prev_day, day))
+        for fut in as_completed(futs):
+            code, items, ok = fut.result()
+            out[code] = items
+            if ok:
+                ok_cnt += 1
+            else:
+                err_cnt += 1
+
+    ordered = {c: out.get(c, []) for c in codes}
+    tmp = out_p.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(ordered, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(out_p)
+    notice_total = sum(len(v) for v in ordered.values())
+    print(json.dumps({"date": day, "window": [prev_day, day], "stocks": len(codes), "ok": ok_cnt, "errors": err_cnt, "notices": notice_total}, ensure_ascii=False))
+    return out_p
+
+
+def _tencent_symbol(code: str) -> str:
+    if code.startswith("6"):
+        return f"sh{code}"
+    if code.startswith(("0", "3")):
+        return f"sz{code}"
+    return f"bj{code}"
+
+
+def fetch_kline_one(code: str, start_dt: str = "2026-05-01", end_dt: str = "2026-12-31", refresh: bool = False) -> tuple[str, bool]:
+    KLINE_DIR.mkdir(parents=True, exist_ok=True)
+    out_p = KLINE_DIR / f"{code}.json"
+    if out_p.exists() and not refresh:
+        try:
+            doc = json.loads(out_p.read_text(encoding="utf-8"))
+            if doc.get("code") == code and doc.get("days"):
+                return code, True
+        except Exception:
+            pass
+    sc = _tencent_symbol(code)
+    url = f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={sc},day,{start_dt},{end_dt},320,qfq"
+    for attempt in range(3):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                body = json.loads(resp.read().decode("utf-8"))
+            node = (body.get("data") or {}).get(sc) or {}
+            rows = node.get("qfqday") or node.get("day") or []
+            days = [[str(r[0]), float(r[2])] for r in rows if isinstance(r, list) and len(r) >= 3]
+            if days:
+                tmp = out_p.with_suffix(".json.tmp")
+                tmp.write_text(json.dumps({"code": code, "days": days}, ensure_ascii=False), encoding="utf-8")
+                tmp.replace(out_p)
+                return code, True
+        except Exception:
+            time.sleep(0.5 * (attempt + 1))
+    return code, False
+
+
+def fetch_kline_cmd(codes: list[str], start_dt: str = "2026-05-01", end_dt: str = "2026-12-31", refresh: bool = False) -> None:
+    ok_cnt = 0
+    err_cnt = 0
+    with ThreadPoolExecutor(max_workers=12) as ex:
+        for fut in as_completed([ex.submit(fetch_kline_one, c, start_dt, end_dt, refresh) for c in codes]):
+            _, ok = fut.result()
+            if ok:
+                ok_cnt += 1
+            else:
+                err_cnt += 1
+    print(json.dumps({"total": len(codes), "ok": ok_cnt, "errors": err_cnt}, ensure_ascii=False))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -699,6 +831,18 @@ def main() -> None:
     pn = sub.add_parser("news")
     pn.add_argument("--date", type=str, default=None)
     pn.add_argument("--month", type=str, default=None)
+
+    pa = sub.add_parser("ann-day")
+    pa.add_argument("--date", type=str, default=None)
+    pa.add_argument("--month", type=str, default=None)
+    pa.add_argument("--refresh", action="store_true")
+
+    pk = sub.add_parser("kline")
+    pk.add_argument("--codes", nargs="*", default=None)
+    pk.add_argument("--fanbao", action="store_true", help="Fetch daily qfq klines for all fanbao stocks since 2026-06-01")
+    pk.add_argument("--start", type=str, default="2026-05-01")
+    pk.add_argument("--end", type=str, default="2026-12-31")
+    pk.add_argument("--refresh", action="store_true")
 
     args = parser.parse_args()
     if args.cmd == "market":
@@ -730,6 +874,47 @@ def main() -> None:
             fetch_intraday_news(args.date)
         else:
             raise SystemExit("news requires --date or --month")
+    elif args.cmd == "ann-day":
+        if args.month:
+            conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+            days = [
+                r[0]
+                for r in conn.execute(
+                    "SELECT DISTINCT trade_date FROM daily_limit_pool WHERE trade_date LIKE ? ORDER BY trade_date ASC",
+                    (f"{args.month}-%",),
+                ).fetchall()
+            ]
+            conn.close()
+            for d in days:
+                fetch_ann_day(d, refresh=args.refresh)
+        else:
+            target = args.date
+            if not target:
+                conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+                row = conn.execute("SELECT MAX(trade_date) FROM daily_limit_pool").fetchone()
+                conn.close()
+                target = str(row[0]) if row and row[0] else ""
+            if not target:
+                raise SystemExit("ann-day found no trade_date")
+            fetch_ann_day(target, refresh=args.refresh)
+    elif args.cmd == "kline":
+        if args.fanbao:
+            conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+            codes = [
+                r[0]
+                for r in conn.execute(
+                    """
+                    SELECT DISTINCT code FROM daily_limit_pool
+                    WHERE trade_date >= '2026-06-01'
+                      AND (is_fanbao = 1 OR boards_desc LIKE '%天%板%')
+                    ORDER BY code
+                    """
+                ).fetchall()
+            ]
+            conn.close()
+        else:
+            codes = list(args.codes or [])
+        fetch_kline_cmd(codes, start_dt=args.start, end_dt=args.end, refresh=args.refresh)
 
 
 if __name__ == "__main__":

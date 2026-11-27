@@ -1,9 +1,16 @@
 """Pure-stdlib run_workflow script to distill intraday objective hot news per trading day."""
 import json
 import sqlite3
+import sys
 from pathlib import Path
 
 ROOT = Path(args.get("root", r"d:\Super-Board")) if "args" in dir() else Path(r"d:\Super-Board")
+SCRIPTS_DIR = ROOT / "scripts"
+if str(SCRIPTS_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPTS_DIR))
+
+from driver_rules import VOCAB_SET, candidates  # noqa: E402
+
 DB_PATH = ROOT / "data/super_board.sqlite"
 RAW_NEWS_DIR = ROOT / "data/raw_news"
 TARGET_DATE = str(args.get("date") or "").strip() if "args" in dir() else ""
@@ -23,8 +30,10 @@ OUTPUT_SCHEMA = {
                     "headline": {"type": "string"},
                     "detail": {"type": "string"},
                     "hit_count": {"type": "integer"},
+                    "theme": {"type": ["string", "null"]},
+                    "codes": {"type": "array", "items": {"type": "string"}},
                 },
-                "required": ["rank", "headline", "detail", "hit_count"],
+                "required": ["rank", "headline", "detail", "hit_count", "theme", "codes"],
             },
         },
     },
@@ -34,7 +43,7 @@ OUTPUT_SCHEMA = {
 RULES_PROMPT = """你是A股超短线日内盘面消息提炼专家（只读模式，严禁调用任何工具，直接通过 finish 返回结构化 JSON）。
 
 下方提供某一交易日（`trade_date`）两份客观材料：
-1) `stocks`：当日全部涨停股票及触发原由；
+1) `stocks`：当日全部涨停股票（代码、名称、板数及自家纯净标签 `tags`）；
 2) `intraday_news`（如有）：**严格卡在 `(上一交易日 15:00, 当日 15:00]` 窗口内的东财焦点加红快讯**（隔夜外盘/晚间重磅政策 + 早盘/盘中突发催化）。
 
 请融合这两份材料，去重提炼出 **6 到 10 条真正驱动当日日内盘面（截止当日 15:00 收盘）的客观热门消息/催化事件**，按当日盘面影响力 / 带动热度（`hit_count`）从高到低排序（`rank` 从 1 开始连续编号）：
@@ -44,7 +53,9 @@ RULES_PROMPT = """你是A股超短线日内盘面消息提炼专家（只读模�
 2. **优先抓真正带起日内异动的消息**：政策发布（如部委文件/6G/AI出海）、监管批准（如SpaceX星座）、隔夜外盘/大厂突发（如美光/英伟达/华为HBM/午后停供东南亚传闻/交期拉长）、权威媒体报道、行业涨价/爆单、显著情绪暗线（如羊年生肖/名称异动）、前夜已公告并触发当日日内涨停的重磅并购/要约。
 3. **`headline`（<= 28字）**：高度凝练的事件标题，建议尽量带出关键时点词（如 `午后突发：英伟达暂停东南亚芯片出货`、`隔夜FCC批SpaceX百万颗卫星星座`、`盘中：八部门支持AI大模型及云计算出海`、`央视财经：国产冰雪装备出口爆单`、`2027农历羊年名称异动暗线`）。
 4. **`detail`（1句话客观摘要）**：写明具体事件内容、时间点与出处，并在句末括号内点明当日日内受其催化的代表涨停/异动股（无则写所涉方向）。
-5. **严禁充数的假消息**：严禁把“据2026年半年报，公司主营某某产品”这类日常经营背景、常规业绩增长、指数日常波动（如“恒生科技涨3%”）或泛泛而谈的宏观数据当成热门消息！
+5. **`theme`**：该消息对应的唯一核心板块，**只能从标准词表（25个L1 + 15个跨界组 + `"并购"`）中选，或以 `"字辈"` 结尾**（如 `"金字辈"`、`"羊字辈"`）；若只是综合事件/宏观/贸易/回购且无单一对应板块，填 `null`。
+6. **`codes`**：受该消息在当日日内直接带动的涨停股代码数组（`string[]`），所有代码必须严格来自输入 `stocks` 的 `code`。
+7. **严禁充数的假消息**：严禁把日常经营背景、常规业绩增长、指数日常波动（如“恒生科技涨3%”）或泛泛而谈的宏观数据当成热门消息！
 """
 
 
@@ -64,7 +75,7 @@ def _load_days_payload(target_date: str, month: str) -> list[dict]:
     for d in days:
         rows = conn.execute(
             """
-            SELECT code, name, board_height, kpl_topic, kpl_reason
+            SELECT code, name, board_height
             FROM daily_limit_pool
             WHERE trade_date = ?
             ORDER BY board_height DESC, first_limit_time ASC, code ASC
@@ -85,7 +96,7 @@ def _load_days_payload(target_date: str, month: str) -> list[dict]:
                 "trade_date": d,
                 "intraday_news": intraday_news,
                 "stocks": [
-                    {"code": r[0], "name": r[1], "h": r[2], "reason": r[4] or r[3] or ""}
+                    {"code": r[0], "name": r[1], "h": r[2], "tags": candidates(conn, r[0], d)}
                     for r in rows
                 ],
             }
@@ -94,7 +105,7 @@ def _load_days_payload(target_date: str, month: str) -> list[dict]:
     return out
 
 
-def _validate_day(day: str, doc: dict) -> list[str]:
+def _validate_day(day: str, doc: dict, valid_codes: set[str]) -> list[str]:
     errs = []
     if doc.get("trade_date") != day:
         errs.append(f"trade_date must be {day}, got {doc.get('trade_date')!r}")
@@ -109,11 +120,26 @@ def _validate_day(day: str, doc: dict) -> list[str]:
             errs.append(f"item[{idx}] invalid headline length: {hl!r}")
         if not dt:
             errs.append(f"item[{idx}] empty detail")
+        th = it.get("theme")
+        if th is not None:
+            th_s = str(th).strip()
+            if not th_s:
+                it["theme"] = None
+            elif th_s not in VOCAB_SET and not th_s.endswith("字辈"):
+                errs.append(f"item[{idx}] invalid theme {th_s!r} (must be null, in VOCAB, or end with '字辈')")
+        codes = it.get("codes")
+        if not isinstance(codes, list):
+            errs.append(f"item[{idx}] codes must be list")
+        else:
+            bad_codes = [c for c in codes if str(c) not in valid_codes]
+            if bad_codes:
+                errs.append(f"item[{idx}] codes not in daily pool: {bad_codes[:5]}")
     return errs
 
 
 async def distill_day(payload: dict) -> dict:
     day = payload["trade_date"]
+    valid_codes = {s["code"] for s in payload["stocks"]}
     prompt = (
         RULES_PROMPT
         + f"\n现在请提炼 {day}（共 {len(payload['stocks'])} 只涨停，{len(payload['intraday_news'])} 条日内焦点快讯）的当日热门消息：\n"
@@ -121,10 +147,10 @@ async def distill_day(payload: dict) -> dict:
     )
     a = agent(role=f"News {day}", type_name="research")
     res = await a(prompt, OUTPUT_SCHEMA)
-    errs = _validate_day(day, res)
+    errs = _validate_day(day, res, valid_codes)
     if errs:
         res = await a("输出不符合要求，请修正后重新输出：\n" + "\n".join(errs), OUTPUT_SCHEMA)
-        errs = _validate_day(day, res)
+        errs = _validate_day(day, res, valid_codes)
     del a
     if errs:
         raise RuntimeError(f"{day} hot news validation failed: {errs}")

@@ -4,6 +4,8 @@ __pycache__/
 *.tmp
 data/raw_f10/
 data/raw_ann/
+data/raw_ann_day/
+data/raw_kline/
 data/shards/
 data/tagged/
 data/market_raw/
