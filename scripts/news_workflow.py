@@ -3,7 +3,7 @@ import json
 import sqlite3
 from pathlib import Path
 
-ROOT = Path(args.get("root", r"C:\Ai\Super-Board")) if "args" in dir() else Path(r"C:\Ai\Super-Board")
+ROOT = Path(args.get("root", r"d:\Super-Board")) if "args" in dir() else Path(r"d:\Super-Board")
 DB_PATH = ROOT / "data/super_board.sqlite"
 RAW_NEWS_DIR = ROOT / "data/raw_news"
 TARGET_DATE = str(args.get("date") or "").strip() if "args" in dir() else ""

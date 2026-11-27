@@ -1,9 +1,9 @@
-"""Pure-stdlib run_workflow script for Scheme-A + 1-year dynamic + PCB->通信 stock cleanup audit."""
+"""Pure-stdlib run_workflow script for Super-Board v2 full-dynamic migration & re-audit."""
 import json
 import sys
 from pathlib import Path
 
-ROOT = Path(args.get("root", r"C:\Ai\Super-Board")) if "args" in dir() else Path(r"C:\Ai\Super-Board")
+ROOT = Path(args.get("root", r"d:\Super-Board")) if "args" in dir() else Path(r"d:\Super-Board")
 SCRIPTS_DIR = ROOT / "scripts"
 if str(SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(SCRIPTS_DIR))
@@ -11,13 +11,13 @@ if str(SCRIPTS_DIR) not in sys.path:
 from common import load_taxonomy, validate_record  # noqa: E402
 
 TAXONOMY = load_taxonomy(ROOT / "taxonomy.json")
-SHARD_DIR = ROOT / "data/shards"
-OUT_DIR = ROOT / "data/audit_out"
+SHARD_DIR = Path(args.get("shard_dir", str(ROOT / "data/shards"))) if "args" in dir() else (ROOT / "data/shards")
+OUT_DIR = Path(args.get("out_dir", str(ROOT / "data/audit_out"))) if "args" in dir() else (ROOT / "data/audit_out")
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
-PREFIX = args.get("prefix", "scheme_a") if "args" in dir() else "scheme_a"
-WAVE_SIZE = int(args.get("wave_size", 40)) if "args" in dir() else 40
-MIN_DYN_DATE = str(args.get("min_dynamic_date", "2025-11-26")) if "args" in dir() else "2025-11-26"
+PREFIX = args.get("prefix", "v2_full_dyn") if "args" in dir() else "v2_full_dyn"
+WAVE_SIZE = int(args.get("wave_size", 30)) if "args" in dir() else 30
+MIN_TAG_DATE = str(args.get("min_tag_date", "2025-11-26")) if "args" in dir() else "2025-11-26"
 
 OUTPUT_SCHEMA = {
     "type": "object",
@@ -32,86 +32,64 @@ OUTPUT_SCHEMA = {
                     "name": {"type": "string"},
                     "province": {"type": "string"},
                     "controller_type": {"type": "string"},
-                    "static_tags": {
+                    "tags": {
                         "type": "array",
                         "items": {
                             "type": "object",
                             "properties": {
-                                "l1": {"type": "string"},
-                                "revenue_pct": {"type": "number"},
-                                "evidence": {"type": "string"},
-                            },
-                            "required": ["l1", "revenue_pct", "evidence"],
-                        },
-                    },
-                    "dynamic_tags": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "group_name": {"type": "string"},
+                                "tag": {"type": "string"},
                                 "from_date": {"type": "string"},
-                                "to_date": {"type": ["string", "null"]},
                                 "evidence": {"type": "string"},
                             },
-                            "required": ["group_name", "from_date", "evidence"],
+                            "required": ["tag", "from_date", "evidence"],
                         },
                     },
                     "audit_notes": {"type": "string"},
                 },
-                "required": ["code", "name", "province", "controller_type", "static_tags", "dynamic_tags", "audit_notes"],
+                "required": ["code", "name", "province", "controller_type", "tags", "audit_notes"],
             },
         },
     },
     "required": ["shard_id", "stocks"],
 }
 
-AUDIT_PROMPT = f"""你是 A股纯净题材库“方案A + 1年有效期 + 行业口径统一”专项审计官（只读模式，**严禁调用任何工具**，通读证据后直接通过 finish 返回 JSON）。
+AUDIT_PROMPT = f"""你是 Super-Board v2「完全全动态纯净题材库」升级审计官（只读模式，**严禁调用任何工具**，通读每只股票的完整旧档案+历史被踢记录+近1年涨停轨迹后直接通过 finish 返回 JSON）。
 
-【本次清淤铁律：全部股票共用同一把尺子，绝不双标！】
-1. **static_tags（静态 · 客观财务铁尺，单股 1~4 条，每个 L1 唯一）**：
-   25个唯一允许 L1：{json.dumps(TAXONOMY["l1_list"], ensure_ascii=False)}
-   - **唯一准入硬门槛**：严格核对 `latest_mix` / `annual_mix`，**只保留最新期（若缺失拆分或年报更完整可采信上年报）分产品/分行业营收占比 `>= 5%` 的真实业务**（或营收明确 **`>= 2亿元`** 且占比 `> 0`，此时 evidence 必须写出如 `2.50亿元`）。
-   - **`revenue_pct` 必填具体正数（严禁 `null` 或 `0`）**！如果某只股同个 L1 对应多条财报子项（如化工90%+化肥5%），合并填其总占比。
-   - **零特权清零**：
-     - 占比 `0%`（如金牛化工电力0%）、`< 5%` 且 `< 2亿` 的边角料（如青山纸业1~2%环保/机械/农业）**一律踢出 `static_tags`**！
-     - 低占比无拆分硬科技/参股（如金螳螂1%洁净室、全筑0% EUV/云阙智算、九阳7.92%参股深思考、顺钠AIDC变压器）**一律不准进 `static_tags`**（近1年有实体的去 `dynamic_tags`，没有的直接删）！
-     - **陈年僵尸踢出**：仅出现在开盘啦历史涨停文案、但最新 F10（`latest_mix`、`business_review`、`core_conception`）与近 2 年公告完全查无实质业务的（如全筑股份 2016 智能划线机器人样机），**彻底删除**！
-   - **PCB / 覆铜板核心纠偏（必看！）**：
-     - **PCB（印制电路板）、覆铜板（CCL）、电子铜箔、光模块/CPO、光纤光缆** 营收占比 `>= 5%`，一律归入 **`通信`**（严禁丢进 `消费电子`！如骏亚科技、澳弘电子、金安国纪、沪电股份、嘉立创、宝鼎科技、贤丰控股、满坤科技等主营 PCB/覆铜板全改归 `通信`；深南电路/兴森科技单独拆分 `IC封装基板 >=5%` 归 `芯片`、其余 PCB 归 `通信`）。
-   - **`AI应用`（替代原 `软件`）分类铁律**：
-     - AI 硬件 5 大类为 `芯片`/`算力`/`通信`/`消费电子`/`机器人`；AI 软件静态大类为 **`AI应用`**（已废除 `软件`）。
-     - 纯软件/大模型/AI智能体/数据标注/SaaS/信创及通用政务企业数字化集成软件（如常山北明、拓维信息、海天瑞声、易点天下、证通电子等）营收占比 `>= 5%`（或 `>= 2亿元`）**直接归静态 `AI应用`**，同时删除重复的动态 `AI应用`（严禁静动重名）。
-     - 强垂直依附单一实体行业的专用软件/自动化系统归对应垂直大类：券商/银行金融IT（顶点软件、汇金科技、银之杰、楚天龙等）→ **`金融`**；电力/电网调度自动化软件（海得控制、中恒电气等）→ **`电力`**；北斗/ICT网络软件（司南导航、广脉科技等）→ **`通信`**；军工信息化/涉军网安（高凌信息等）→ **`军工`**；医疗IT（阳普医疗等）→ **`医药`**；工业传感器/工厂自动化软件（汉威科技、赛摩智能等）→ **`机器人`**。
-     - 非软件主业但近 1 年有真实 AI 应用落地/催化的跨界股（如 `传媒`/`消费`/`医药`/`金融` 等，`AI应用` 营收 `< 5%`）继续放在 **`dynamic_tags: AI应用`**。
-   - **`工业设备` 严格兜底分流铁律（严禁再膨胀！）**：
-     - 已废除 `机械`，25大类现为 **`工业设备`** 严格兜底：减速器/伺服系统/丝杠/微型传动/传感器/机器视觉/工业机器人与柔性自动化产线（中大力德、兆威机电、雷赛智能、奥普特、安培龙、克来机电、派斯林等）**直接归静态 `机器人`**；
-     - 工程机械/水泥矿山辊压机/电梯/建材装备（利君股份、南方路机、江顺科技、快意电梯等）归 **`基建`**；油气钻采管材/阀门/空分压缩机（山东墨龙、纽威股份、福斯达等）归 **`石油`** 或 **`化工`**；采煤机（林州重机、山东矿机）归 **`煤炭`**；轨交/船舶海工（今创集团、必得科技等）归 **`交运`**；农机（天鹅股份等）归 **`农业`**；缝纫/包装/制冷（杰克科技、冰山冷热、中捷资源等）归 **`消费`**；锂电/光伏/芯片/PCB专用设备（尚水智能、博杰股份、快克智能等）归对应具体赛道；
-     - **`工业设备`** 仅收容无法归入其余 24 个具体赛道的跨行业通用工业母机/机床、液压泵阀、注塑机、紧固件、焊材、通用输送设备（如沈阳机床、泰瑞机器、腾达科技、大西洋、邵阳液压、和泰机电）。
+【核心升级铁律：彻底废除静态/动态分裂，以“跨领域想象力（底层能力同源复用）”为唯一尺子】
+1. `tags`（全动态纯净题材唯一列表，**单股严格 1~4 条，去重，按当下市场核心度与近期催化强度从高到低排序**）：
+   - 唯一允许词表（40 词 + 盘面共振 `XX字辈`）：
+     - 25 个一级赛道：{json.dumps(TAXONOMY["l1_list"], ensure_ascii=False)}
+     - 15 个跨界/字辈分组：{json.dumps(TAXONOMY["dynamic_groups"], ensure_ascii=False)}
+   - **关键归口（不拆碎词）**：
+     - 洁净室、光刻胶/光刻机、先进封装、存储/HBM、半导体设备材料 → **`芯片`**；
+     - 液冷、AIDC、算力租赁、算力电源、服务器/算力基础设施 → **`算力`**；
+     - 光模块/CPO、PCB、覆铜板(CCL)、电子铜箔、光纤光缆、高速连接 → **`通信`**（IC 封装载板归 `芯片`）；
+     - 减速器/伺服/丝杠/微型传动/传感视觉/工业与人形机器人及自动化产线 → **`机器人`**；通用机床/液压/注塑机/紧固件/焊材归 **`工业设备`**；
+     - 纯软件/大模型/AI智能体/SaaS/信创及对外商业化 AI 产品内容服务 → **`AI应用`**（强垂直软件归对应行业）。
 
-2. **dynamic_tags（动态 · 严格 1 年有效期，`from_date >= {MIN_DYN_DATE}`，现行 <= 4 条）**：
-   - 允许两类标准词：① 15个标准跨界/字辈分组 {json.dumps(TAXONOMY["dynamic_groups"], ensure_ascii=False)}（或盘面走出的 `XX字辈`）；② **25个 L1 大类词**（用于收容上述 `<5%` 但近1年内有明确实体[控股子公司/量产供货/直接>=3%或穿透>=2%热点参股]且市场在炒作的低占比方向，如金螳螂->`芯片`、全筑->`芯片`/`算力`、九阳->`机器人`、顺钠->`算力`、高速算力板/AI服务器PCB->`算力`、传媒/消费AI落地->`AI应用`；**严禁与自身 `static_tags` L1 重名**！）。
-   - **1 年有效期铁律**：对 `current_dynamic` 中的每条历史动态标签（尤其是 `from_date < {MIN_DYN_DATE}` 的老标签），核查 F10（2025年报/2026中报）、2025-11-26 之后的公告或涨停轨迹里是否仍有明确实质落地或炒作催化：
-     - **近 1 年确有新确认/催化**：保留并将 `from_date` 更新为最近一次确认/公告/涨停日期（必须 `>= {MIN_DYN_DATE}`）；
-     - **仅靠 1 年前老公告/陈年概念撑着、近 1 年毫无实质进展**：**直接删除！**
-   - `to_date` 设为 `null`（只输出仍有效且 `from_date >= {MIN_DYN_DATE}` 的条目，过期的直接删掉）。
-   - **`dynamic: AI应用` 纯度硬闸门（只认对外商业化 AI 产品/内容/服务，严禁“万物皆可 AI+ 赋能”！）**：
-     - **唯一准入**：必须拥有**独立对外商业化交付/收费的 AI 软件、AI 内容或 AI 智能体产品**（或独立运营的对外 AI 控股子公司）：① 商业化 AI 漫剧/短剧/AI原生电影/AIGC内容平台/AI营销投放SaaS(GEO)/AI核心玩法游戏；② 独立对外收费交付的垂类 AI 软件/智能体（AI医疗诊断注册证或医院中标产品、AI金融投研/券商软件、AI教育平台、独立对外 AI Agent/SaaS 服务）；③ 独立品牌对外销售的 AI 陪伴玩具/对话交互产品。
-     - **三大类一刀切剔除（严禁保留在 `dynamic: AI应用`）**：
-       1) **设备/产线自带 AI 算法**：工业产线 AI 视觉质检/噪声检测（克来机电）、色选机 AI 分选（泰禾智能）、电梯 AI 故障诊断（快意电梯）、搅拌站 AI 上料（南方路机）、工业机器人本体平台（埃斯顿）、照明/摄像/安防 AI 识别（海洋王/同为股份/维海德/安邦护卫）、电力/环保/油田设备运维系统（宏英智能/信通电子/德林海/神开股份/理工能科）；
-       2) **消费硬件与端侧 AI 硬件**：AI 床垫/按摩椅（慕思股份/梦百合/奥佳华）、智能电视语音大模型（四川长虹）、AI眼镜/AIPC/AI NAS/播控硬件（康冠科技/亿道信息/润贝航科/卡莱特/奥拓电子/智微智能）、端侧AI芯片与通信模组（博通集成/汇顶科技/移远通信/美格智能/润欣科技）——此类属 AI 硬件（`消费电子`/`芯片`/`通信`/`算力`）或传统消费品；
-       3) **内部降本增效 / 接 DeepSeek 赋能主业 / 空壳关联方**：企业内部接 DeepSeek 做在线客服/写营销文案/画设计图/做导购小程序/辅助出版校对/辅助药物湿实验（天威视讯/丽人丽妆/大胜达/华孚时尚/深赛格/皮阿诺/万事利/华阳国际/奥雅股份/读者传媒/凯撒文化/富春股份/药明康德/百普赛斯/近岸蛋白/华体科技/正和生态），以及上市公司本身无 AI 业务仅实控人关联方涉 AI（真爱美家）。
-     - **范围纪律**：若本股只是 `dynamic: AI应用` 被上述闸门剔除，请保持其余合规的 `static_tags` 与其它合法 `dynamic_tags`。
-   - **后道组装/测试/检测设备不贴下游大类铁律**：卖通用/后道组装、点胶、贴片、焊接、测试检测设备或第三方实验室检测服务（营收占比 `< 5%`）给下游客户，**一律不贴下游大类 `dynamic_tags`**（如给光模块厂卖组装/点胶/耦合/检测设备或测光器件不贴 `通信`，给液冷/服务器厂卖焊接或产线设备不贴 `算力`，给AI眼镜厂卖组装检测设备不贴 `消费电子`，给机器人厂卖IMU测试设备不贴 `机器人`，卖通用测试仪器方案不贴 `芯片`；注：半导体晶圆前道/封测核心专用设备及光刻机核心光学部件本身属 `芯片` 赛道，直接制造器件/核心材料/核心零部件/PCB钻针耗材者仍按方案 A 归动态）。例如 `603960 克来机电` 仅保留静态 `汽车、机器人`，`AI应用` 与 `通信` 均踢出动态。
+2. **全行业一视同仁的准入与纠偏要求（必看！）**：
+   - **恢复被旧“后道组装/测试/检测设备补丁”误杀的同源跨界标签**：
+     - 输入中的 `recovered_prev_tags` 保留了旧版审计前曾有过的合法跨界标签；只要公司产品/设备/工艺/材料/洁净室确实可输出到该目标赛道、且有客观应用/订单/送样/产线/子公司实体（如克来机电光模块组装→`通信`、易天股份1.6T硅光倒装贴片机→`通信`、科瑞技术光芯片设备/AI眼镜产线→`通信`/`消费电子`、快克智能光模块/液冷产线→`通信`/`算力`、大族激光液冷焊接→`算力`、博杰股份机器人IMU测试→`机器人`、东方中科半导体测试→`芯片`、胜科纳米光器件失效分析→`通信`、闽发铝业新材料子公司拓展机器人铝型材→`机器人`、金螳螂半导体洁净室→`芯片`），**一律恢复/保留**！
+   - **允许 0% 营收的真跨界想象力**：只要底层工艺/产能可同源输出且有实质动作（具体产品、送样、产线应用、新设/参股实体、战略合作或近 1 年盘面实锤），不卡财报 5% 门槛，直接入 `tags`（若候选超过 4 个，精选当下市场最核心、催化最近的前 4 个，淘汰弱项或僵尸项）。
+   - **果断清掉“早已被市场抛弃的僵尸旧壳主业”**：
+     - 如果一只股票已经转型/形成了非常鲜明的高景气核心题材（近 1 年多次围绕新赛道涨停），而其传统老主业（如顺灏股份的烟标`消费`、哈森股份的女鞋`消费`、大胜达的纸箱`消费`、全筑股份的家装`基建`/`消费`、粤宏远A的传统`地产`、雪人集团的传统`消费`/`石油`、双成药业的退潮旧业等）在近 1 年盘面上根本没人炒，**从 `tags` 中剔除这些干扰视线的旧壳标签**（仅在 `audit_notes` 注明主营底色即可）！
+     - 反之，若主业本身就是市场核心炒作逻辑（如盛达资源`有色`、杭州解百`消费`、天圣制药`医药`、赤天化`化工`、骏亚科技`通信`、利君股份`军工`、克来机电`机器人`/`汽车`等），正常保留在 `tags` 中！
+   - **`from_date`**：必填 `YYYY-MM-DD`，必须 `>= {MIN_TAG_DATE}`（有近 1 年涨停或公告的取最近一次有效催化/公告日；纯主业无新公告的取最新定期报告日如 `2026-06-30` 或 `2026-08-31`）。
 
-3. 输出字段：`province` / `controller_type` 优先修正错漏（参考 `province_hint` 与 `provinces`: {json.dumps(TAXONOMY["provinces"], ensure_ascii=False)}，`controller_types`: {json.dumps(TAXONOMY["controller_types"], ensure_ascii=False)}），`audit_notes` 简明写清本次清淤改判依据。
+3. **唯一 4 条硬剔除红线（绝不恢复真噪音！）**：
+   - ① 官方公告明确辟谣不涉及/无业务无合作（如金螳螂商业航天仅为办公楼餐厅、威派格澄清无液冷）；
+   - ② **纯买家内部赋能**：内部接 DeepSeek 写文案/客服/画图/辅助湿实验、或买设备自用（原 `ai_app_cleanup` 剔掉的内部赋能噪音与端侧普通家电/设备自带AI算法，**不要恢复**进 `AI应用`！）；
+   - ③ **纯行政/生活泛服务**：给发射场/机房盖办公楼食堂、物业、常规绿电直供、纯代理分销；
+   - ④ **软件脏词与陈年僵尸**：业绩增长、超跌、ST摘帽、次新股、并购重组词（并购放 `ma_events` 不进 `tags`）、以及超 1 年毫无进展与催化的陈年老概念。
+
+4. `province` 必须属于 {json.dumps(TAXONOMY["provinces"], ensure_ascii=False)}，`controller_type` 必须属于 {json.dumps(TAXONOMY["controller_types"], ensure_ascii=False)}。`audit_notes` 简明写清本次全动态整合与去壳/恢复依据。
 """
 
 
 def _validate_with_ev(rec: dict, ev: dict | None) -> list[str]:
     merged = dict(rec)
     merged["ma_events"] = []
-    return validate_record(merged, ev, TAXONOMY, min_dynamic_date=MIN_DYN_DATE)
+    return validate_record(merged, ev, TAXONOMY, min_tag_date=MIN_TAG_DATE)
 
 
 def _is_valid(shard_id: str) -> bool:
@@ -141,10 +119,10 @@ async def audit_shard(shard_id: str) -> dict:
         ev_by_code = {s["code"]: s for s in stocks}
         prompt = (
             AUDIT_PROMPT
-            + f"\n请严格按方案A与1年有效期审核分片 {shard_id} 全部 {len(stocks)} 只股票：\n"
+            + f"\n请严格按 Super-Board v2 全动态规则审计分片 {shard_id} 全部 {len(stocks)} 只股票（严禁遗漏）：\n"
             + json.dumps(stocks, ensure_ascii=False, separators=(",", ":"))
         )
-        a = agent(role=f"Audit {shard_id}", type_name="research")
+        a = agent(role=f"V2Audit {shard_id}", type_name="research")
         res = await a(prompt, OUTPUT_SCHEMA)
         for _ in range(2):
             errs = []
@@ -178,7 +156,7 @@ async def audit_shard(shard_id: str) -> dict:
         return {"shard_id": shard_id, "ok": False, "error": f"{type(exc).__name__}: {exc}"}
 
 
-phase(f"Scheme-A Cleanup Audit ({PREFIX})")
+phase(f"Super-Board v2 Full-Dynamic Audit ({PREFIX})")
 manifest = json.loads((SHARD_DIR / f"{PREFIX}_manifest.json").read_text(encoding="utf-8"))
 all_shards = [s["shard_id"] for s in manifest["shards"]]
 pending = [sid for sid in all_shards if not _is_valid(sid)]
@@ -199,4 +177,4 @@ if failed:
     if still_bad:
         raise RuntimeError(f"Audit shards still failed after retry: {still_bad}")
 
-log("Audit complete. Ready for merge and compile.")
+log("Audit complete:", PREFIX, "total_shards=", len(all_shards))

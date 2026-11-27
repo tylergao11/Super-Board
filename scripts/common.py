@@ -289,14 +289,17 @@ def validate_record(
     rec: dict[str, Any],
     ev: dict[str, Any] | None,
     taxonomy: dict[str, Any],
+    min_tag_date: str | None = None,
+    *,
     min_dynamic_date: str | None = None,
 ) -> list[str]:
     errors: list[str] = []
-    cutoff = min_dynamic_date or (datetime.now().date() - timedelta(days=366)).isoformat()
+    cutoff = min_tag_date or min_dynamic_date or (datetime.now().date() - timedelta(days=366)).isoformat()
     valid_l1 = set(taxonomy["l1_list"])
     valid_prov = set(taxonomy["provinces"])
     valid_ctrl = set(taxonomy["controller_types"])
     valid_dyn = set(taxonomy["dynamic_groups"])
+    valid_tags = valid_l1 | valid_dyn
     valid_ma_types = set(taxonomy["ma_event_types"])
 
     code = str(rec.get("code") or "").strip()
@@ -311,75 +314,45 @@ def validate_record(
     if rec.get("controller_type") not in valid_ctrl:
         errors.append(f"{code}: invalid controller_type {rec.get('controller_type')!r}")
 
-    stags = rec.get("static_tags")
-    if not isinstance(stags, list) or not stags:
-        errors.append(f"{code}: static_tags must be non-empty list")
-        stags = []
-    elif len(stags) > 4:
-        errors.append(f"{code}: static_tags count={len(stags)} > 4 limit")
+    tags = rec.get("tags")
+    if not isinstance(tags, list) or not tags:
+        errors.append(f"{code}: tags must be non-empty list (1..4 unified dynamic tags)")
+        tags = []
+    elif len(tags) > 4:
+        errors.append(f"{code}: tags count={len(tags)} > 4 limit")
 
-    seen_l1: set[str] = set()
-    for idx, item in enumerate(stags):
+    seen_tags: set[str] = set()
+    for idx, item in enumerate(tags):
         if not isinstance(item, dict):
-            errors.append(f"{code}: static_tags[{idx}] not dict")
+            errors.append(f"{code}: tags[{idx}] not dict")
             continue
-        l1 = item.get("l1")
-        if l1 not in valid_l1:
-            errors.append(f"{code}: static_tags[{idx}] invalid l1 {l1!r} (only 25 L1 allowed)")
-        elif l1 in seen_l1:
-            errors.append(f"{code}: duplicate static l1 {l1!r} (each L1 must appear at most once)")
+        tname = str(item.get("tag") or "").strip()
+        if not tname:
+            errors.append(f"{code}: tags[{idx}] missing tag")
+        elif len(tname) > 20:
+            errors.append(f"{code}: tags[{idx}] tag too long: {tname[:20]}...")
+        elif tname in seen_tags:
+            errors.append(f"{code}: duplicate tag {tname!r}")
+        elif tname in FORBIDDEN_SINGLE_L1_NICHES:
+            errors.append(f"{code}: tag {tname!r} is a forbidden niche -> map to 25 L1 or 15 canonical groups")
+        elif any(m in tname for m in MA_FORBIDDEN_IN_DYNAMIC):
+            errors.append(f"{code}: tag {tname!r} is M&A -> move into ma_events with target_name")
+        elif tname not in valid_tags and not tname.endswith("字辈"):
+            errors.append(
+                f"{code}: tag {tname!r} not in 40 canonical tags (25 L1 + 15 groups) or XX字辈"
+            )
         else:
-            seen_l1.add(l1)
-        ev_txt = str(item.get("evidence") or "").strip()
-        if not ev_txt:
-            errors.append(f"{code}: static_tags[{idx}] missing evidence")
-        pct = item.get("revenue_pct")
-        if not isinstance(pct, (int, float)) or isinstance(pct, bool) or float(pct) <= 0:
-            errors.append(
-                f"{code}: static_tags[{idx}] ({l1}) requires revenue_pct > 0 (if <5% hot side business, move to dynamic_tags or delete)"
-            )
-        elif float(pct) < 5.0 and not re.search(r"(?:[2-9](?:\.\d+)?|[1-9]\d+(?:\.\d+)?)\s*亿", ev_txt):
-            errors.append(
-                f"{code}: static_tags[{idx}] ({l1}) revenue_pct={pct}% < 5% without >=2亿元 evidence (move to dynamic_tags or delete)"
-            )
+            seen_tags.add(tname)
 
-    dtags = rec.get("dynamic_tags")
-    if not isinstance(dtags, list):
-        errors.append(f"{code}: dynamic_tags must be list")
-        dtags = []
-    active_dyn = 0
-    for idx, item in enumerate(dtags):
-        if not isinstance(item, dict):
-            errors.append(f"{code}: dynamic_tags[{idx}] not dict")
-            continue
-        gname = str(item.get("group_name") or "").strip()
-        if not gname:
-            errors.append(f"{code}: dynamic_tags[{idx}] missing group_name")
-        elif len(gname) > 20:
-            errors.append(f"{code}: dynamic_tags[{idx}] group_name too long: {gname[:20]}...")
-        elif gname in seen_l1:
-            errors.append(f"{code}: dynamic group_name {gname!r} duplicates own static_tags L1")
-        elif gname in FORBIDDEN_SINGLE_L1_NICHES:
-            errors.append(f"{code}: dynamic group_name {gname!r} is a forbidden single-L1 niche -> use 25 L1 or canonical dynamic_groups")
-        elif any(m in gname for m in MA_FORBIDDEN_IN_DYNAMIC):
-            errors.append(f"{code}: dynamic group_name {gname!r} is M&A -> move into ma_events with target_name")
-        elif gname not in valid_dyn and gname not in valid_l1 and not gname.endswith("字辈"):
-            errors.append(
-                f"{code}: dynamic group_name {gname!r} not in canonical dynamic_groups or 25 L1 -> standardize or delete"
-            )
         fdt = str(item.get("from_date") or "").strip()
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fdt):
-            errors.append(f"{code}: dynamic_tags[{idx}] invalid from_date {fdt!r} (expect YYYY-MM-DD)")
-        elif not item.get("to_date") and fdt < cutoff:
+            errors.append(f"{code}: tags[{idx}] ({tname}) invalid from_date {fdt!r} (expect YYYY-MM-DD)")
+        elif fdt < cutoff:
             errors.append(
-                f"{code}: dynamic_tags[{idx}] ({gname}) from_date={fdt} < 1-year cutoff {cutoff} (update recent evidence date or remove stale tag)"
+                f"{code}: tags[{idx}] ({tname}) from_date={fdt} < 1-year cutoff {cutoff} (update latest confirmation/report date or drop stale tag)"
             )
         if not str(item.get("evidence") or "").strip():
-            errors.append(f"{code}: dynamic_tags[{idx}] missing evidence")
-        if not item.get("to_date"):
-            active_dyn += 1
-    if active_dyn > 4:
-        errors.append(f"{code}: active dynamic_tags count={active_dyn} > 4 limit")
+            errors.append(f"{code}: tags[{idx}] ({tname}) missing evidence")
 
     mas = rec.get("ma_events")
     if not isinstance(mas, list):
@@ -393,7 +366,7 @@ def validate_record(
             errors.append(f"{code}: ma_events[{idx}] invalid event_type {item.get('event_type')!r}")
         if item.get("status") in ("已完成", "已终止"):
             errors.append(
-                f"{code}: ma_events[{idx}] status {item.get('status')!r} forbidden (已完成->static_tags, 已终止->omit)"
+                f"{code}: ma_events[{idx}] status {item.get('status')!r} forbidden (已完成->tags, 已终止->omit)"
             )
         tname = str(item.get("target_name") or "").strip()
         if not tname:

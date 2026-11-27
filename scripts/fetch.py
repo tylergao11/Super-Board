@@ -33,8 +33,9 @@ KPL_HEADERS = {
 
 TITLE_INCLUDE = (
     "澄清", "异动", "异常波动", "风险提示", "终止", "收购", "重组", "控制权",
-    "股份转让", "问询", "监管函", "关注函", "对外投资", "设立子公司", "框架协议",
-    "战略合作", "更名", "资产出售", "剥离", "资产注入", "并购",
+    "股份转让", "问询", "监管函", "关注函", "对外投资", "设立子公司", "合资",
+    "参股", "框架协议", "战略合作", "合作协议", "中标", "定点", "重大合同",
+    "更名", "资产出售", "剥离", "资产注入", "并购",
 )
 TITLE_EXCLUDE = (
     "法律意见书", "法律意见", "核查意见", "核查报告", "股权激励", "股票期权",
@@ -469,29 +470,35 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
     org_id = org_map.get(code, "")
     stock_param = f"{code},{org_id}" if org_id else code
 
-    data_resp: dict[str, Any] | None = None
-    for attempt in range(4):
-        try:
-            time.sleep(0.18 * (attempt + 1))
-            r = sess.post(
-                "https://www.cninfo.com.cn/new/hisAnnouncement/query",
-                data={
-                    "stock": stock_param, "tabName": "fulltext", "pageSize": 30, "pageNum": 1,
-                    "column": col, "category": "", "searchkey": "", "seDate": f"{start_dt}~{end_dt}", "isHLtitle": "false",
-                },
-                headers={"X-Requested-With": "XMLHttpRequest", "Referer": "https://www.cninfo.com.cn/"},
-                timeout=15,
-            )
-            r.raise_for_status()
-            data_resp = r.json()
+    anns: list[dict[str, Any]] = []
+    for page_num in (1, 2):
+        page_resp: dict[str, Any] | None = None
+        for attempt in range(4):
+            try:
+                time.sleep(0.18 * (attempt + 1))
+                r = sess.post(
+                    "https://www.cninfo.com.cn/new/hisAnnouncement/query",
+                    data={
+                        "stock": stock_param, "tabName": "fulltext", "pageSize": 30, "pageNum": page_num,
+                        "column": col, "category": "", "searchkey": "", "seDate": f"{start_dt}~{end_dt}", "isHLtitle": "false",
+                    },
+                    headers={"X-Requested-With": "XMLHttpRequest", "Referer": "https://www.cninfo.com.cn/"},
+                    timeout=15,
+                )
+                r.raise_for_status()
+                page_resp = r.json()
+                break
+            except Exception:
+                time.sleep(0.8 * (2 ** attempt))
+        if page_resp is None:
+            if page_num == 1:
+                return {"code": code, "ann_status": "error", "notices": []}
             break
-        except Exception:
-            time.sleep(0.8 * (2 ** attempt))
+        batch = page_resp.get("announcements") or []
+        anns.extend(batch)
+        if len(batch) < 30:
+            break
 
-    if data_resp is None:
-        return {"code": code, "ann_status": "error", "notices": []}
-
-    anns = data_resp.get("announcements") or []
     candidates: list[dict[str, Any]] = []
     for a in anns:
         title = re.sub(r"<[^>]+>", "", str(a.get("announcementTitle") or "")).strip()
@@ -499,7 +506,10 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
             continue
         ts = a.get("announcementTime")
         dt = datetime.fromtimestamp(ts / 1000.0).strftime("%Y-%m-%d") if isinstance(ts, (int, float)) else ""
-        score = 3 if any(k in title for k in ("澄清", "问询", "回复", "终止")) else (2 if any(k in title for k in ("收购", "重组", "控制权", "股份转让")) else 1)
+        score = (
+            3 if any(k in title for k in ("澄清", "问询", "回复", "终止"))
+            else (2 if any(k in title for k in ("收购", "重组", "控制权", "股份转让", "对外投资", "合资", "参股", "战略合作", "合作协议", "中标", "定点")) else 1)
+        )
         candidates.append({"date": dt, "title": title, "adjunct_url": a.get("adjunctUrl") or "", "score": score})
 
     candidates.sort(key=lambda r: (r["score"], r["date"]), reverse=True)
@@ -507,11 +517,11 @@ def fetch_ann_cninfo(code: str, org_map: dict[str, str], refresh: bool = False) 
     seen_titles: set[str] = set()
     for c in candidates:
         st = c["title"][:24]
-        if st in seen_titles and len(candidates) > 5:
+        if st in seen_titles and len(candidates) > 6:
             continue
         seen_titles.add(st)
         selected.append(c)
-        if len(selected) >= 6:
+        if len(selected) >= 8:
             break
 
     for item in selected:

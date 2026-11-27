@@ -1,4 +1,4 @@
-"""Clean Markdown table query CLI for Super-Board."""
+"""Clean Markdown table query CLI for Super-Board (v2 full-dynamic)."""
 from __future__ import annotations
 
 import argparse
@@ -19,18 +19,8 @@ def _conn() -> sqlite3.Connection:
     return c
 
 
-def _fmt_static(rows: list[sqlite3.Row]) -> str:
-    return "、".join(r["l1"] for r in rows) or "-"
-
-
-def _fmt_dyn(rows: list[sqlite3.Row]) -> str:
-    parts = []
-    for r in rows:
-        if r["to_date"]:
-            parts.append(f"{r['group_name']}({r['to_date']}退)")
-        else:
-            parts.append(r["group_name"])
-    return "、".join(parts) or "-"
+def _fmt_tags(rows: list[sqlite3.Row]) -> str:
+    return "、".join(r["tag"] for r in rows) or "-"
 
 
 def _fmt_ma(rows: list[sqlite3.Row]) -> str:
@@ -58,7 +48,7 @@ def query_daily(date: str) -> str:
 
     multi = sum(1 for r in pool if r["board_height"] >= 2)
     lines = [
-        f"# {date} 涨停梯队纯净题材表（共 {len(pool)} 只：连板 {multi} 只 + 首板 {len(pool) - multi} 只）",
+        f"# {date} 涨停梯队全动态纯净题材表（共 {len(pool)} 只：连板 {multi} 只 + 首板 {len(pool) - multi} 只）",
         "",
     ]
     if news_rows:
@@ -68,32 +58,29 @@ def query_daily(date: str) -> str:
         lines.append("")
 
     lines += [
-        "| 代码 | 名称 | 高度 | 首封 | 省份(国资) | 静态 | 动态分组 | 并购重组(对象) |",
-        "|---|---|---:|---|---|---|---|---|",
+        "| 代码 | 名称 | 高度 | 首封 | 省份(国资) | 题材 | 并购重组(对象) |",
+        "|---|---|---:|---|---|---|---|",
     ]
+    cutoff = _cutoff_1yr(date)
     untagged = []
     for r in pool:
         code = r["code"]
         st = c.execute("SELECT * FROM stocks WHERE code=?", (code,)).fetchone()
         if not st:
             untagged.append(f"{code} {r['name']}({r['board_height']}板)")
-            lines.append(f"| `{code}` | {r['name']} | {r['board_height']}板 | {r['first_limit_time']} | 未入库 | - | - | - |")
+            lines.append(f"| `{code}` | {r['name']} | {r['board_height']}板 | {r['first_limit_time']} | 未入库 | - | - |")
             continue
         prov = st["province"]
         if st["controller_province"] and st["controller_province"] != prov:
             prov = f"{prov}({st['controller_province']}国资)"
-        s_rows = c.execute(
-            "SELECT * FROM static_tags WHERE code=? ORDER BY COALESCE(revenue_pct, -1) DESC, id ASC",
-            (code,),
-        ).fetchall()
-        d_rows = c.execute(
-            "SELECT * FROM dynamic_tags WHERE code=? AND (to_date IS NULL OR to_date >= ?) AND from_date >= ?",
-            (code, date, _cutoff_1yr(date)),
+        t_rows = c.execute(
+            "SELECT * FROM stock_tags WHERE code=? AND from_date >= ? ORDER BY id ASC",
+            (code, cutoff),
         ).fetchall()
         m_rows = c.execute("SELECT * FROM ma_events WHERE code=? ORDER BY from_date DESC, id ASC", (code,)).fetchall()
 
         lines.append(
-            f"| `{code}` | {st['name']} | {r['board_height']}板 | {r['first_limit_time']} | {prov} | {_fmt_static(s_rows)} | {_fmt_dyn(d_rows)} | {_fmt_ma(m_rows)} |"
+            f"| `{code}` | {st['name']} | {r['board_height']}板 | {r['first_limit_time']} | {prov} | {_fmt_tags(t_rows)} | {_fmt_ma(m_rows)} |"
         )
     if untagged:
         lines += ["", f"## 待补充入库股票（{len(untagged)} 只）", "、".join(untagged)]
@@ -107,25 +94,15 @@ def query_theme(name: str) -> str:
     latest_row = c.execute("SELECT MAX(trade_date) FROM daily_limit_pool").fetchone()
     latest_dt = str(latest_row[0] or "2026-11-26")
     cutoff = _cutoff_1yr(latest_dt)
-    s_rows = c.execute(
+    t_rows = c.execute(
         """
-        SELECT p.code, p.name, p.province, s.l1, s.revenue_pct, s.evidence
-        FROM static_tags s JOIN stocks p ON s.code=p.code
-        WHERE s.l1 = ? OR s.evidence LIKE ?
-        ORDER BY COALESCE(s.revenue_pct, -1) DESC, p.code
+        SELECT p.code, p.name, p.province, p.em_industry, t.tag, t.from_date, t.evidence
+        FROM stock_tags t JOIN stocks p ON t.code=p.code
+        WHERE (t.tag = ? OR t.evidence LIKE ?)
+          AND t.from_date >= ?
+        ORDER BY t.from_date DESC, p.code ASC
         """,
-        (name, like),
-    ).fetchall()
-    d_rows = c.execute(
-        """
-        SELECT p.code, p.name, d.group_name, d.from_date, d.to_date, d.evidence
-        FROM dynamic_tags d JOIN stocks p ON d.code=p.code
-        WHERE (d.group_name = ? OR d.evidence LIKE ?)
-          AND (d.to_date IS NULL OR d.to_date >= ?)
-          AND d.from_date >= ?
-        ORDER BY d.from_date DESC, p.code ASC
-        """,
-        (name, like, latest_dt, cutoff),
+        (name, like, cutoff),
     ).fetchall()
     m_rows = c.execute(
         """
@@ -137,16 +114,22 @@ def query_theme(name: str) -> str:
         (name, like, like),
     ).fetchall()
 
-    lines = [f"# 题材小表格：{name}", "", f"## 一、静态（{len(s_rows)} 只）", "| 代码 | 名称 | 省份 | 大类 | 占比 | 核心依据 |", "|---|---|---|---|---:|---|"]
-    for r in s_rows:
-        pct = f"{r['revenue_pct']}%" if r["revenue_pct"] is not None else "-"
-        lines.append(f"| `{r['code']}` | {r['name']} | {r['province']} | {r['l1']} | {pct} | {r['evidence'][:80]} |")
+    lines = [
+        f"# 题材小表格：{name}",
+        "",
+        f"## 一、全动态关联标的（近1年有效，{len(t_rows)} 条）",
+        "| 代码 | 名称 | 省份 | 题材 | 确认日 | 核心依据 |",
+        "|---|---|---|---|---|---|",
+    ]
+    for r in t_rows:
+        lines.append(f"| `{r['code']}` | {r['name']} | {r['province']} | {r['tag']} | {r['from_date']} | {r['evidence'][:85]} |")
 
-    lines += ["", f"## 二、动态（近1年有效，{len(d_rows)} 条）", "| 代码 | 名称 | 动态分组 | 有效期 | 依据 |", "|---|---|---|---|---|"]
-    for r in d_rows:
-        lines.append(f"| `{r['code']}` | {r['name']} | {r['group_name']} | {r['from_date']}~{r['to_date'] or '至今'} | {r['evidence'][:80]} |")
-
-    lines += ["", f"## 三、筹划中并购对象关联（{len(m_rows)} 条）", "| 代码 | 名称 | 类型 | 重组对象 | 目标大类 | 起始日 | 依据 |", "|---|---|---|---|---|---|---|"]
+    lines += [
+        "",
+        f"## 二、筹划中并购对象关联（{len(m_rows)} 条）",
+        "| 代码 | 名称 | 类型 | 重组对象 | 目标大类 | 起始日 | 依据 |",
+        "|---|---|---|---|---|---|---|",
+    ]
     for r in m_rows:
         lines.append(f"| `{r['code']}` | {r['name']} | {r['event_type']} | {r['target_name']} | {r['target_l1'] or '-'} | {r['from_date']} | {r['evidence'][:70]} |")
     c.close()
@@ -158,7 +141,7 @@ def query_ma() -> str:
     rows = c.execute(
         """
         SELECT m.*, p.name,
-               (SELECT GROUP_CONCAT(l1, '、') FROM static_tags s WHERE s.code=m.code) AS static_l1
+               (SELECT GROUP_CONCAT(tag, '、') FROM stock_tags t WHERE t.code=m.code) AS cur_tags
         FROM ma_events m JOIN stocks p ON m.code=p.code
         ORDER BY m.from_date DESC, m.code ASC
         """
@@ -166,12 +149,12 @@ def query_ma() -> str:
     lines = [
         f"# 筹划中并购重组与控股权事件清单（共 {len(rows)} 条）",
         "",
-        "| 代码 | 名称 | 静态大类 | 事件类型 | 重组对象 | 对象大类 | 起始日 | 依据 |",
+        "| 代码 | 名称 | 当前题材 | 事件类型 | 重组对象 | 对象大类 | 起始日 | 依据 |",
         "|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
         lines.append(
-            f"| `{r['code']}` | {r['name']} | {r['static_l1'] or '-'} | {r['event_type']} | {r['target_name']} | {r['target_l1'] or '-'} | {r['from_date']} | {r['evidence'][:70]} |"
+            f"| `{r['code']}` | {r['name']} | {r['cur_tags'] or '-'} | {r['event_type']} | {r['target_name']} | {r['target_l1'] or '-'} | {r['from_date']} | {r['evidence'][:70]} |"
         )
     c.close()
     return "\n".join(lines)
@@ -185,23 +168,19 @@ def query_stock(code: str) -> str:
         return f"未找到 {code}"
     lines = [
         f"# {p['code']} {p['name']}（{p['province']}{' / 国资:' + p['controller_province'] if p['controller_province'] and p['controller_province'] != p['province'] else ''} · {p['controller_type']} · 出海:{p['overseas_pct']}%）",
-        f"- 实控人: {p['controller_name']} | 东财行业: {p['em_industry']} | 人工锁: {bool(p['manual_verified'])}",
+        f"- 实控人: {p['controller_name']} | 东财行业底色: {p['em_industry']} | 人工锁: {bool(p['manual_verified'])}",
         f"- 综合研判: {p['audit_notes']}",
         "",
-        "## 静态",
+        "## 全动态题材（近1年有效）",
     ]
     latest_row = c.execute("SELECT MAX(trade_date) FROM daily_limit_pool").fetchone()
     latest_dt = str(latest_row[0] or "2026-11-26")
     cutoff = _cutoff_1yr(latest_dt)
-    for r in c.execute("SELECT * FROM static_tags WHERE code=? ORDER BY COALESCE(revenue_pct, -1) DESC, id ASC", (code,)):
-        pct = f" ({r['revenue_pct']}%)" if r["revenue_pct"] is not None else ""
-        lines.append(f"- **{r['l1']}**{pct}: {r['evidence']}")
-    lines.append("\n## 动态（近1年有效）")
     for r in c.execute(
-        "SELECT * FROM dynamic_tags WHERE code=? AND (to_date IS NULL OR to_date >= ?) AND from_date >= ? ORDER BY from_date DESC",
-        (code, latest_dt, cutoff),
+        "SELECT * FROM stock_tags WHERE code=? AND from_date >= ? ORDER BY id ASC",
+        (code, cutoff),
     ):
-        lines.append(f"- **{r['group_name']}** [{r['from_date']}~{r['to_date'] or '至今'}]: {r['evidence']}")
+        lines.append(f"- **{r['tag']}** [{r['from_date']}]: {r['evidence']}")
     lines.append("\n## 筹划中并购重组")
     for r in c.execute("SELECT * FROM ma_events WHERE code=? ORDER BY from_date DESC, id ASC", (code,)):
         lines.append(f"- **{r['event_type']} -> {r['target_name']}** (目标:{r['target_l1'] or '-'}, {r['from_date']}起): {r['evidence']}")

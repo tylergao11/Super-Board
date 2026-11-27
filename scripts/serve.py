@@ -321,29 +321,37 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             ).fetchall()
         }
 
-        static_by_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
-        for r in conn.execute(
-            f"""
-            SELECT code, l1, revenue_pct, evidence
-            FROM static_tags
-            WHERE code IN ({placeholders})
-            ORDER BY COALESCE(revenue_pct, -1) DESC, id ASC
-            """,
-            codes,
-        ).fetchall():
-            static_by_code[r["code"]].append(dict(r))
+        cutoff_dt = ""
+        if date and len(date) >= 10:
+            try:
+                from datetime import timedelta as _td
+                cutoff_dt = (dt_date.fromisoformat(date[:10]) - _td(days=365)).isoformat()
+            except Exception:
+                cutoff_dt = ""
 
-        dyn_by_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
-        for r in conn.execute(
-            f"""
-            SELECT code, group_name, from_date, evidence
-            FROM dynamic_tags
-            WHERE code IN ({placeholders}) AND (to_date IS NULL OR to_date = '')
-            ORDER BY from_date DESC, id ASC
-            """,
-            codes,
-        ).fetchall():
-            dyn_by_code[r["code"]].append(dict(r))
+        tags_by_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        if cutoff_dt:
+            tag_rows = conn.execute(
+                f"""
+                SELECT code, tag, from_date, evidence
+                FROM stock_tags
+                WHERE code IN ({placeholders}) AND from_date >= ?
+                ORDER BY id ASC
+                """,
+                [*codes, cutoff_dt],
+            ).fetchall()
+        else:
+            tag_rows = conn.execute(
+                f"""
+                SELECT code, tag, from_date, evidence
+                FROM stock_tags
+                WHERE code IN ({placeholders})
+                ORDER BY id ASC
+                """,
+                codes,
+            ).fetchall()
+        for r in tag_rows:
+            tags_by_code[r["code"]].append(dict(r))
 
         ma_by_code: dict[str, list[dict[str, Any]]] = defaultdict(list)
         for r in conn.execute(
@@ -370,7 +378,7 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             ).fetchall()
         ]
 
-        # Pass 1: build unified pure themes per stock (zero static/dynamic split exposed)
+        # Pass 1: build unified full-dynamic pure themes per stock
         raw_stocks: dict[str, dict[str, Any]] = {}
         theme_members: dict[str, list[str]] = defaultdict(list)
         theme_multi: dict[str, int] = defaultdict(int)
@@ -378,9 +386,8 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         theme_core_total: dict[str, float] = defaultdict(float)
         theme_one_word: dict[str, int] = defaultdict(int)
         theme_max_h: dict[str, int] = defaultdict(int)
-        stock_theme_pct: dict[str, dict[str, float | None]] = defaultdict(dict)
-        stock_dyn_themes: dict[str, set[str]] = defaultdict(set)
-        stock_dyn_dates: dict[str, dict[str, str]] = defaultdict(dict)
+        stock_tag_dates: dict[str, dict[str, str]] = defaultdict(dict)
+        stock_tag_rank: dict[str, dict[str, int]] = defaultdict(dict)
 
         def _days_gap(d1: str | None, d2: str | None) -> int:
             if not d1 or not d2 or len(d1) < 10 or len(d2) < 10:
@@ -393,51 +400,33 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         for r in pool_rows:
             code = r["code"]
             meta = stock_meta.get(code)
-            st_list = static_by_code.get(code, [])
-            dt_list = dyn_by_code.get(code, [])
+            t_list = tags_by_code.get(code, [])
             ma_list = ma_by_code.get(code, [])
 
-            # Unified ordered pure themes list & factual evidences (no internal jargon)
             themes: list[str] = []
             seen_t: set[str] = set()
             evidences: list[dict[str, Any]] = []
 
-            for d in dt_list:
-                t = _clean_text(d["group_name"])
+            for idx_t, t_row in enumerate(t_list):
+                t = _clean_text(t_row["tag"])
                 if t and t not in seen_t:
                     seen_t.add(t)
                     themes.append(t)
-                    stock_dyn_themes[code].add(t)
-                    stock_dyn_dates[code][t] = _clean_text(d.get("from_date"))
-                    stock_theme_pct[code][t] = None
+                    stock_tag_dates[code][t] = _clean_text(t_row.get("from_date"))
+                    stock_tag_rank[code][t] = idx_t
                     evidences.append(
                         {
                             "theme": t,
                             "pct": None,
-                            "text": _clean_text(d["evidence"]),
-                        }
-                    )
-
-            for s in st_list:
-                t = _clean_text(s["l1"])
-                if t and t not in seen_t:
-                    seen_t.add(t)
-                    themes.append(t)
-                    pct_val = round(float(s["revenue_pct"]), 1) if s["revenue_pct"] is not None else None
-                    stock_theme_pct[code][t] = pct_val
-                    evidences.append(
-                        {
-                            "theme": t,
-                            "pct": pct_val,
-                            "text": _clean_text(s["evidence"]),
+                            "text": _clean_text(t_row["evidence"]),
                         }
                     )
 
             if ma_list and "并购" not in seen_t:
                 seen_t.add("并购")
                 themes.append("并购")
-                stock_dyn_themes[code].add("并购")
-                stock_theme_pct[code]["并购"] = None
+                stock_tag_dates[code]["并购"] = _clean_text(ma_list[0].get("from_date"))
+                stock_tag_rank[code]["并购"] = len(themes) - 1
                 ma_summary = "；".join(
                     f"{m['event_type']}：{m['target_name']}" for m in ma_list[:2]
                 )
@@ -453,14 +442,8 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             is_ow = bool(r["is_one_word"])
             for t in themes:
                 theme_members[t].append(code)
-                pct_val = stock_theme_pct[code].get(t)
-                # Minor side-business (<25% revenue) gets lower weight so it doesn't inflate fake sector heat
-                if t in stock_dyn_themes[code]:
-                    w = 1.0
-                elif pct_val is not None:
-                    w = 1.0 if pct_val >= 35.0 else (0.65 if pct_val >= 15.0 else 0.25)
-                else:
-                    w = 0.6
+                rk = stock_tag_rank[code].get(t, 0)
+                w = 1.0 if rk == 0 else (0.85 if rk == 1 else 0.7)
                 theme_core_total[t] += w
                 if h >= 2:
                     theme_multi[t] += 1
@@ -742,19 +725,12 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
         today_display_map: dict[str, list[str]] = {}
         GENERIC_SECOND_SKIP = {"机械", "基建", "环保", "工业设备"}
 
-        def _is_stale_dyn(c: str, t: str) -> bool:
-            """Dynamic tag confirmed >45 days away from trade_date is stale vs fresh/static tags."""
-            if t not in stock_dyn_themes[c] or t == "并购":
+        def _is_stale_tag(c: str, t: str) -> bool:
+            """Non-primary tag confirmed >60 days away from trade_date yields to fresh hot catalysts."""
+            if t == "并购" or stock_tag_rank[c].get(t, 0) == 0:
                 return False
-            fdate = stock_dyn_dates[c].get(t)
-            return _days_gap(date, fdate) > 45
-
-        def _is_fresh_dyn(c: str, t: str) -> bool:
-            """Dynamic tag freshly confirmed within 14 days of trade_date (current wave!)."""
-            if t not in stock_dyn_themes[c] or t == "并购":
-                return False
-            fdate = stock_dyn_dates[c].get(t)
-            return _days_gap(date, fdate) <= 14
+            fdate = stock_tag_dates[c].get(t)
+            return _days_gap(date, fdate) > 60
 
         for code, st in raw_stocks.items():
             own_themes = st["themes"]
@@ -768,15 +744,15 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             prev_first = prev_pair[0] if len(prev_pair) >= 1 else None
 
             # --- Slot 1 ---
-            # Fresh/static hot catalysts ALWAYS beat >45-day stale dynamic tags
             hot_owned = sorted(
                 [t for t in own_themes if t in hot_theme_ranks],
                 key=lambda t: (
-                    1 if _is_stale_dyn(code, t) else 0,
+                    1 if _is_stale_tag(code, t) else 0,
                     hot_theme_ranks[t],
+                    stock_tag_rank[code].get(t, 9),
                 ),
             )
-            fresh_hot = [t for t in hot_owned if not _is_stale_dyn(code, t)]
+            fresh_hot = [t for t in hot_owned if not _is_stale_tag(code, t)]
 
             if fresh_hot:
                 slot1 = fresh_hot[0]
@@ -785,32 +761,17 @@ def get_day_payload(date: str | None = None, _depth: int = 0) -> dict[str, Any]:
             elif hot_owned:
                 slot1 = hot_owned[0]
             else:
-                static_rows = static_by_code.get(code, [])
-                slot1 = _clean_text(static_rows[0]["l1"]) if static_rows else own_themes[0]
+                slot1 = own_themes[0]
 
-            # --- Slot 2 (STRICT: ONLY if 2nd fresh hot catalyst OR stock's own #1 dominant main business >= 50%) ---
+            # --- Slot 2 (2nd fresh hot catalyst OR stock's own #1 core tag if Slot 1 was another catalyst) ---
             slot2: str | None = None
             rem = [t for t in own_themes if t != slot1]
             if rem:
-                # 1) Second fresh/static real intraday hot catalyst (never pulling in >45-day stale dynamic tags!)
                 rem_fresh_hot = [t for t in fresh_hot if t != slot1]
                 if rem_fresh_hot:
                     slot2 = rem_fresh_hot[0]
-                else:
-                    # 2) Stock's own #1 dominant core main business (>=50% revenue, excluding broad catch-all 机械/基建/环保/工业设备)
-                    #    ONLY shown when Slot 1 was a hot/inherited theme different from its #1 main business
-                    static_rows = static_by_code.get(code, [])
-                    if static_rows:
-                        main_l1 = _clean_text(static_rows[0]["l1"])
-                        main_pct = static_rows[0].get("revenue_pct")
-                        if (
-                            main_l1 != slot1
-                            and main_l1 in rem
-                            and main_l1 not in GENERIC_SECOND_SKIP
-                            and main_pct is not None
-                            and float(main_pct) >= 50.0
-                        ):
-                            slot2 = main_l1
+                elif own_themes[0] != slot1 and own_themes[0] not in GENERIC_SECOND_SKIP:
+                    slot2 = own_themes[0]
 
             pair = [slot1] + ([slot2] if slot2 else [])
             st["primary_theme"] = slot1
