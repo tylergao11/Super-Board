@@ -28,7 +28,7 @@
     },
     {
       "code": "600228",
-      "driver": "并购",
+      "driver": "芯片",
       "driver2": null,
       "basis_type": "announcement",
       "basis": "返利网数字科技股份有限公司关于控股股东、实际控制人及其一致行动人拟转让股份暨控制权拟发生变更的提示性公告",
@@ -52,8 +52,8 @@
     },
     {
       "code": "002965",
-      "driver": "并购",
-      "driver2": "算力",
+      "driver": "算力",
+      "driver2": null,
       "basis_type": "announcement",
       "basis": "关于签订股权收购框架协议的公告",
       "source": "llm"
@@ -84,15 +84,15 @@
     },
     {
       "code": "601133",
-      "driver": "消费电子",
-      "driver2": "芯片",
+      "driver": "芯片",
+      "driver2": null,
       "basis_type": "announcement",
       "basis": "关于已中标重大项目签订合同的进展公告",
       "source": "llm"
     },
     {
       "code": "002962",
-      "driver": "消费电子",
+      "driver": "芯片",
       "driver2": null,
       "basis_type": "news",
       "basis": "光学光电子营收占比96.46%（主营红外截止滤光片、光学棱镜及视窗玻璃），直接受早盘热闻第五条玻璃基板概念持续拉升带动显示面板及消费电子光学材料逆势封板催化（热闻直指），10:15放量10.17亿元（换手29.9%）反包录得4天2板，共振消费电子核心梯队（5股）。",

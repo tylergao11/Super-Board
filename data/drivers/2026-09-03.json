@@ -20,8 +20,8 @@
     },
     {
       "code": "605577",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "continue",
       "basis": "延续出版传媒与AI漫剧双线主线，叠加密集发酵的“词元通缩”Token价格腰斩及新一代世界模型Atlas发布催化AI应用方向，早盘09:32爆量换手晋级4连板高标",
       "source": "llm"
@@ -68,7 +68,7 @@
     },
     {
       "code": "600657",
-      "driver": "地产",
+      "driver": "地产链",
       "driver2": "金融",
       "basis_type": "resonance",
       "basis": "围绕地产核心主业与政策托底预期强势晋级2连板，同时早盘证券板块异动拉升（国盛证券涨停）及保险领涨大金融，共振助攻其背靠中国信达的“地产+AMC”逻辑",

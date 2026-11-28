@@ -15,7 +15,7 @@ from common import (
     load_taxonomy,
     validate_record,
 )
-from driver_rules import candidates, is_core_stock
+from driver_rules import candidates, is_core_stock, is_event_theme
 
 SHARD_DIR = ROOT / "data/shards"
 TAGGED_DIR = ROOT / "data/tagged"
@@ -287,6 +287,69 @@ def apply_overrides_to_db(db_path: Path = DB_PATH) -> dict[str, Any]:
     for code, patch in overrides.items():
         row = conn.execute("SELECT * FROM stocks WHERE code=?", (code,)).fetchone()
         if not row:
+            if not (patch.get("name") and patch.get("province") and patch.get("controller_type")):
+                continue
+            rec = {
+                "code": code,
+                "name": patch["name"],
+                "province": patch["province"],
+                "city": patch.get("city"),
+                "controller_type": patch["controller_type"],
+                "controller_name": patch.get("controller_name"),
+                "controller_province": patch.get("controller_province"),
+                "overseas_pct": patch.get("overseas_pct"),
+                "em_industry": patch.get("em_industry"),
+                "latest_report_date": patch.get("latest_report_date"),
+                "audit_notes": patch.get("audit_notes") or "",
+                "tags": [],
+                "ma_events": [],
+            }
+            merged = apply_override(rec, patch)
+            errs = validate_record(merged, None, taxonomy)
+            if errs:
+                conn.close()
+                raise RuntimeError(f"Manual override validation failed for new stock {code}: {errs}")
+            ctrl_prov = merged.get("controller_province") or extract_controller_province(
+                merged.get("controller_name"), merged["controller_type"], taxonomy
+            )
+            conn.execute(
+                """
+                INSERT INTO stocks(
+                    code, name, province, city, controller_type, controller_name, controller_province,
+                    overseas_pct, em_industry, latest_report_date, audit_notes, manual_verified, updated_at
+                ) VALUES(?,?,?,?,?,?,?,?,?,?,?,1,CURRENT_TIMESTAMP)
+                """,
+                (
+                    code,
+                    clean_stock_name(merged["name"]),
+                    merged["province"],
+                    merged.get("city"),
+                    merged["controller_type"],
+                    merged.get("controller_name"),
+                    ctrl_prov,
+                    merged.get("overseas_pct"),
+                    merged.get("em_industry"),
+                    merged.get("latest_report_date"),
+                    merged.get("audit_notes") or "",
+                ),
+            )
+            _write_stock_tags(conn, code, merged.get("tags", []))
+            conn.execute("DELETE FROM ma_events WHERE code=?", (code,))
+            for m in merged.get("ma_events", []):
+                conn.execute(
+                    """
+                    INSERT INTO ma_events(code, event_type, target_name, target_l1, from_date, evidence)
+                    VALUES(?,?,?,?,?,?)
+                    """,
+                    (
+                        code,
+                        m["event_type"],
+                        m["target_name"],
+                        m.get("target_l1") or None,
+                        m["from_date"],
+                        m["evidence"],
+                    ),
+                )
             continue
         rec = dict(row)
         cur_tags = [
@@ -543,7 +606,7 @@ def import_drivers(drivers_dir: Path = DRIVERS_DIR, db_path: Path = DB_PATH) -> 
                 prev_p = prev_drivers.get(code)
                 if prev_p and drv != prev_p and btype != "announcement":
                     cands = candidates(conn, code, td)
-                    prev_valid = prev_p in cands or prev_p.endswith("字辈")
+                    prev_valid = prev_p in cands or is_event_theme(prev_p)
                     prev_still_alive = (
                         btype not in ("news", "announcement")
                         or drv2 == prev_p

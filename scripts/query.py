@@ -6,7 +6,7 @@ import sqlite3
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from common import DB_PATH
+from common import DB_PATH, tag_is_active
 
 
 def _cutoff_1yr(date_str: str) -> str:
@@ -73,10 +73,11 @@ def query_daily(date: str) -> str:
         prov = st["province"]
         if st["controller_province"] and st["controller_province"] != prov:
             prov = f"{prov}({st['controller_province']}国资)"
-        t_rows = c.execute(
-            "SELECT * FROM stock_tags WHERE code=? AND from_date >= ? ORDER BY id ASC",
-            (code, cutoff),
-        ).fetchall()
+        t_rows = [
+            tr
+            for tr in c.execute("SELECT * FROM stock_tags WHERE code=? ORDER BY id ASC", (code,)).fetchall()
+            if tag_is_active(tr["from_date"], tr["evidence"], date)
+        ]
         m_rows = c.execute("SELECT * FROM ma_events WHERE code=? ORDER BY from_date DESC, id ASC", (code,)).fetchall()
 
         lines.append(
@@ -94,16 +95,19 @@ def query_theme(name: str) -> str:
     latest_row = c.execute("SELECT MAX(trade_date) FROM daily_limit_pool").fetchone()
     latest_dt = str(latest_row[0] or "2026-11-26")
     cutoff = _cutoff_1yr(latest_dt)
-    t_rows = c.execute(
-        """
-        SELECT p.code, p.name, p.province, p.em_industry, t.tag, t.from_date, t.evidence
-        FROM stock_tags t JOIN stocks p ON t.code=p.code
-        WHERE (t.tag = ? OR t.evidence LIKE ?)
-          AND t.from_date >= ?
-        ORDER BY t.from_date DESC, p.code ASC
-        """,
-        (name, like, cutoff),
-    ).fetchall()
+    t_rows = [
+        tr
+        for tr in c.execute(
+            """
+            SELECT p.code, p.name, p.province, p.em_industry, t.tag, t.from_date, t.evidence
+            FROM stock_tags t JOIN stocks p ON t.code=p.code
+            WHERE (t.tag = ? OR t.evidence LIKE ?)
+            ORDER BY t.from_date DESC, p.code ASC
+            """,
+            (name, like),
+        ).fetchall()
+        if tag_is_active(tr["from_date"], tr["evidence"], latest_dt)
+    ]
     m_rows = c.execute(
         """
         SELECT p.code, p.name, m.event_type, m.target_name, m.target_l1, m.from_date, m.evidence
@@ -117,7 +121,7 @@ def query_theme(name: str) -> str:
     lines = [
         f"# 题材小表格：{name}",
         "",
-        f"## 一、全动态关联标的（近1年有效，{len(t_rows)} 条）",
+        f"## 一、全动态关联标的（{len(t_rows)} 条）",
         "| 代码 | 名称 | 省份 | 题材 | 确认日 | 核心依据 |",
         "|---|---|---|---|---|---|",
     ]
@@ -171,16 +175,13 @@ def query_stock(code: str) -> str:
         f"- 实控人: {p['controller_name']} | 东财行业底色: {p['em_industry']} | 人工锁: {bool(p['manual_verified'])}",
         f"- 综合研判: {p['audit_notes']}",
         "",
-        "## 全动态题材（近1年有效）",
+        "## 全动态题材",
     ]
     latest_row = c.execute("SELECT MAX(trade_date) FROM daily_limit_pool").fetchone()
     latest_dt = str(latest_row[0] or "2026-11-26")
-    cutoff = _cutoff_1yr(latest_dt)
-    for r in c.execute(
-        "SELECT * FROM stock_tags WHERE code=? AND from_date >= ? ORDER BY id ASC",
-        (code, cutoff),
-    ):
-        lines.append(f"- **{r['tag']}** [{r['from_date']}]: {r['evidence']}")
+    for r in c.execute("SELECT * FROM stock_tags WHERE code=? ORDER BY id ASC", (code,)):
+        if tag_is_active(r["from_date"], r["evidence"], latest_dt):
+            lines.append(f"- **{r['tag']}** [{r['from_date']}]: {r['evidence']}")
     lines.append("\n## 筹划中并购重组")
     for r in c.execute("SELECT * FROM ma_events WHERE code=? ORDER BY from_date DESC, id ASC", (code,)):
         lines.append(f"- **{r['event_type']} -> {r['target_name']}** (目标:{r['target_l1'] or '-'}, {r['from_date']}起): {r['evidence']}")

@@ -4,16 +4,16 @@
   "stocks": [
     {
       "code": "002084",
-      "driver": "并购",
-      "driver2": "消费",
+      "driver": "智能驾驶",
+      "driver2": "地产链",
       "basis_type": "continue",
       "basis": "7连板一字延续博泰车联拟受让控股权并购主线，并获隔夜英力特控股权拟变更激活并购线及七部门商品消费扩容升级政策双重助攻",
       "source": "llm"
     },
     {
       "code": "002855",
-      "driver": "消费电子",
-      "driver2": "华为链",
+      "driver": "华为链",
+      "driver2": null,
       "basis_type": "news",
       "basis": "早盘多家手机厂商统一调价且华为多款手机涨价千元，6连板延续消费电子及华为链龙头主线",
       "source": "llm"
@@ -36,7 +36,7 @@
     },
     {
       "code": "000560",
-      "driver": "地产",
+      "driver": "地产链",
       "driver2": null,
       "basis_type": "continue",
       "basis": "6天4板（3连板）延续周末多部委房地产政策组合拳催化下的地产核心主线",
@@ -60,8 +60,8 @@
     },
     {
       "code": "600551",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜首部AIGC上星长剧《后西游记》首播收视夺冠燃爆传媒短剧，叠加盘后工信部启动AI应用服务商培育专项行动，3连板延续传媒+AI应用双主线领涨",
       "source": "llm"
@@ -76,64 +76,64 @@
     },
     {
       "code": "000892",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播飘红引爆AIGC短剧与影视传媒，叠加AI应用服务商培育专项行动，2连板一字延续传媒+AI应用主线",
       "source": "llm"
     },
     {
       "code": "603721",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播收视居省级卫视第一燃爆短剧与AI漫剧概念，叠加AI应用政策催化，2连板延续传媒+AI应用主线",
       "source": "llm"
     },
     {
       "code": "600892",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播飘红燃爆短剧概念，叠加工信部启动AI应用服务商培育专项行动，2连板延续传媒+AI应用主线",
       "source": "llm"
     },
     {
       "code": "300413",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "公司出品及播出平台的首部AIGC上星长剧《后西游记》首播收视夺冠，叠加工信部AI应用政策催化，2连板延续传媒+AI应用核心主线",
       "source": "llm"
     },
     {
       "code": "603533",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播飘红燃爆短剧与AI视频概念，叠加AI应用服务商培育专项行动催化，2连板延续传媒+AI应用主线",
       "source": "llm"
     },
     {
       "code": "605577",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播飘红带动AI漫剧与出版传媒走强，叠加工信部AI应用政策催化，2连板延续传媒+AI应用主线",
       "source": "llm"
     },
     {
       "code": "600121",
-      "driver": "算力",
+      "driver": "煤炭",
       "driver2": null,
       "basis_type": "news",
-      "basis": "原主线煤炭今日在核心梯队与热门消息中彻底熄火，早间Anthropic签350亿美元云计算长单催化算力基础设施活跃（核心梯队3股含同为2板的集泰股份），2连板切换至算力主线",
+      "basis": "9月1日财联社报道精煤现货价格单日上涨4.4%、月累涨16.9%，公司煤炭主业直接受益催化2连板。",
       "source": "llm"
     },
     {
       "code": "001330",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "隔夜《后西游记》首播飘红燃爆影视短剧板块，叠加工信部启动AI应用服务商培育专项行动，2连板延续传媒+AI应用主线",
       "source": "llm"

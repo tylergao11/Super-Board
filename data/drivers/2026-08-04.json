@@ -4,10 +4,10 @@
   "stocks": [
     {
       "code": "003032",
-      "driver": "机器人",
-      "driver2": null,
+      "driver": "AI应用",
+      "driver2": "机器人",
       "basis_type": "news",
-      "basis": "7连板稳居市场最高标，延续具身智能教学机器人主线，受谷歌发布机器人通用大脑及宇树科技明日IPO询价催化引领机器人梯队",
+      "basis": "延续AI应用总龙主线高换手晋级7连板，继续引领全市场AI应用与传媒游戏梯队。",
       "source": "llm"
     },
     {
@@ -20,7 +20,7 @@
     },
     {
       "code": "000593",
-      "driver": "石油",
+      "driver": "油气",
       "driver2": null,
       "basis_type": "continue",
       "basis": "3连板一字加速，延续前日权益变动及管道燃气主线行情",
@@ -76,7 +76,7 @@
     },
     {
       "code": "300615",
-      "driver": "并购",
+      "driver": "通信",
       "driver2": null,
       "basis_type": "announcement",
       "basis": "关于控股股东、实际控制人及相关方签署股份转让协议暨控制权拟发生变更的提示性公告",
@@ -156,8 +156,8 @@
     },
     {
       "code": "000892",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "5天3板断板反包，延续影视与互动影游传媒主线，受北美IMAX票房新高及盘中游戏影视板块拉升催化，同时叠加AI短剧应用共振AI应用主线",
       "source": "llm"
@@ -204,7 +204,7 @@
     },
     {
       "code": "603115",
-      "driver": "算力",
+      "driver": "通信",
       "driver2": null,
       "basis_type": "news",
       "basis": "3天2板反包涨停，延续AI服务器与算力电源高端电极箔主线，受北美云厂商加码AI算力及高乐股份算力大单催化",
@@ -261,7 +261,7 @@
     {
       "code": "605287",
       "driver": "AI应用",
-      "driver2": "传媒",
+      "driver2": null,
       "basis_type": "news",
       "basis": "3天2板反包涨停，延续奇想无限AIGC创意引擎及互动影游Agent的AI应用主线，受DeepSeek低成本与Palantir盘后大涨催化，同时叠加盘中游戏影视拉升形成传媒双线共振",
       "source": "llm"
@@ -292,8 +292,8 @@
     },
     {
       "code": "603466",
-      "driver": "机器人",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "3天2板午后反包涨停，延续联手宇树科技落地具身智能场景的机器人主线，受谷歌机器人通用大脑及午后宇树科技明日IPO询价消息催化，同时叠加物理AI仿真数据共振AI应用",
       "source": "llm"

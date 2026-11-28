@@ -149,14 +149,17 @@ body {
 }
 
 .topbar-left {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
-/* Brand: a single Renaissance portrait (Leonardo da Vinci, self-portrait c.1512, public domain) */
+/* Brand: High Renaissance fresco medallion (custom painted for 文艺复兴) */
 .brand-avatar {
   display: block;
+  flex-shrink: 0;
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -165,29 +168,9 @@ body {
   box-shadow: 0 0 0 0.5px rgba(17, 17, 17, 0.18), 0 1px 2px rgba(17, 17, 17, 0.08);
 }
 
-.brand-seal {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: var(--ink-primary);
-  color: var(--bg-paper);
-  font-size: 10.5px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.brand-name {
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.11em;
-  color: var(--ink-primary);
-}
-
 /* Prev / Date / Next Trading-Day Stepper */
 .date-stepper {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -275,56 +258,7 @@ body {
   color: var(--ink-faint);
 }
 
-/* ==========================================================================
-   Section 1: Independent Scrollable Catalyst Pane (上层独立上下滑动)
-   ========================================================================== */
-
-.catalyst-pane {
-  flex: 0 0 auto;
-  display: flex;
-  flex-direction: column;
-  border-bottom: 1px solid var(--line-mid);
-  background: var(--bg-paper);
-}
-
-.catalyst-scroll-wrap {
-  position: relative;
-  height: clamp(190px, 27dvh, 224px);
-}
-
-.catalyst-scroll {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  padding: 1px 15px 18px;
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-}
-
-.catalyst-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.pane-bottom-fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 26px;
-  pointer-events: none;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, #ffffff 92%);
-  transition: opacity 200ms ease;
-}
-
-.pane-bottom-fade.at-end {
-  opacity: 0;
-}
-
-/* Lower Independent Scrollable Ladder Pane (下层独立上下滑动) */
+/* Primary Scrollable Ladder Pane */
 .ladder-pane {
   flex: 1 1 auto;
   min-height: 0;
@@ -648,11 +582,7 @@ body {
   gap: 7px;
 }
 
-.tier-grid.single {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-/* Stock Cell — Clean Minimal Card Supporting 1~2 Crisp Clickable Themes */
+/* Stock Cell — Clean Minimal Card Supporting Uniform 2-Column Geometry */
 .stock-cell {
   position: relative;
   display: flex;
@@ -672,16 +602,6 @@ body {
     transform 150ms var(--ease-spring),
     border-color 180ms ease,
     background 160ms ease;
-}
-
-/* Full-width single leader row stays sleek single-line */
-.tier-grid.single .stock-cell {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 42px;
-  padding: 0 11px;
 }
 
 .stock-cell:active {
@@ -730,11 +650,6 @@ body {
   gap: 4px;
   min-width: 0;
   overflow: hidden;
-}
-
-.tier-grid.single .cell-themes {
-  justify-content: flex-end;
-  flex-shrink: 0;
 }
 
 .cell-theme {
@@ -1000,6 +915,7 @@ body {
 
 .sheet-body {
   flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
@@ -1191,10 +1107,6 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-}
-
-.c-tier-grid.single {
-  grid-template-columns: minmax(0, 1fr);
 }
 
 /* Gap Divider */
@@ -1976,15 +1888,6 @@ body {
   background-image: var(--grain), var(--paper-light);
 }
 
-.catalyst-pane {
-  background: transparent;
-  border-bottom-color: var(--line-hair);
-}
-
-.pane-bottom-fade {
-  background: linear-gradient(to bottom, rgba(246, 246, 244, 0) 0%, var(--bg-paper) 92%);
-}
-
 .sheet-container {
   border-top-color: rgba(255, 255, 255, 0.75);
 }
@@ -2214,4 +2117,4522 @@ body {
 .fb-gain-tag {
   background: transparent;
   padding: 0 1px;
+}
+
+/* ==========================================================================
+   V3 Upgrades: Topbar Search, Compact Hub Bar, Hub/Search Sheets, Date Leaders
+   ========================================================================== */
+
+/* Topbar Search Trigger Bar (Full Available Width) */
+.topbar-search-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px 0 9.5px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: transform 140ms var(--ease-out), border-color 180ms ease, color 160ms ease;
+}
+
+.topbar-search-btn svg {
+  flex: 0 0 auto;
+}
+
+.topbar-search-placeholder {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-search-btn:active {
+  transform: scale(0.985);
+  border-color: var(--line-strong);
+  color: var(--ink-primary);
+}
+
+/* Tier 1 Compact Single-Row Hot Sectors + Catalysts Entry Bar */
+.hub-bar-wrap {
+  flex: 0 0 auto;
+  padding: 9px 15px 2px;
+}
+
+.hub-bar {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 40px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.hub-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 3px;
+  background: var(--heat-1);
+}
+
+.hub-bar-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 10px 9px 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.hub-bar-main:active {
+  background: var(--bg-card-hover);
+}
+
+.hub-bar-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.hub-bar-preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
+}
+
+.hub-preview-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.hub-preview-name.heat-1 {
+  color: var(--heat-1);
+}
+
+.hub-preview-name.heat-2 {
+  color: var(--heat-2);
+}
+
+.hub-preview-sep {
+  font-size: 11px;
+  color: var(--ink-faint);
+}
+
+.hub-preview-empty {
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.hub-chev {
+  color: var(--ink-faint);
+}
+
+/* Segmented Tabs inside Tier-2 Hub Sheet Header */
+.seg-tabs {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.055);
+  border: 1px solid var(--line-hair);
+  gap: 2px;
+}
+
+.seg-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 180ms var(--ease-out), color 180ms ease, box-shadow 180ms ease;
+}
+
+.seg-tab.active {
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.08);
+}
+
+.seg-cnt {
+  font-style: normal;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.seg-tab.active .seg-cnt {
+  color: var(--ink-secondary);
+}
+
+/* Hub Modal Cards (Hot Sectors & Intraday Catalysts) */
+.hub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.hub-sector-card {
+  gap: 6px;
+  padding: 11px 12px 11px 14px;
+}
+
+.hub-kind-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(17, 17, 17, 0.06);
+  color: var(--ink-secondary);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.hub-sector-stats {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hub-sector-stats b {
+  font-weight: 700;
+  color: var(--ink-primary);
+  margin-left: 1px;
+}
+
+.hub-sector-card.heat-1 .hub-sector-stats b {
+  color: var(--heat-1);
+}
+
+.hub-sector-card.heat-2 .hub-sector-stats b {
+  color: var(--heat-2);
+}
+
+.hub-stat-dot {
+  color: var(--ink-faint);
+}
+
+.hub-news-card {
+  gap: 6px;
+  padding: 11px 12px 11px 14px;
+  cursor: default;
+}
+
+.hub-news-card.is-clickable {
+  cursor: pointer;
+}
+
+.hub-news-theme {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border-radius: 5px;
+  background: rgba(17, 17, 17, 0.055);
+  color: var(--ink-primary);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.hub-news-theme.heat-1 {
+  background: var(--heat-1-bg);
+  color: var(--heat-1);
+}
+
+.hub-news-theme.heat-2 {
+  background: var(--heat-2-bg);
+  color: var(--heat-2);
+}
+
+.hub-news-link {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.hub-news-hl {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--ink-primary);
+}
+
+.hub-news-dt {
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: var(--ink-secondary);
+}
+
+/* Sector Modal Sub-Tabs (当日 vs 全库标的) */
+.sheet-subtabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 9px;
+}
+
+.subtab-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 27px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+
+.subtab-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+.c-fb-tier {
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--line-mid);
+}
+
+.c-fb-node {
+  padding: 8px 10px;
+}
+
+.inline-switch-btn {
+  margin-top: 10px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Search Modal Header & Results */
+.search-header-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.search-input-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  transition: border-color 160ms ease;
+}
+
+.search-input-wrap:focus-within {
+  border-color: var(--ink-primary);
+}
+
+.search-input-icon {
+  flex: 0 0 auto;
+  color: var(--ink-muted);
+}
+
+.search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.3;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-input::-webkit-search-cancel-button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.search-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.search-clear-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 0;
+  background: rgba(17, 17, 17, 0.12);
+  color: var(--ink-primary);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.text-action-btn {
+  border: 0;
+  background: transparent;
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 0;
+  cursor: pointer;
+}
+
+.sector-browse-pill.has-today {
+  border-color: var(--line-strong);
+}
+
+.sector-filter-bar {
+  margin-bottom: 10px;
+}
+
+.sector-filter-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sector-filter-input:focus {
+  border-color: var(--ink-primary);
+}
+
+.sector-filter-input::placeholder {
+  color: var(--ink-faint);
+}
+
+.search-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.sr-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  text-align: left;
+  color: inherit;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: transform 140ms var(--ease-spring), border-color 160ms ease, background 140ms ease;
+}
+
+.sr-card:active {
+  transform: scale(0.98);
+  border-color: var(--line-strong);
+  background: var(--bg-card-hover);
+}
+
+.sr-sector-card {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sr-stock-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sr-main {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.sr-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.sr-name.heat-1 {
+  color: var(--heat-1);
+}
+
+.sr-name.heat-2 {
+  color: var(--heat-2);
+}
+
+.sr-code {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.sr-prov,
+.sr-alias {
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sr-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.sr-meta {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.sr-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #ececea;
+  color: var(--ink-primary);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.sr-badge.is-today,
+.sr-badge.heat-1 {
+  background: var(--heat-1-bg);
+  color: var(--heat-1);
+}
+
+.sr-badge.heat-2 {
+  background: var(--heat-2-bg);
+  color: var(--heat-2);
+}
+
+.sr-arrow {
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+
+.sr-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.sr-tag {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-paper);
+  border: 1px solid var(--line-hair);
+  color: var(--ink-secondary);
+}
+
+.sr-tag.heat-1 {
+  color: var(--heat-1);
+  border-color: var(--heat-1-line);
+  font-weight: 600;
+}
+
+.sr-tag.heat-2 {
+  color: var(--heat-2);
+  border-color: var(--heat-2-line);
+  font-weight: 600;
+}
+
+.sr-tag.is-ma {
+  color: var(--ink-primary);
+  border-style: dashed;
+}
+
+.s-hl {
+  background: rgba(240, 62, 62, 0.12);
+  color: var(--heat-1);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+.load-more-btn {
+  width: 100%;
+  height: 36px;
+  margin-top: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Recent Limit-Up Trajectory Rows inside Stock Modal */
+.hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hist-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  text-align: left;
+}
+
+.hist-row.is-clickable {
+  cursor: pointer;
+  transition: transform 140ms var(--ease-out), border-color 160ms ease;
+}
+
+.hist-row.is-clickable:active {
+  transform: scale(0.985);
+  border-color: var(--line-strong);
+}
+
+.hist-row.is-current {
+  border-color: var(--line-strong);
+  background: var(--bg-card-subtle);
+}
+
+.hist-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.hist-cur-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--heat-1);
+  flex: 0 0 auto;
+}
+
+.hist-date {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.hist-reason {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.hist-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+}
+
+.hist-board {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.hist-board.is-high {
+  color: var(--heat-1);
+}
+
+.hist-time {
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.hist-go {
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+
+.empty-state.compact {
+  padding: 14px 12px;
+}
+
+/* Date Picker Sheet: Leader Name + Main Theme + Height Badge (Clean, No Zhaban Clutter) */
+.date-row {
+  gap: 10px;
+}
+
+.date-row-left {
+  flex: 0 0 auto;
+}
+
+.date-row-right {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.date-leader-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  min-width: 0;
+}
+
+.date-leader-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.date-leader-name {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date-leader-theme {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4.5px;
+  background: var(--bg-paper);
+  border: 1px solid var(--line-hair);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.date-leader-more {
+  flex: 0 0 auto;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.date-height-badge {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  min-width: 34px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #ececea;
+  color: var(--ink-primary);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.date-height-badge.is-high {
+  background: var(--heat-1-bg);
+  color: var(--heat-1);
+}
+
+/* ==========================================================================
+   V3.1: Market Board Badges (创业板/科创板/北交所) & Year-Month Date Picker
+   ========================================================================== */
+
+.mkt-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 3.5px;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.mkt-badge.mkt-cyb {
+  background: #eef4ff;
+  border: 1px solid rgba(29, 78, 216, 0.24);
+  color: #1d4ed8;
+}
+
+.mkt-badge.mkt-kcb {
+  background: #f4f0ff;
+  border: 1px solid rgba(109, 40, 217, 0.24);
+  color: #6d28d9;
+}
+
+.mkt-badge.mkt-bj {
+  background: #ecfdf8;
+  border: 1px solid rgba(15, 118, 110, 0.28);
+  color: #0f766e;
+}
+
+.mkt-badge.mkt-st {
+  background: #fff7ed;
+  border: 1px solid rgba(180, 83, 9, 0.28);
+  color: #b45309;
+}
+
+/* Full board badge inside Stock Modal header */
+.sheet-title-group .mkt-badge {
+  height: 19px;
+  padding: 0 6px;
+  border-radius: 5px;
+  font-size: 10.5px;
+}
+
+/* Slightly more compact inside leader chips */
+.cat-leader-chip .mkt-badge {
+  height: 13.5px;
+  padding: 0 3px;
+  font-size: 8.5px;
+  border-radius: 3px;
+}
+
+/* Year + Month Date Picker Sheet */
+.date-sheet {
+  max-height: 76dvh;
+}
+
+.date-head-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.date-year-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.date-year-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.date-yr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-mid);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.date-yr-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+.date-yr-single {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+.date-month-grid {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  padding: 9px 15px;
+  border-bottom: 1px solid var(--line-hair);
+  background: rgba(255, 255, 255, 0.38);
+}
+
+.date-mo-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--line-hair);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 120ms ease;
+}
+
+.date-mo-btn:active {
+  transform: scale(0.94);
+}
+
+.date-mo-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+.date-mo-btn.has-cur::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--heat-1);
+}
+
+.date-row-left {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.date-md {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.date-wk {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+/* ==========================================================================
+   V3.2: Seal Time on Ladder, Broken Boards, Jump-to-Latest, M&A & 5D Trend
+   ========================================================================== */
+
+/* Jump-to-latest pill button in topbar */
+.latest-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--ink-primary);
+  background: var(--ink-primary);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 140ms var(--ease-out), opacity 160ms ease;
+}
+
+.latest-btn:active {
+  transform: scale(0.94);
+}
+
+/* Ladder cell bottom row: Theme on left, Seal Time on right */
+.cell-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+}
+
+.cell-time {
+  flex: 0 0 auto;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink-faint);
+  line-height: 1.2;
+}
+
+/* Broken high-board row (昨日>=3板今日断板) */
+.tier-axis.broken .axis-unit {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-muted);
+}
+
+.stock-cell.is-broken {
+  background: var(--bg-card-subtle);
+  border-style: dashed;
+  border-color: var(--line-mid);
+  box-shadow: none;
+}
+
+.stock-cell.is-broken .cell-name {
+  color: var(--ink-secondary);
+}
+
+.broken-h-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 4.5px;
+  border-radius: 3.5px;
+  background: rgba(17, 17, 17, 0.06);
+  color: var(--ink-muted);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 9.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+/* M&A Shortcut Card inside Search Modal */
+.ma-shortcut-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-hair);
+  border-left: 2.5px solid var(--ink-primary);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
+  color: inherit;
+  font-family: var(--font-sans);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms var(--ease-spring), border-color 160ms ease;
+}
+
+.ma-shortcut-card:active {
+  transform: scale(0.985);
+  border-color: var(--line-strong);
+}
+
+.ma-shortcut-left {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.ma-shortcut-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.ma-shortcut-sub {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* M&A List Cards */
+.ma-list-card {
+  gap: 6px;
+}
+
+.ma-list-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.ma-type-chip {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background: rgba(17, 17, 17, 0.065);
+  color: var(--ink-primary);
+}
+
+.ma-list-target {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-secondary);
+}
+
+/* ==========================================================================
+   V4: Editorial Monochrome Graphic Polish (点 · 圈 · 框 · 横线 · 黑白反色)
+   - 主色调保持清爽暖白系，消除「白撞白」与「黑撞黑」的视觉疲劳
+   - 层次靠：纸底(#f0f0ec) vs 纯白卡片(#fff) + 清晰发丝框 + 黑底白字 / 白底黑框 + 点线几何
+   ========================================================================== */
+
+:root {
+  --bg-outer: #e3e3de;
+  --bg-paper: #f0f0ec;
+  --bg-sheet: #f0f0ec;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f5f5f1;
+  --bg-card-subtle: #f7f7f4;
+
+  --line-hair: rgba(17, 17, 17, 0.11);
+  --line-mid: rgba(17, 17, 17, 0.16);
+  --line-strong: rgba(17, 17, 17, 0.34);
+
+  --ink-primary: #111111;
+  --ink-secondary: #3f3f44;
+  --ink-muted: #6e6e73;
+  --ink-faint: #9a9aa0;
+
+  --shadow-card: 0 1px 0 rgba(17, 17, 17, 0.055);
+}
+
+/* 1. Topbar: Crisp Pure White Surface + Recessed Search Frame (Zero White-on-White) */
+.topbar {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid rgba(17, 17, 17, 0.13);
+}
+
+.topbar-search-btn {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  color: var(--ink-secondary);
+  box-shadow: none;
+}
+
+.topbar-search-btn:active {
+  background: #e9e9e4;
+  border-color: var(--ink-primary);
+}
+
+.step-btn,
+.date-pill {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.04);
+}
+
+.step-btn:disabled {
+  background: var(--bg-paper);
+  border-color: rgba(17, 17, 17, 0.08);
+  opacity: 0.42;
+}
+
+/* 2. Hub Entry Bar: Crisp Framed White Card + Inverted Black Stamp + Circle Chevron */
+.hub-bar {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.17);
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.07);
+}
+
+.hub-bar::before {
+  display: none;
+}
+
+.hub-bar-main {
+  padding: 9px 10px 9px 12px;
+  gap: 9px;
+}
+
+.hub-bar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  padding: 0 10px 0 0;
+  border-radius: 0;
+  border-right: 1px solid rgba(17, 17, 17, 0.14);
+  background: transparent;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-style: normal;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+
+.hub-bar-label::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--heat-1);
+  box-shadow: 0 0 0 2.5px rgba(240, 62, 62, 0.15);
+  flex: 0 0 auto;
+}
+
+.hub-preview-sep {
+  color: rgba(17, 17, 17, 0.28);
+  font-weight: 700;
+}
+
+.hub-chev {
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  padding: 4px;
+  border-radius: 50%;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+}
+
+/* 3. Main Ladder Section Head: Geometric Dot + Crisp Rule */
+.ladder-head {
+  padding: 11px 15px 7px;
+}
+
+.section-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.section-title::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink-primary);
+}
+
+.market-mood .mood-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  font-size: 11.5px;
+  color: var(--ink-secondary);
+}
+
+/* 4. Ladder Rows & Editorial Display-Serif Tier Axis (无框纯字体雕塑感 · 文艺复兴版式) */
+.tier-row {
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(17, 17, 17, 0.12);
+}
+
+.tier-row:first-child {
+  border-top-color: transparent;
+  padding-top: 4px;
+}
+
+.tier-axis {
+  position: relative;
+  width: 36px;
+  height: auto;
+  margin-top: 0;
+  padding: 9px 2px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 1.5px;
+  line-height: 1;
+}
+
+.tier-axis .axis-num {
+  font-family: "New York", "Iowan Old Style", "Georgia", "Cambria", "Times New Roman", serif;
+  font-size: 21px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -0.04em;
+  line-height: 0.95;
+  color: var(--ink-secondary);
+}
+
+.tier-axis .axis-unit {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-muted);
+}
+
+/* Peak height: heavier, larger sculptural serif + crisp short underline rule */
+.tier-axis.peak {
+  background: transparent;
+  border: 0;
+  padding-bottom: 4px;
+}
+
+.tier-axis.peak::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 0;
+  width: 18px;
+  height: 1.5px;
+  background: var(--ink-primary);
+}
+
+.tier-axis.peak .axis-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--ink-primary);
+}
+
+.tier-axis.peak .axis-unit {
+  color: var(--ink-primary);
+  font-weight: 700;
+}
+
+/* Fanbao: borderless editorial serif */
+.tier-axis.fanbao {
+  background: transparent;
+  border: 0;
+  padding-top: 14px;
+  align-items: center;
+}
+
+.tier-axis.fanbao .axis-unit {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-primary);
+}
+
+/* Broken high boards: borderless muted editorial serif */
+.tier-axis.broken {
+  background: transparent;
+  border: 0;
+  padding-top: 14px;
+  align-items: center;
+}
+
+.tier-axis.broken .axis-unit {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+/* 5. Crisp Framed Stock Cards on Warm Paper Ground */
+.stock-cell {
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.06);
+}
+
+.stock-cell.is-broken {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px dashed rgba(17, 17, 17, 0.24);
+  box-shadow: none;
+}
+
+.fb-desc-tag {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  color: var(--ink-primary);
+}
+
+.cell-time {
+  color: var(--ink-muted);
+}
+
+/* 6. Tier-2 Sheet Separation: Pure White Sticky Header + Warm Paper Scrolling Body */
+.sheet-backdrop {
+  background: rgba(12, 12, 12, 0.36);
+}
+
+.sheet-container,
+.date-sheet {
+  border-top: 1px solid rgba(17, 17, 17, 0.16);
+}
+
+.sheet-drag-zone {
+  background: #ffffff;
+}
+
+.sheet-handle {
+  background: rgba(17, 17, 17, 0.22);
+}
+
+.sheet-header,
+.date-sheet-head {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.13);
+}
+
+.sheet-back-btn,
+.sheet-close-btn {
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+}
+
+/* Prevent Black-on-Black in Stock Modal Header: Height = 黑底白字, 一字 = 白底黑框 */
+.sheet-height-badge {
+  background: var(--ink-primary);
+  color: #ffffff;
+}
+
+.sheet-title-group .ow-tag {
+  background: #ffffff;
+  color: var(--ink-primary);
+  border: 1.2px solid var(--ink-primary);
+}
+
+/* 7. Segmented Tabs & Subtabs: Unmistakable 黑底白字 Active State */
+.seg-tabs {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+}
+
+.seg-tab {
+  color: var(--ink-secondary);
+}
+
+.seg-tab.active {
+  background: var(--ink-primary);
+  color: #ffffff;
+  box-shadow: none;
+}
+
+.subtab-btn {
+  border: 1px solid rgba(17, 17, 17, 0.18);
+  background: #ffffff;
+  color: var(--ink-secondary);
+}
+
+.subtab-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* 8. Modal Section Headings: Quiet Editorial Caption + Hairline (让主体内容领衔，不抢戏) */
+.s-block-title {
+  justify-content: flex-start;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.s-block-title::before {
+  content: "";
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.28);
+  flex: 0 0 auto;
+}
+
+.s-block-title::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.s-block-title .text-action-btn {
+  order: 3;
+  flex: 0 0 auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+/* 9. Hub Cards & Rank Circles (圆圈编号 + 清晰白底黑框) */
+.catalyst-card,
+.c-node,
+.ev-item,
+.ma-card,
+.news-dispatch,
+.sr-card,
+.hist-row,
+.date-row,
+.ma-shortcut-card {
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.055);
+}
+
+.catalyst-card::before {
+  background: var(--ink-primary);
+  opacity: 0.16;
+}
+
+.catalyst-card.heat-1::before {
+  background: var(--heat-1);
+  opacity: 1;
+}
+
+.catalyst-card.heat-2::before {
+  background: var(--heat-2);
+  opacity: 1;
+}
+
+.cat-rank-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(17, 17, 17, 0.22);
+  background: #ffffff;
+  color: var(--ink-primary);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.catalyst-card.heat-1 .cat-rank-tag {
+  border-color: var(--heat-1);
+  background: var(--heat-1);
+  color: #ffffff;
+}
+
+.catalyst-card.heat-2 .cat-rank-tag {
+  border-color: var(--heat-2);
+  background: var(--heat-2);
+  color: #ffffff;
+}
+
+.cat-leader-chip {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  color: var(--ink-primary);
+}
+
+/* 10. Search Input & Pills: Recessed Inset vs Framed White */
+.search-input-wrap {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  box-shadow: none;
+}
+
+.search-input-wrap:focus-within {
+  background: #ffffff;
+  border-color: var(--ink-primary);
+}
+
+.sector-filter-input {
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  background: #ffffff;
+}
+
+.s-theme-pill {
+  border: 1px solid rgba(17, 17, 17, 0.11);
+  background: #ffffff;
+  color: var(--ink-primary);
+  font-weight: 400;
+}
+
+/* Search Modal Aesthetic Balance: Calm Paper-White Index, NO Heavy Black Blobs */
+.recent-pill {
+  background: rgba(17, 17, 17, 0.048);
+  border-color: transparent;
+  color: var(--ink-secondary);
+  font-weight: 400;
+}
+
+.recent-pill .cnt {
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+
+.sector-browse-pill {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  color: var(--ink-primary);
+  font-weight: 500;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.035);
+}
+
+.sector-browse-pill.has-today {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  color: var(--ink-primary);
+  font-weight: 500;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.035);
+}
+
+.sector-browse-pill.has-today .cnt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  height: auto;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink-faint);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.sector-browse-pill.heat-1 {
+  background: #fff6f6;
+  border: 1px solid rgba(240, 62, 62, 0.28);
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.sector-browse-pill.heat-1 .cnt {
+  min-width: 17px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(240, 62, 62, 0.1);
+  color: var(--heat-1);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.sector-browse-pill.heat-2 {
+  background: #fff8f1;
+  border: 1px solid rgba(247, 103, 7, 0.28);
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+.sector-browse-pill.heat-2 .cnt {
+  min-width: 17px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(247, 103, 7, 0.11);
+  color: var(--heat-2);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.ma-shortcut-card {
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  border-left: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.04);
+}
+
+.ma-shortcut-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.ma-shortcut-sub {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.sr-name {
+  font-weight: 600;
+}
+
+.sr-tag {
+  background: rgba(17, 17, 17, 0.04);
+  border: 1px solid rgba(17, 17, 17, 0.06);
+  font-weight: 400;
+}
+
+.load-more-btn {
+  border: 1px solid rgba(17, 17, 17, 0.22);
+  background: #ffffff;
+  color: var(--ink-primary);
+}
+
+/* 11. Sector Convergence Tiers: Borderless Editorial Serif Headings & Dashed Gap Line */
+.c-tier-head .h-tag {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-family: "New York", "Iowan Old Style", "Georgia", "Cambria", "Songti SC", "STSong", serif;
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
+  color: var(--ink-primary);
+}
+
+.c-gap-row::before {
+  border-top: 1px dashed rgba(17, 17, 17, 0.22);
+}
+
+.c-gap-pill {
+  border: 1px solid rgba(17, 17, 17, 0.15);
+  background: var(--bg-paper);
+  color: var(--ink-secondary);
+}
+
+/* 12. Date Picker Sheet: Crisp Monochrome Frame & Inverted Active Badges */
+.date-month-grid {
+  background: #e8e8e3;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.13);
+}
+
+.date-mo-btn {
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  color: var(--ink-primary);
+}
+
+.date-row.active {
+  border: 1.5px solid var(--ink-primary);
+  background: #ffffff;
+}
+
+.date-leader-theme {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  color: var(--ink-primary);
+}
+
+.date-height-badge {
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.24);
+  color: var(--ink-primary);
+}
+
+.date-height-badge.is-high {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* Prevent closed sheets from peeking or bleeding shadow at viewport bottom */
+.sheet-container:not(.open),
+.date-sheet:not(.open) {
+  transform: translate3d(0, 110%, 0);
+  visibility: hidden;
+  pointer-events: none;
+  box-shadow: none;
+  transition:
+    transform var(--dur-close) var(--ease-ios),
+    visibility 0s linear var(--dur-close),
+    box-shadow var(--dur-close) var(--ease-ios);
+}
+
+.sheet-container.open,
+.date-sheet.open {
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    transform var(--dur-open) var(--ease-ios),
+    visibility 0s linear 0s;
+}
+
+/* ==========================================================================
+   V5: Silky Editorial Splash Screen & 0ms GPU Page-Flip Optimization
+   ========================================================================== */
+
+.splash-screen {
+  position: absolute;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+}
+
+.splash-veil {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg-paper);
+  background-image: var(--paper-light);
+  opacity: 1;
+  transition: opacity 460ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity;
+}
+
+.splash-screen.is-gliding .splash-veil,
+.splash-screen.is-fading .splash-veil {
+  opacity: 0;
+}
+
+.splash-screen.is-gliding {
+  pointer-events: none;
+}
+
+.splash-center {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  transform: translateY(-22px);
+}
+
+.splash-avatar {
+  position: relative;
+  z-index: 2;
+  display: block;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #eaeae5;
+  box-shadow: 0 0 0 1px rgba(17, 17, 17, 0.16), 0 8px 24px rgba(17, 17, 17, 0.08);
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  animation: splashPortraitBloom 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 540ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 540ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.splash-screen.is-gliding .splash-avatar {
+  box-shadow: 0 0 0 1px rgba(17, 17, 17, 0.18), 0 1px 2px rgba(17, 17, 17, 0.08);
+}
+
+.splash-wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  transition: opacity 200ms ease, transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-screen.is-gliding .splash-wordmark,
+.splash-screen.is-fading .splash-wordmark {
+  opacity: 0;
+  transform: translate3d(0, -5px, 0);
+}
+
+.splash-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", Georgia, serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.32em;
+  padding-left: 0.32em;
+  color: var(--ink-primary);
+  animation: splashTitleIn 480ms cubic-bezier(0.22, 1, 0.36, 1) 110ms both;
+}
+
+.splash-rule {
+  width: 28px;
+  height: 1px;
+  background: rgba(17, 17, 17, 0.32);
+  transform-origin: center;
+  animation: splashRuleDraw 480ms cubic-bezier(0.22, 1, 0.36, 1) 180ms both;
+}
+
+@keyframes splashPortraitBloom {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+}
+
+@keyframes splashTitleIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Hide top-left brand avatar cleanly while splash portrait glides into its slot */
+.app-shell.splash-pending .brand-avatar {
+  opacity: 0;
+}
+
+.app-shell.splash-pending .main-layout {
+  opacity: 0.25;
+  transform: translate3d(0, 6px, 0) scale(0.99);
+}
+
+.app-shell.splash-revealing .main-layout {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 460ms cubic-bezier(0.22, 1, 0.36, 1) 60ms,
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1) 60ms;
+}
+
+/* Subtle top hairline shimmer bar (only visible if an uncached remote day takes >90ms) */
+.day-loading-bar {
+  position: relative;
+  flex: 0 0 auto;
+  height: 1.5px;
+  width: 100%;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  margin-top: -1.5px;
+  z-index: 12;
+  transition: opacity 150ms ease;
+}
+
+.day-loading-bar.is-active {
+  opacity: 1;
+}
+
+.day-loading-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -38%;
+  width: 38%;
+  background: var(--ink-primary);
+  animation: dayLoadSweep 0.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes dayLoadSweep {
+  to {
+    transform: translate3d(360%, 0, 0);
+  }
+}
+
+/* Pure GPU-composited crisp day-flip animation (zero full-page bitmap jank) */
+@keyframes dayGlideOlder {
+  from {
+    opacity: 0.45;
+    transform: translate3d(-16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes dayGlideNewer {
+  from {
+    opacity: 0.45;
+    transform: translate3d(16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.main-layout.day-in-older > * {
+  animation: dayGlideOlder 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+.main-layout.day-in-newer > * {
+  animation: dayGlideNewer 230ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+/* Lightweight GPU rendering containment for large lists */
+.sr-card,
+.date-row {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 56px;
+}
+
+/* Remove expensive live SVG feTurbulence repaint from scrolling shells; keep pure calm paper */
+.app-shell,
+.sheet-container,
+.date-sheet {
+  background-image: var(--paper-light);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-avatar,
+  .splash-title,
+  .splash-rule,
+  .day-loading-bar::after {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   V6: Ladder Theme Highlight, 20D Height Cycle Strip, Collapsible Evidence & Active Filter
+   ========================================================================== */
+
+/* Main Ladder Quick Theme Highlight Pills (Right Side of ● 连板梯队) */
+.ladder-focus-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ladder-focus-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.focus-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  background: #ffffff;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 120ms ease;
+}
+
+.focus-pill:active {
+  transform: scale(0.94);
+}
+
+.focus-pill.heat-1 {
+  color: var(--heat-1);
+  border-color: rgba(240, 62, 62, 0.34);
+}
+
+.focus-pill.heat-2 {
+  color: var(--heat-2);
+  border-color: rgba(247, 103, 7, 0.36);
+}
+
+.focus-pill.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+.focus-x {
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.75;
+}
+
+/* Highlighted vs Dimmed Ladder Stock Cards */
+.cell-theme[data-cell-theme] {
+  cursor: pointer;
+}
+
+.ladder-list.has-focus .stock-cell {
+  transition: opacity 180ms ease, border-color 180ms ease, transform 180ms var(--ease-out);
+}
+
+.ladder-list.has-focus .stock-cell.is-dimmed {
+  opacity: 0.22;
+}
+
+.ladder-list.has-focus .stock-cell.is-focused {
+  border: 1.5px solid var(--ink-primary);
+  box-shadow: 0 2px 6px rgba(17, 17, 17, 0.08);
+}
+
+.ladder-list.has-focus .stock-cell.is-focus-secondary {
+  border: 1.2px dashed var(--ink-primary);
+}
+
+/* Sector All-Stocks Filter Bar + 近3月活跃 Toggle */
+.sector-filter-bar.has-toggle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sector-filter-bar.has-toggle .sector-filter-input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.filter-toggle-btn {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 17, 17, 0.2);
+  background: #ffffff;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.filter-toggle-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* Collapsible Core Archive Evidence Items (2-line clamp by default, tap to expand) */
+.ev-item.is-collapsible {
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease;
+}
+
+.ev-item.is-collapsible:active {
+  background: var(--bg-card-hover);
+}
+
+.ev-expand-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+  margin-left: auto;
+}
+
+.ev-item.is-clamped .ev-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 20-Day Emotion Height Cycle Strip inside Date Picker Sheet */
+.date-cycle-wrap {
+  flex: 0 0 auto;
+  padding: 8px 15px 7px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.11);
+}
+
+.date-cycle-wrap:empty {
+  display: none;
+}
+
+.cycle-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.cycle-title {
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.cycle-peak {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+}
+
+.cycle-peak b {
+  color: var(--ink-primary);
+  font-weight: 700;
+}
+
+.cycle-bars {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: 3px;
+  align-items: end;
+}
+
+.cycle-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.cycle-col:active {
+  background: var(--bg-paper);
+}
+
+.cycle-num {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-faint);
+}
+
+.cycle-col.is-peak .cycle-num,
+.cycle-col.is-cur .cycle-num {
+  color: var(--ink-primary);
+  font-weight: 800;
+}
+
+.cycle-col.is-cur .cycle-num {
+  color: var(--heat-1);
+}
+
+.cycle-track {
+  width: 100%;
+  max-width: 10px;
+  height: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 2px;
+  background: rgba(17, 17, 17, 0.045);
+  overflow: hidden;
+}
+
+.cycle-fill {
+  width: 100%;
+  border-radius: 2px 2px 0 0;
+  background: rgba(17, 17, 17, 0.25);
+}
+
+.cycle-col.is-peak .cycle-fill {
+  background: var(--ink-primary);
+}
+
+.cycle-col.is-cur .cycle-fill {
+  background: var(--heat-1);
+}
+
+.cycle-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 9.5px;
+  color: var(--ink-faint);
+}
+
+/* ==========================================================================
+   V7: Static Intraday Chart + Mobile-First Thumb Shortcuts
+   ========================================================================== */
+
+/* 1. Tappable Leader Stock Chips inside Hub Modal */
+.cat-leader-chip.is-tappable {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.cat-leader-chip.is-tappable:active {
+  background: #e9e9e3;
+  border-color: rgba(17, 17, 17, 0.25);
+  transform: scale(0.95);
+}
+
+/* 3. Sector Detail Horizontal Hot-Sector Switcher Rail */
+.sector-quick-rail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 0 10px;
+  margin-bottom: 2px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sector-quick-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.sq-pill {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 130ms ease, color 130ms ease, border-color 130ms ease, transform 120ms ease;
+}
+
+.sq-pill:active {
+  transform: scale(0.95);
+}
+
+.sq-pill .sq-cnt {
+  font-style: normal;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+
+.sq-pill.heat-1 {
+  color: var(--heat-1);
+  border-color: rgba(240, 62, 62, 0.26);
+}
+
+.sq-pill.heat-2 {
+  color: var(--heat-2);
+  border-color: rgba(247, 103, 7, 0.28);
+}
+
+.sq-pill.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.sq-pill.active .sq-cnt {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* 4. Static Intraday Minute Chart Card (Intraday Stock Clicks Only) */
+.intraday-card {
+  margin-bottom: 14px;
+  padding: 10px 11px 8px;
+  border-radius: 11px;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.05);
+}
+
+.intraday-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.intraday-quote {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+}
+
+.intraday-px {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  color: var(--ink-primary);
+}
+
+.intraday-pct {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.intraday-quote.is-up .intraday-px,
+.intraday-quote.is-up .intraday-pct {
+  color: #d92d20;
+}
+
+.intraday-quote.is-down .intraday-px,
+.intraday-quote.is-down .intraday-pct {
+  color: #0f766e;
+}
+
+.intraday-quick,
+.intraday-mv-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.intraday-quick em,
+.intraday-mv-group em {
+  font-style: normal;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink-muted);
+  margin-right: 2.5px;
+}
+
+.id-sep {
+  color: var(--ink-faint);
+}
+
+.intraday-mv-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid rgba(17, 17, 17, 0.07);
+}
+
+.intraday-mv-group {
+  font-size: 11px;
+  color: var(--ink-secondary);
+}
+
+.intraday-hl {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.intraday-svg {
+  display: block;
+  width: 100%;
+  height: 126px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.id-axis-lbl {
+  font-family: var(--font-num);
+  font-size: 8.5px;
+  fill: rgba(17, 17, 17, 0.42);
+  paint-order: stroke;
+  stroke: #fafaf7;
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.id-axis-lbl.is-up {
+  fill: rgba(217, 45, 32, 0.65);
+}
+
+.id-axis-lbl.is-down {
+  fill: rgba(15, 118, 110, 0.65);
+}
+
+.id-time-lbl {
+  font-family: var(--font-num);
+  font-size: 8.5px;
+  fill: rgba(17, 17, 17, 0.38);
+}
+
+.intraday-card.is-loading {
+  min-height: 176px;
+}
+
+.intraday-skel-top {
+  height: 36px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f3f3ef 25%, #ecece6 50%, #f3f3ef 75%);
+  background-size: 200% 100%;
+  animation: skelPulse 1.1s ease-in-out infinite;
+  margin-bottom: 8px;
+}
+
+.intraday-skel-box {
+  height: 114px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f5f5f1 25%, #efefe9 50%, #f5f5f1 75%);
+  background-size: 200% 100%;
+  animation: skelPulse 1.1s ease-in-out infinite;
+}
+
+@keyframes skelPulse {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* ==========================================================================
+   V8: Home 3-Button Core Tools Strip, 4x8 题材库 Matrix, 卡异动 Monitor & Clean Search
+   ========================================================================== */
+
+/* 1. Compact 3-Column Quick Strip under 今日热点 (题材库 | 卡异动 | 并购重组) */
+.home-tools {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.home-tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.05);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease, border-color 140ms ease;
+}
+
+.home-tool-btn:active {
+  transform: scale(0.965);
+  background: var(--bg-card-hover);
+  border-color: var(--line-strong);
+}
+
+.home-tool-btn .ht-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 15px;
+  padding: 0 4.5px;
+  border-radius: 999px;
+  background: rgba(240, 62, 62, 0.12);
+  color: var(--heat-1);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* 2. Minimalist Search Empty State */
+.search-empty-hint {
+  padding: 28px 12px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+/* 3. Clean Dual 4x4 Architectural Sector Matrix (题材库 — 未来题材 / 传统题材) */
+.sector-lib-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sector-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sector-group-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.sector-group-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--ink-primary);
+}
+
+.sector-group-sub {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-faint);
+}
+
+.sector-matrix {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.sector-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 4px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.04);
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 140ms ease, background 120ms ease;
+}
+
+.sector-tile:active {
+  transform: scale(0.95);
+  background: var(--bg-card-hover);
+  border-color: var(--ink-primary);
+}
+
+.sector-tile.heat-1 {
+  background: #fff6f6;
+  border-color: rgba(240, 62, 62, 0.28);
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.sector-tile.heat-2 {
+  background: #fff8f1;
+  border-color: rgba(247, 103, 7, 0.3);
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+/* 4. 卡异动 (Serious Deviation Monitor & Single-Stock Calculator) */
+.dev-date-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+}
+
+.dev-filter-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.sheet-header-search {
+  margin-top: 9px;
+}
+
+.dev-filter-tabs.in-header {
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.dev-calc-suggest:not(:empty) {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.dev-calc-result:not(:empty) {
+  margin-top: 0;
+  margin-bottom: 11px;
+}
+
+.dev-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 27px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.14);
+  background: #ffffff;
+  color: var(--ink-secondary);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 130ms ease, color 130ms ease, border-color 130ms ease;
+}
+
+.dev-filter-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.dev-calc-wrap {
+  position: relative;
+  margin-bottom: 11px;
+}
+
+.dev-calc-suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.dev-sug-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  color: var(--ink-primary);
+  cursor: pointer;
+}
+
+.dev-sug-row:active {
+  background: var(--bg-card-hover);
+}
+
+.dev-calc-result {
+  margin-top: 8px;
+}
+
+.dev-calc-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 11px;
+  color: var(--ink-muted);
+}
+
+.dev-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dev-card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.05);
+  text-align: left;
+  color: inherit;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: transform 130ms ease, border-color 150ms ease;
+}
+
+.dev-card:active {
+  transform: scale(0.985);
+  border-color: var(--line-strong);
+}
+
+.dev-card.is-triggered {
+  border-left: 2.5px solid var(--heat-1);
+}
+
+.dev-card.is-critical {
+  border-left: 2.5px solid #e03131;
+}
+
+.dev-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dev-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dev-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.dev-board-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.dev-theme-lbl {
+  font-size: 11px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dev-status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dev-status.is-trig {
+  background: var(--heat-1);
+  color: #ffffff;
+}
+
+.dev-status.is-crit {
+  background: #fff5f5;
+  border: 1px solid rgba(240, 62, 62, 0.34);
+  color: var(--heat-1);
+}
+
+.dev-status.is-warn {
+  background: #fff8f1;
+  border: 1px solid rgba(247, 103, 7, 0.32);
+  color: var(--heat-2);
+}
+
+.dev-status.is-safe {
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  color: var(--ink-secondary);
+  font-weight: 600;
+}
+
+.dev-mid {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dev-gauges {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.dev-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 78px;
+}
+
+.dev-gauge-txt {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.dev-gauge-txt b {
+  font-weight: 600;
+  color: var(--ink-primary);
+  margin-left: 2px;
+}
+
+.dev-gauge.is-hot .dev-gauge-txt b {
+  color: var(--heat-1);
+}
+
+.dev-bar-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.08);
+  overflow: hidden;
+}
+
+.dev-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(17, 17, 17, 0.45);
+}
+
+.dev-gauge.is-hot .dev-bar-fill {
+  background: var(--heat-1);
+}
+
+.dev-gauge.is-warm .dev-bar-fill {
+  background: var(--heat-2);
+}
+
+.dev-price-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex: 0 0 auto;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  white-space: nowrap;
+}
+
+.dev-safe-px {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-primary);
+}
+
+.dev-safe-px em {
+  font-style: normal;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 400;
+  color: var(--ink-muted);
+  margin-right: 3px;
+}
+
+.dev-cur-px {
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.dev-note {
+  font-size: 10.5px;
+  color: var(--ink-muted);
+  padding-top: 5px;
+  border-top: 1px dashed rgba(17, 17, 17, 0.08);
+}
+
+.dev-footnote {
+  margin-top: 12px;
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+/* 5. Compact 异 Micro-Badge on Main Ladder Cards + Stock Modal Deviation Strip */
+.dev-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 3.5px;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.dev-mini-badge.is-trig {
+  background: var(--heat-1);
+  color: #ffffff;
+}
+
+.dev-mini-badge.is-crit {
+  background: #fff5f5;
+  border: 1px solid rgba(240, 62, 62, 0.42);
+  color: var(--heat-1);
+}
+
+.dev-mini-badge.is-warn {
+  background: #fff8f1;
+  border: 1px solid rgba(247, 103, 7, 0.4);
+  color: var(--heat-2);
+}
+
+/* 6. Compact 补 Micro-Badge on Main Ladder Cards + Stock Modal Replenishment Section */
+.rep-mini-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 15px;
+  padding: 0 4px;
+  border-radius: 3.5px;
+  background: #f0f4ff;
+  border: 1px solid rgba(59, 91, 219, 0.34);
+  color: #364fc7;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.rep-mini-badge.is-header {
+  height: 18px;
+  padding: 0 5px;
+  font-size: 10.5px;
+}
+
+.rep-block-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rep-fb-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(59, 91, 219, 0.24);
+  background: #f5f7ff;
+  color: #364fc7;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.rep-fb-btn:active {
+  transform: scale(0.96);
+  background: #e9efff;
+}
+
+.rep-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f8faff;
+  border: 1px solid rgba(59, 91, 219, 0.18);
+}
+
+.rep-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rep-leader-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.rep-verb {
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.rep-leader-btn {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(59, 91, 219, 0.35);
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.rep-leader-btn:active {
+  color: #364fc7;
+}
+
+.rep-leader-status {
+  display: inline-flex;
+  align-items: center;
+  height: 17px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: rgba(17, 17, 17, 0.06);
+  color: var(--ink-secondary);
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+.rep-kind-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.rep-kind-tag.is-same {
+  background: #edf2ff;
+  color: #364fc7;
+}
+
+.rep-kind-tag.is-cross {
+  background: #fff4e6;
+  color: #d9480f;
+}
+
+.rep-link-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ink-secondary);
+}
+
+.rep-theme-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 5px;
+  border: 1px solid rgba(59, 91, 219, 0.28);
+  background: #ffffff;
+  color: #364fc7;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rep-theme-chip.heat-1 {
+  border-color: rgba(240, 62, 62, 0.32);
+  background: #fff5f5;
+  color: var(--heat-1);
+}
+
+.rep-theme-chip.heat-2 {
+  border-color: rgba(247, 103, 7, 0.32);
+  background: #fff8f1;
+  color: var(--heat-2);
+}
+
+.rep-arrow {
+  color: var(--ink-faint);
+  font-size: 11px;
+}
+
+.rep-ev-text {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+  padding-top: 4px;
+  border-top: 1px dashed rgba(59, 91, 219, 0.16);
+}
+
+.stock-dev-strip {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -4px 0 14px;
+  padding: 8px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  background: #ffffff;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: transform 120ms ease, background 120ms ease;
+}
+
+.stock-dev-strip:active {
+  transform: scale(0.985);
+}
+
+.stock-dev-strip.is-trig,
+.stock-dev-strip.is-crit {
+  background: #fff6f6;
+  border-color: rgba(240, 62, 62, 0.28);
+}
+
+.stock-dev-strip.is-warn {
+  background: #fff9f2;
+  border-color: rgba(247, 103, 7, 0.28);
+}
+
+.sds-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sds-tag {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--heat-1);
+  white-space: nowrap;
+}
+
+.stock-dev-strip.is-warn .sds-tag {
+  color: var(--heat-2);
+}
+
+.sds-num {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.sds-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.sds-right em {
+  font-style: normal;
+  font-size: 14px;
+  color: var(--ink-faint);
+}
+
+/* ==========================================================================
+   V9: Renaissance Gallery Polish
+   - 威尼斯印泥朱砂 & 古典赭石色温统一
+   - 首屏大画框装裱开屏 -> 丝滑方变圆 FLIP 飞入左上角
+   - 左上角双层画廊装裱圆章 + 点击馆藏概览弹层
+   - 顶栏工具条轻量化书签去框
+   - 梯队最高板竖标 / 高度断层虚线 / 主线热度色串联
+   - 桌面端温润书桌氛围底色
+   ========================================================================== */
+
+:root {
+  --heat-1: #c8342d;           /* 印泥朱砂红 · 呼应古典湿壁画红袍 */
+  --heat-1-bg: #fcf4f3;
+  --heat-1-line: rgba(200, 52, 45, 0.24);
+
+  --heat-2: #c96a1b;           /* 古典赭石橙 · 温润沉稳不刺眼 */
+  --heat-2-bg: #fcf6ef;
+  --heat-2-line: rgba(201, 106, 27, 0.26);
+
+  --frame-bronze: rgba(102, 84, 62, 0.34);
+  --frame-mat: #faf9f5;
+}
+
+/* 1. Desktop Gallery Desk Vignette */
+@media (min-width: 461px) {
+  html,
+  body {
+    background: radial-gradient(circle at 50% 24%, #ecece6 0%, #dadad3 100%);
+  }
+
+  #viewport-frame {
+    border-left: 1px solid rgba(17, 17, 17, 0.11);
+    border-right: 1px solid rgba(17, 17, 17, 0.11);
+    box-shadow:
+      0 24px 72px rgba(22, 18, 12, 0.11),
+      0 2px 10px rgba(22, 18, 12, 0.05);
+  }
+}
+
+/* 2. Museum-Framed Launch Splash -> Silky Square-to-Circle FLIP Morph */
+.splash-center {
+  gap: 22px;
+  transform: translateY(-16px);
+}
+
+.splash-frame {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.splash-mat-bg {
+  position: absolute;
+  inset: -11px;
+  z-index: 0;
+  border-radius: 4px;
+  background: var(--frame-mat);
+  border: 1px solid var(--frame-bronze);
+  box-shadow:
+    0 20px 50px rgba(22, 18, 12, 0.13),
+    0 3px 10px rgba(22, 18, 12, 0.06),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.92);
+  animation: splashFrameIn 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition: opacity 280ms ease, transform 340ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.splash-mat-inlay {
+  position: absolute;
+  inset: -3px;
+  z-index: 1;
+  border-radius: 2px;
+  border: 1px solid rgba(102, 84, 62, 0.18);
+  pointer-events: none;
+  animation: splashFrameIn 620ms cubic-bezier(0.22, 1, 0.36, 1) 40ms both;
+  transition: opacity 240ms ease;
+}
+
+.splash-screen.is-gliding .splash-mat-bg,
+.splash-screen.is-fading .splash-mat-bg {
+  animation: none;
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+.splash-screen.is-gliding .splash-mat-inlay,
+.splash-screen.is-fading .splash-mat-inlay {
+  animation: none;
+  opacity: 0;
+}
+
+.splash-avatar {
+  width: 184px;
+  height: 184px;
+  border-radius: 2px;
+  background: #eae8e0;
+  box-shadow: 0 0 0 0.5px rgba(17, 17, 17, 0.14);
+  animation: splashPortraitBloom 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 620ms cubic-bezier(0.32, 0.72, 0, 1),
+    border-radius 620ms cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow 620ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.splash-screen.is-gliding .splash-avatar {
+  box-shadow:
+    0 0 0 1.2px var(--frame-mat),
+    0 0 0 2px var(--frame-bronze),
+    0 1px 3px rgba(17, 17, 17, 0.1);
+}
+
+.splash-wordmark {
+  gap: 8px;
+}
+
+.splash-title {
+  font-size: 16px;
+  letter-spacing: 0.36em;
+  padding-left: 0.36em;
+}
+
+.splash-rule {
+  width: 30px;
+  background: rgba(102, 84, 62, 0.42);
+}
+
+.splash-latin {
+  font-family: "New York", "Iowan Old Style", "Georgia", "Times New Roman", serif;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  padding-left: 0.3em;
+  color: rgba(17, 17, 17, 0.36);
+  animation: splashTitleIn 520ms cubic-bezier(0.22, 1, 0.36, 1) 240ms both;
+}
+
+@keyframes splashFrameIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .splash-mat-bg,
+  .splash-mat-inlay,
+  .splash-latin {
+    animation: none !important;
+  }
+}
+
+/* 3. Top-Left Medallion: Double Gallery Ring + Living Anchor Affordance */
+.brand-avatar {
+  cursor: pointer;
+  background: #eae8e0;
+  box-shadow:
+    0 0 0 1.2px var(--frame-mat),
+    0 0 0 2px var(--frame-bronze),
+    0 1px 3px rgba(17, 17, 17, 0.1);
+  transition: transform 160ms var(--ease-out), box-shadow 180ms ease;
+}
+
+.brand-avatar:hover {
+  box-shadow:
+    0 0 0 1.2px var(--frame-mat),
+    0 0 0 2.2px rgba(102, 84, 62, 0.56),
+    0 2px 6px rgba(17, 17, 17, 0.14);
+}
+
+.brand-avatar:active {
+  transform: scale(0.91);
+}
+
+/* 4. Clean Unified White Bookmark Strip for Home Tools (Zero Dingy Grey) */
+.home-tools {
+  gap: 0;
+  margin-top: 6px;
+  padding: 0;
+  border-radius: 9px;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.045);
+  overflow: hidden;
+}
+
+.home-tool-btn {
+  position: relative;
+  height: 30px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-primary);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.home-tool-btn + .home-tool-btn::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 12px;
+  background: rgba(17, 17, 17, 0.1);
+}
+
+.home-tool-btn:hover {
+  background: #f8f8f5;
+}
+
+.home-tool-btn:active {
+  transform: none;
+  background: var(--bg-card-hover);
+  box-shadow: none;
+}
+
+.home-tool-btn .ht-badge {
+  background: rgba(200, 52, 45, 0.12);
+  color: var(--heat-1);
+}
+
+/* 5. Unified Venetian Cinnabar / Ochre Pigment Refinements */
+.hub-bar-label::before {
+  background: var(--heat-1);
+  box-shadow: 0 0 0 2.5px rgba(200, 52, 45, 0.14);
+}
+
+.sector-tile.heat-1 {
+  background: var(--heat-1-bg);
+  border-color: rgba(200, 52, 45, 0.28);
+  color: var(--heat-1);
+}
+
+.sector-tile.heat-2 {
+  background: var(--heat-2-bg);
+  border-color: rgba(201, 106, 27, 0.3);
+  color: var(--heat-2);
+}
+
+.dev-card.is-critical {
+  border-left-color: #b42b24;
+}
+
+.dev-status.is-crit,
+.dev-mini-badge.is-crit,
+.stock-dev-strip.is-trig,
+.stock-dev-strip.is-crit {
+  background: var(--heat-1-bg);
+  border-color: rgba(200, 52, 45, 0.34);
+}
+
+.dev-status.is-warn,
+.dev-mini-badge.is-warn,
+.stock-dev-strip.is-warn {
+  background: var(--heat-2-bg);
+  border-color: rgba(201, 106, 27, 0.34);
+}
+
+/* 6. Ladder Low-Noise Semantic Polish: Peak Accent, Gap Divider, Heat Focus Thread */
+.tier-row.is-peak .stock-cell:not(.is-broken) {
+  box-shadow:
+    inset 2.5px 0 0 var(--ink-primary),
+    0 1px 0 rgba(17, 17, 17, 0.06);
+}
+
+.tier-gap-row {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.tier-gap-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tier-gap-line::before,
+.tier-gap-line::after {
+  content: "";
+  flex: 1 1 auto;
+  border-top: 1px dashed rgba(17, 17, 17, 0.16);
+}
+
+.tier-gap-line span {
+  flex: 0 0 auto;
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  padding-left: 0.2em;
+  color: var(--ink-faint);
+}
+
+.tier-gap-row + .tier-row {
+  border-top-color: transparent;
+}
+
+.focus-pill.heat-1 {
+  color: var(--heat-1);
+  border-color: rgba(200, 52, 45, 0.34);
+}
+
+.focus-pill.heat-2 {
+  color: var(--heat-2);
+  border-color: rgba(201, 106, 27, 0.36);
+}
+
+.focus-pill.active.heat-1 {
+  background: var(--heat-1);
+  border-color: var(--heat-1);
+  color: #ffffff;
+}
+
+.focus-pill.active.heat-2 {
+  background: var(--heat-2);
+  border-color: var(--heat-2);
+  color: #ffffff;
+}
+
+.ladder-list.has-focus[data-focus-heat="heat-1"] .stock-cell.is-focused {
+  border: 1.5px solid var(--heat-1);
+  box-shadow: 0 2px 8px rgba(200, 52, 45, 0.14);
+}
+
+.ladder-list.has-focus[data-focus-heat="heat-1"] .stock-cell.is-focus-secondary {
+  border: 1.2px dashed rgba(200, 52, 45, 0.62);
+}
+
+.ladder-list.has-focus[data-focus-heat="heat-2"] .stock-cell.is-focused {
+  border: 1.5px solid var(--heat-2);
+  box-shadow: 0 2px 8px rgba(201, 106, 27, 0.14);
+}
+
+.ladder-list.has-focus[data-focus-heat="heat-2"] .stock-cell.is-focus-secondary {
+  border: 1.2px dashed rgba(201, 106, 27, 0.65);
+}
+
+/* 7. Brand Gallery Overview Modal (Triggered by Top-Left Fresco Medallion) */
+.brand-sheet-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  letter-spacing: 0.14em;
+}
+
+.brand-sheet-latin {
+  font-family: "New York", "Iowan Old Style", "Georgia", serif;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  color: var(--ink-faint);
+  margin-left: 2px;
+}
+
+.brand-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 6px;
+}
+
+.brand-gallery-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 16px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(17, 17, 17, 0.11);
+}
+
+.brand-gallery-frame {
+  padding: 9px;
+  border-radius: 4px;
+  background: var(--frame-mat);
+  border: 1px solid var(--frame-bronze);
+  box-shadow:
+    0 12px 30px rgba(22, 18, 12, 0.1),
+    0 2px 6px rgba(22, 18, 12, 0.05),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.9);
+}
+
+.brand-gallery-frame img {
+  display: block;
+  width: 204px;
+  height: 204px;
+  border-radius: 2px;
+  object-fit: cover;
+  box-shadow: 0 0 0 0.5px rgba(17, 17, 17, 0.14);
+}
+
+.brand-gallery-caption {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  color: var(--ink-muted);
+}
+
+.brand-cap-cn {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--ink-primary);
+}
+
+.brand-cap-date {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+}
+
+.brand-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.brand-act-btn {
+  height: 36px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  background: #ffffff;
+  color: var(--ink-primary);
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 120ms ease, background 140ms ease;
+}
+
+.brand-act-btn:active {
+  transform: scale(0.97);
+  background: var(--bg-card-hover);
+}
+
+.brand-act-btn.is-primary {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   V10: Ultra-Short Relay Polish (一处一责 · 零重复)
+   1. 首页梯队：量价 PK 微切换 + 断板当日涨跌幅/核标 + 前2日断板高标折叠追踪
+   2. 今日热点弹层：热门板块 5 日微柱 & 梯队骨架 + 第 3 栏 1进2 首板前排
+   3. 日期情绪中枢：20 日高度周期 + 晋级率/炸板/核按钮统一情绪条
+   ========================================================================== */
+
+/* 1. Ladder Title + Compact 量价 Mode Pill */
+.ladder-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.ladder-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 19px;
+  padding: 0 6.5px;
+  border-radius: 999px;
+  border: 1px solid rgba(17, 17, 17, 0.16);
+  background: #ffffff;
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, border-color 140ms ease, transform 120ms ease;
+}
+
+.ladder-mode-btn:active {
+  transform: scale(0.93);
+}
+
+.ladder-mode-btn.active {
+  background: var(--ink-primary);
+  border-color: var(--ink-primary);
+  color: #ffffff;
+}
+
+/* 量价 PK Bottom Line inside Ladder Cards */
+.cell-bottom.is-metrics {
+  align-items: center;
+}
+
+.cell-metrics-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.cm-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba(17, 17, 17, 0.28);
+  flex: 0 0 auto;
+  margin-right: 1px;
+}
+
+.cm-dot.heat-1 {
+  background: var(--heat-1);
+}
+
+.cm-dot.heat-2 {
+  background: var(--heat-2);
+}
+
+.cm-sep {
+  color: var(--ink-faint);
+}
+
+/* 2. Broken Board Intraday Feedback (% + Nuclear Badge) + Recent 2-Day Broken Drawer */
+.broken-col {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.broken-pct {
+  display: inline-flex;
+  align-items: center;
+  gap: 2.5px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.broken-pct.is-up {
+  color: var(--heat-1);
+}
+
+.broken-pct.is-down {
+  color: #2b7a4b;
+}
+
+.broken-pct.is-nuc {
+  padding: 1px 4.5px;
+  border-radius: 3.5px;
+  background: rgba(31, 110, 67, 0.12);
+  color: #1c6b3f;
+}
+
+.broken-pct.is-nuc em {
+  font-style: normal;
+  font-family: var(--font-sans);
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.stock-cell.is-broken.is-nuclear-cell {
+  border-color: rgba(28, 107, 63, 0.34);
+  background: rgba(240, 248, 243, 0.72);
+}
+
+.recent-broken-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.recent-broken-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 7px;
+  border: 1px dashed rgba(17, 17, 17, 0.16);
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--ink-muted);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 140ms ease, color 140ms ease;
+}
+
+.recent-broken-toggle:active {
+  background: #ffffff;
+  color: var(--ink-primary);
+}
+
+.recent-broken-toggle .rb-chev {
+  font-size: 11px;
+  transition: transform 180ms ease;
+}
+
+.recent-broken-toggle.is-open .rb-chev {
+  transform: rotate(180deg);
+}
+
+.rb-trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.rb-pt.is-up {
+  color: var(--heat-1);
+}
+
+.rb-pt.is-down,
+.rb-pt.is-nuc {
+  color: #237045;
+}
+
+.rb-arr {
+  color: var(--ink-faint);
+  font-size: 9px;
+}
+
+/* 3. Hot Sectors 5-Day Mini Spark + Streak Badge + Tier Skeleton */
+.hub-sector-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.hub-streak-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--bg-paper);
+  border: 1px solid rgba(17, 17, 17, 0.12);
+  font-family: var(--font-num);
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--ink-secondary);
+  white-space: nowrap;
+}
+
+.hub-streak-badge.heat-1 {
+  background: var(--heat-1-bg);
+  border-color: var(--heat-1-line);
+  color: var(--heat-1);
+}
+
+.hub-streak-badge.heat-2 {
+  background: var(--heat-2-bg);
+  border-color: var(--heat-2-line);
+  color: var(--heat-2);
+}
+
+.hub-trend-mini {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 14px;
+  padding: 0 2px;
+}
+
+.hub-trend-mini .ht-bar {
+  width: 3px;
+  border-radius: 1.5px;
+  background: rgba(17, 17, 17, 0.22);
+}
+
+.hub-trend-mini .ht-bar.is-zero {
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.hub-trend-mini .ht-bar.is-cur {
+  background: var(--ink-primary);
+}
+
+.hub-trend-mini.heat-1 .ht-bar.is-cur {
+  background: var(--heat-1);
+}
+
+.hub-trend-mini.heat-2 .ht-bar.is-cur {
+  background: var(--heat-2);
+}
+
+/* 4. Hub Tab 3: 首板前排 (1->2 Front-Row Candidate Rows) */
+.fb-front-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fb-front-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(17, 17, 17, 0.13);
+  background: #ffffff;
+  box-shadow: 0 1px 0 rgba(17, 17, 17, 0.045);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, border-color 140ms ease, background 120ms ease;
+}
+
+.fb-front-row:active {
+  transform: scale(0.985);
+  background: var(--bg-card-hover);
+  border-color: var(--line-strong);
+}
+
+.fbf-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fbf-name-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fbf-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-primary);
+  white-space: nowrap;
+}
+
+.fbf-theme {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.fbf-theme.heat-1 {
+  color: var(--heat-1);
+  font-weight: 600;
+}
+
+.fbf-theme.heat-2 {
+  color: var(--heat-2);
+  font-weight: 600;
+}
+
+.fbf-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 0 0 auto;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+}
+
+.fbf-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink-primary);
+}
+
+.fbf-metrics {
+  font-size: 10.5px;
+  color: var(--ink-muted);
+}
+
+.fbf-metrics em {
+  font-style: normal;
+  margin: 0 3px;
+  color: var(--ink-faint);
+}
+
+/* 5. Unified Emotion & Promotion Strip inside Date Cycle Sheet */
+.cycle-col.has-nuc::after {
+  content: "";
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #237045;
+  margin-top: 1px;
+}
+
+.cycle-mood-strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(17, 17, 17, 0.08);
+}
+
+.cycle-mood-strip .cm-cell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5px;
+  padding: 0 3px;
+}
+
+.cycle-mood-strip .cm-cell + .cm-cell::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  width: 1px;
+  background: rgba(17, 17, 17, 0.08);
+}
+
+.cycle-mood-strip .cm-k {
+  font-size: 9.5px;
+  color: var(--ink-muted);
+  white-space: nowrap;
+}
+
+.cycle-mood-strip .cm-v {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink-primary);
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+.cycle-mood-strip .cm-v em {
+  font-style: normal;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--ink-muted);
+}
+
+.cycle-mood-strip .cm-s {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+.cycle-mood-strip .cm-cell.is-nuc-warn .cm-s {
+  color: #1f6e43;
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   V11: Mobile 120fps Rendering Polish & Renaissance Codex Filigree (题材库花边角标)
+   ========================================================================== */
+
+/* 1. Eliminate Full-Page Filter & Backdrop-Filter GPU Thrashing on Mobile */
+.app-shell {
+  transition:
+    transform var(--dur-open) var(--ease-ios),
+    border-radius var(--dur-open) var(--ease-ios);
+}
+
+.app-shell.receded {
+  filter: none;
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.sheet-backdrop {
+  background: rgba(14, 13, 11, 0.42);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.date-sheet.dragging {
+  transition: none;
+}
+
+/* Scroll containment & smooth momentum scrolling */
+.ladder-scroll,
+.sheet-body,
+.date-list {
+  contain: layout style;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Guard desktop hover effects so mobile taps never leave sticky hover states */
+@media (hover: none) {
+  .home-tool-btn:hover {
+    background: transparent;
+  }
+
+  .brand-avatar:hover {
+    box-shadow:
+      0 0 0 1.2px var(--frame-mat),
+      0 0 0 2px var(--frame-bronze),
+      0 1px 3px rgba(17, 17, 17, 0.1);
+  }
+}
+
+/* 2. Invisible Expanded Mobile Hit Targets (Zero Visual Size Change) */
+.step-btn,
+.ladder-mode-btn,
+.sheet-close-btn,
+.sheet-back-btn {
+  position: relative;
+}
+
+.step-btn::after,
+.sheet-close-btn::after,
+.sheet-back-btn::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.ladder-mode-btn::after {
+  content: "";
+  position: absolute;
+  inset: -8px -7px;
+}
+
+/* 3. Renaissance Filigree Ornament on Home Bookmark 题材库 */
+.home-tool-btn.is-lib-featured {
+  color: #3a2e1f;
+  font-weight: 600;
+  gap: 4px;
+}
+
+.home-tool-btn.is-lib-featured .lib-fleur-svg {
+  color: #9e7b47;
+  flex: 0 0 auto;
+}
+
+.home-tool-btn.is-lib-featured .lib-corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  pointer-events: none;
+  opacity: 0.72;
+}
+
+.home-tool-btn.is-lib-featured .lib-corner.tl {
+  top: 3px;
+  left: 4px;
+  border-top: 1px solid #a68452;
+  border-left: 1px solid #a68452;
+  border-top-left-radius: 2px;
+}
+
+.home-tool-btn.is-lib-featured .lib-corner.br {
+  bottom: 3px;
+  right: 4px;
+  border-bottom: 1px solid #a68452;
+  border-right: 1px solid #a68452;
+  border-bottom-right-radius: 2px;
+}
+
+/* 4. Renaissance Codex Ornamented Plates inside 题材库 Modal */
+.lib-head-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #9e7b47;
+}
+
+.lib-sheet-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  letter-spacing: 0.12em;
+}
+
+.lib-sheet-latin {
+  font-family: "New York", "Iowan Old Style", "Georgia", serif;
+  font-size: 8.5px;
+  letter-spacing: 0.24em;
+  color: rgba(114, 92, 62, 0.56);
+  margin-left: 1px;
+}
+
+.sector-lib-view {
+  gap: 13px;
+}
+
+.codex-plate {
+  position: relative;
+  padding: 13px 11px 12px;
+  border-radius: 11px;
+  background: #faf9f5;
+  border: 1px solid rgba(114, 92, 62, 0.22);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.85),
+    0 1px 0 rgba(17, 17, 17, 0.04);
+  gap: 10px;
+}
+
+.codex-plate:not(.is-primary) {
+  background: #f7f6f2;
+  border-color: rgba(114, 92, 62, 0.15);
+}
+
+.codex-c {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  color: rgba(146, 114, 68, 0.55);
+  pointer-events: none;
+  display: inline-flex;
+}
+
+.codex-c.tl {
+  top: 4px;
+  left: 4px;
+}
+
+.codex-c.tr {
+  top: 4px;
+  right: 4px;
+  transform: scaleX(-1);
+}
+
+.codex-c.bl {
+  bottom: 4px;
+  left: 4px;
+  transform: scaleY(-1);
+}
+
+.codex-c.br {
+  bottom: 4px;
+  right: 4px;
+  transform: scale(-1, -1);
+}
+
+.codex-plate:not(.is-primary) .codex-c {
+  opacity: 0.58;
+}
+
+.codex-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+}
+
+.codex-head .sector-group-title {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "SimSun", serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding-left: 0.14em;
+  color: #241e17;
+  white-space: nowrap;
+}
+
+.codex-sub {
+  font-family: "New York", "Iowan Old Style", "Georgia", serif;
+  font-size: 9px;
+  font-style: italic;
+  letter-spacing: 0.14em;
+  color: rgba(138, 108, 66, 0.68);
+}
+
+.codex-rule {
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(146, 114, 68, 0.04), rgba(146, 114, 68, 0.28), rgba(146, 114, 68, 0.04));
+}
+
+.codex-plate .sector-tile {
+  border-color: rgba(114, 92, 62, 0.16);
+  box-shadow: 0 1px 0 rgba(96, 78, 52, 0.05);
+}
+
+.codex-plate .sector-tile .st-zt {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-style: normal;
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1;
+  font-size: 8.5px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-faint);
+}
+
+.codex-plate .sector-tile.heat-1 .st-zt {
+  color: var(--heat-1);
+}
+
+.codex-plate .sector-tile.heat-2 .st-zt {
+  color: var(--heat-2);
+}
+
+/* 5. Update Intraday Card Up/Down Accent to Venetian Cinnabar & Pine Green */
+.id-card .id-pct.is-up {
+  color: var(--heat-1);
+}
+
+.id-card .id-pct.is-down {
+  color: #1f6e43;
+}
+
+/* 6. Hairline Loading Progress Track inside Splash Rule */
+.splash-rule {
+  position: relative;
+  width: 86px;
+  height: 1.5px;
+  border-radius: 999px;
+  background: rgba(102, 84, 62, 0.16);
+  overflow: hidden;
+  animation: splashTitleIn 360ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+}
+
+.splash-rule-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(138, 108, 66, 0.78), var(--ink-primary));
+  transform-origin: left center;
+  transform: scaleX(0.08);
+  transition: transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
 }

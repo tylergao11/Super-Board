@@ -53,7 +53,7 @@
           "headline": "午后：AI漫剧与AI视频概念全线爆发",
           "hit_count": 43,
           "rank": 1,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -161,7 +161,7 @@
           "headline": "早盘：村田万亿扩产催化MLCC概念直线涨停",
           "hit_count": 8,
           "rank": 6,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -224,7 +224,7 @@
           "headline": "早盘：光伏设备异动拉升多股封板",
           "hit_count": 5,
           "rank": 10,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-11-02"
@@ -285,7 +285,7 @@
           "headline": "早盘电池板块走强：宁德时代披露累计回购53.6亿",
           "hit_count": 8,
           "rank": 3,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -316,7 +316,7 @@
           "headline": "早盘AI漫剧概念持续走高 传媒影视多股2连板",
           "hit_count": 6,
           "rank": 5,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -330,7 +330,7 @@
           "headline": "早盘并购重组暗线延续：高争民爆等五股涨停",
           "hit_count": 5,
           "rank": 6,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -362,7 +362,7 @@
           "headline": "11:19中字头板块异动拉升 中成股份直线涨停",
           "hit_count": 1,
           "rank": 9,
-          "theme": "一带一路"
+          "theme": "国企改革"
         },
         {
           "codes": [],
@@ -480,7 +480,7 @@
           "headline": "午后光伏设备板块异动走高",
           "hit_count": 9,
           "rank": 4,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -540,7 +540,7 @@
           "headline": "固态电池“2027量产元年”催化延续连板行情",
           "hit_count": 5,
           "rank": 8,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -595,7 +595,7 @@
           "headline": "盘中：光伏设备掀涨停潮 迈为股份20cm封板",
           "hit_count": 17,
           "rank": 1,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -700,7 +700,7 @@
           "headline": "隔夜：苹果AI测试整合千问 苹果股价创新高",
           "hit_count": 8,
           "rank": 6,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -733,7 +733,7 @@
           "headline": "盘中：碳酸锂涨超4% 钠离子固态电解质获新进展",
           "hit_count": 7,
           "rank": 8,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -788,7 +788,7 @@
           "headline": "美中期选举发酵延续，光伏高标持续晋级",
           "hit_count": 5,
           "rank": 2,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -828,7 +828,7 @@
           "headline": "广电总局重申扶持真人微短剧规范AI短剧",
           "hit_count": 4,
           "rank": 5,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -865,7 +865,7 @@
           "headline": "隔夜：上交所召开并购重组专题座谈会",
           "hit_count": 3,
           "rank": 8,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1005,7 +1005,7 @@
           "headline": "冰雪游热度提前释放，航线预订大增催化冬季消费",
           "hit_count": 6,
           "rank": 6,
-          "theme": "消费"
+          "theme": "冰雪经济"
         },
         {
           "codes": [
@@ -1045,7 +1045,7 @@
           "headline": "盘中两部门公告：对美关税及船舶港务费续停两月",
           "hit_count": 3,
           "rank": 9,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -1121,7 +1121,7 @@
           "headline": "盘中：AI漫剧及影视院线概念全线爆发",
           "hit_count": 17,
           "rank": 2,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1216,7 +1216,7 @@
           "headline": "午后：苹果加码AI及科技股情绪修复带火端侧",
           "hit_count": 9,
           "rank": 7,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -1257,10 +1257,10 @@
             "603706"
           ],
           "detail": "11月10日早盘A股情绪高涨，资金围绕“东”字辈展开符号玄学炒作，多只名称含“东方”个股开盘快速封板并留巨量封单（东方新能、日出东方、大东方、东方环宇涨停）。",
-          "headline": "早盘：“东”字辈名称炒作触发多股秒封涨停",
+          "headline": "早盘：“东方”字辈名称炒作触发多股秒封涨停",
           "hit_count": 4,
           "rank": 10,
-          "theme": "东字辈"
+          "theme": "东方字辈"
         }
       ],
       "trade_date": "2026-11-10"
@@ -1402,7 +1402,7 @@
           "headline": "早盘京东内测免费短剧产品，短剧与游戏概念日内走强",
           "hit_count": 10,
           "rank": 5,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1420,7 +1420,7 @@
           "headline": "盘中马斯克加速光伏布局：SpaceX签HJT产线订单",
           "hit_count": 9,
           "rank": 6,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1467,7 +1467,7 @@
           "headline": "连板高标现“东方”名称异动，日出东方大东方同晋级4板",
           "hit_count": 4,
           "rank": 9,
-          "theme": "东字辈"
+          "theme": "东方字辈"
         },
         {
           "codes": [
@@ -1635,7 +1635,7 @@
           "headline": "盘中：AI下半场催化发酵，影视院线与AI视频领涨",
           "hit_count": 10,
           "rank": 1,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1653,7 +1653,7 @@
           "headline": "隔夜特斯拉传合并进展，10月新能源车销量占比64.3%",
           "hit_count": 9,
           "rank": 2,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -1783,7 +1783,7 @@
           "headline": "早盘：游戏高开叠加广电走强，影视传媒全天领涨",
           "hit_count": 7,
           "rank": 2,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1961,7 +1961,7 @@
           "headline": "隔夜：长春国资拟15.53亿元重整入主亚泰集团",
           "hit_count": 4,
           "rank": 5,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1994,7 +1994,7 @@
           "headline": "早盘：特斯拉30亿欧元扩建Cybercab工厂",
           "hit_count": 1,
           "rank": 8,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [],
@@ -2125,7 +2125,7 @@
           "headline": "盘前东吴并购东海过会，激活化工及跨界并购重组预期",
           "hit_count": 4,
           "rank": 6,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2147,7 +2147,7 @@
           "headline": "早盘汽车整车板块异动拉升，众泰汽车领涨封板",
           "hit_count": 2,
           "rank": 8,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [],
@@ -2248,7 +2248,7 @@
           "headline": "多家低价房企触发面值退市警报并启动“护盘”",
           "hit_count": 1,
           "rank": 7,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [],
@@ -2554,7 +2554,7 @@
           "headline": "盘中：端侧AI与电子化学品双线拉升 瑞芯微涨停",
           "hit_count": 19,
           "rank": 4,
-          "theme": "芯片"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -2757,7 +2757,7 @@
           "headline": "盘中：苹果折叠屏OLED传闻与PC涨价催化",
           "hit_count": 6,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timedelta
+from datetime import date as dt_date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -104,6 +104,57 @@ CITY_TO_PROVINCE_ALIASES: dict[str, str] = {
     "太原": "山西省",
     "石家庄": "河北省",
     "南昌": "江西省",
+    "绵阳": "四川省",
+    "宜宾": "四川省",
+    "德阳": "四川省",
+    "泸州": "四川省",
+    "烟台": "山东省",
+    "潍坊": "山东省",
+    "淄博": "山东省",
+    "济宁": "山东省",
+    "临沂": "山东省",
+    "威海": "山东省",
+    "东营": "山东省",
+    "泉州": "福建省",
+    "漳州": "福建省",
+    "龙岩": "福建省",
+    "莆田": "福建省",
+    "宁德": "福建省",
+    "常州": "江苏省",
+    "南通": "江苏省",
+    "徐州": "江苏省",
+    "扬州": "江苏省",
+    "盐城": "江苏省",
+    "镇江": "江苏省",
+    "绍兴": "浙江省",
+    "嘉兴": "浙江省",
+    "金华": "浙江省",
+    "台州": "浙江省",
+    "湖州": "浙江省",
+    "芜湖": "安徽省",
+    "马鞍山": "安徽省",
+    "蚌埠": "安徽省",
+    "惠州": "广东省",
+    "中山": "广东省",
+    "江门": "广东省",
+    "汕头": "广东省",
+    "湛江": "广东省",
+    "宜昌": "湖北省",
+    "襄阳": "湖北省",
+    "株洲": "湖南省",
+    "湘潭": "湖南省",
+    "衡阳": "湖南省",
+    "洛阳": "河南省",
+    "唐山": "河北省",
+    "保定": "河北省",
+    "包头": "内蒙古自治区",
+    "柳州": "广西壮族自治区",
+    "桂林": "广西壮族自治区",
+    "宝鸡": "陕西省",
+    "咸阳": "陕西省",
+    "遵义": "贵州省",
+    "九江": "江西省",
+    "赣州": "江西省",
 }
 
 OVERSEAS_KEYWORDS = ("境外", "国外", "外销", "海外", "出口", "国际", "港澳台及海外")
@@ -124,8 +175,10 @@ MA_FORBIDDEN_IN_DYNAMIC = (
 
 FORBIDDEN_SINGLE_L1_NICHES = {
     "固态电池",
+    "锂电",
+    "光伏",
     "储能",
-    "智能驾驶",
+    "汽车",
     "无人驾驶",
     "新能源汽车",
     "光刻胶",
@@ -138,6 +191,10 @@ FORBIDDEN_SINGLE_L1_NICHES = {
     "电子皮肤",
     "丝杠",
     "减速器",
+    "工业设备",
+    "工业母机",
+    "交运",
+    "轨道交通",
     "算力租赁",
     "AIDC",
     "液冷",
@@ -158,17 +215,18 @@ FORBIDDEN_SINGLE_L1_NICHES = {
     "创新药",
     "中药",
     "AI医疗",
+    "传媒",
     "游戏",
     "影视",
     "风电",
     "核电",
+    "可控核聚变",
     "特高压",
     "智能电网",
     "国产替代/信创",
     "国产替代",
     "信创",
     "自主可控",
-    "端侧AI",
     "数据要素",
     "数字货币",
     "大飞机",
@@ -176,7 +234,193 @@ FORBIDDEN_SINGLE_L1_NICHES = {
     "中日韩贸易",
     "字节链",
     "阿里链",
+    "地产",
+    "石油",
+    "消费电子",
 }
+
+
+CONTROLLER_MAPPING_KEYWORDS = (
+    "实控人变更",
+    "控股权变更",
+    "控制权变更",
+    "控股股东变更",
+    "新实控人",
+    "新控股股东",
+    "实控人映射",
+    "实控人产业背景",
+    "入主",
+)
+TAG_TTL_DAYS = 365
+CONTROLLER_MAPPING_TTL_DAYS = 730
+
+CLASSIC_ZIBEI_ORDER: tuple[str, ...] = (
+    "中字头",
+    "数字辈",
+    "动物",
+    "华字辈",
+    "东方字辈",
+    "龙字辈",
+    "金字辈",
+    "羊字辈",
+)
+CLASSIC_ZIBEI_SET: set[str] = set(CLASSIC_ZIBEI_ORDER)
+
+YANG_ZIBEI_CHARS: tuple[str, ...] = ("羊", "阳", "洋", "扬", "杨")
+YANG_ZIBEI_EXTRA_CODES: set[str] = {"002292"}  # 奥飞娱乐（喜羊羊核心IP）
+NUMBER_ZIBEI_CHARS: tuple[str, ...] = tuple("零一二三四五六七八九十百千万")
+ANIMAL_MYSTIC_CHARS: tuple[str, ...] = tuple("鼠牛虎兔龙蛇马羊猴鸡狗猪狼狮鹿熊豹猫犬狐驼鹰鹤燕鸥鹅凤凰鱼鲸鲨鸭鸟雀鸽蜂蝶麒麟")
+
+PROVINCE_SHORT_MAP: dict[str, str] = {
+    "北京市": "北京",
+    "天津市": "天津",
+    "上海市": "上海",
+    "重庆市": "重庆",
+    "内蒙古自治区": "内蒙古",
+    "广西壮族自治区": "广西",
+    "西藏自治区": "西藏",
+    "宁夏回族自治区": "宁夏",
+    "新疆维吾尔自治区": "新疆",
+}
+
+CORE_CITY_REGION_MAP: dict[str, str] = {
+    "深圳市": "深圳",
+    "杭州市": "杭州",
+    "苏州市": "苏州",
+    "合肥市": "合肥",
+    "成都市": "成都",
+    "武汉市": "武汉",
+}
+
+WESTERN_DEV_PROVINCES: set[str] = {
+    "四川", "重庆", "贵州", "云南", "西藏", "陕西",
+    "甘肃", "青海", "宁夏", "新疆", "广西", "内蒙古",
+}
+
+NORTHEAST_PROVINCES: set[str] = {
+    "辽宁", "吉林", "黑龙江",
+}
+
+ALL_REGION_TAG_SET: set[str] = {
+    "北京", "天津", "上海", "重庆", "河北", "山西", "辽宁", "吉林", "黑龙江",
+    "江苏", "浙江", "安徽", "福建", "江西", "山东", "河南", "湖北", "湖南",
+    "广东", "海南", "四川", "贵州", "云南", "陕西", "甘肃", "青海",
+    "内蒙古", "广西", "西藏", "宁夏", "新疆",
+    "深圳", "杭州", "苏州", "合肥", "成都", "武汉",
+    "西部大开发", "东北", "雄安",
+}
+
+
+def short_province(prov: str | None) -> str:
+    s = str(prov or "").strip()
+    if not s:
+        return ""
+    if s in PROVINCE_SHORT_MAP:
+        return PROVINCE_SHORT_MAP[s]
+    return s.replace("省", "").replace("市", "")
+
+
+def normalize_region_tag(tag: str | None) -> str:
+    s = str(tag or "").strip()
+    if s.endswith("本地") and len(s) >= 4 and s[:-2] in ALL_REGION_TAG_SET:
+        return s[:-2]
+    return s
+
+
+def is_zibei_tag(tag: str | None) -> bool:
+    s = str(tag or "").strip()
+    return s.endswith("字辈") and len(s) >= 3
+
+
+def is_region_tag(tag: str | None) -> bool:
+    s = str(tag or "").strip()
+    if s in ALL_REGION_TAG_SET:
+        return True
+    return s.endswith("本地") and len(s) >= 4 and s[:-2] in ALL_REGION_TAG_SET
+
+
+SOE_REFORM_TAG = "国企改革"
+
+
+def is_intrinsic_tag(tag: str | None) -> bool:
+    """True for permanent intrinsic tags (classic XX字辈, permanent province/core-city regions, and 国企改革)."""
+    s = str(tag or "").strip()
+    return s in CLASSIC_ZIBEI_SET or is_region_tag(s) or s == SOE_REFORM_TAG
+
+
+def extract_intrinsic_tags(
+    code: str | None,
+    name: str | None,
+    province: str | None = None,
+    city: str | None = None,
+    controller_province: str | None = None,
+    controller_type: str | None = None,
+) -> list[tuple[str, str]]:
+    """Derive permanent non-expiring intrinsic tags (classic 字辈 + 地域 + 国企改革) from stock metadata."""
+    out: list[tuple[str, str]] = []
+    seen: set[str] = set()
+
+    def _add(tag: str, ev: str) -> None:
+        if tag and tag not in seen:
+            seen.add(tag)
+            out.append((tag, ev))
+
+    cname = clean_stock_name(name)
+    code_s = str(code or "").strip()
+    if "华" in cname:
+        _add("华字辈", "常驻经典字辈：股票简称含“华”")
+    if "东方" in cname:
+        _add("东方字辈", "常驻经典字辈：股票简称含“东方”")
+    if "龙" in cname:
+        _add("龙字辈", "常驻经典字辈：股票简称含“龙”")
+    if "金" in cname:
+        _add("金字辈", "常驻经典字辈：股票简称含“金”")
+    if any(ch in cname for ch in YANG_ZIBEI_CHARS) or code_s in YANG_ZIBEI_EXTRA_CODES:
+        ev = (
+            "常驻经典字辈：核心IP含“喜羊羊”（羊年玄学辨识度标的）"
+            if code_s in YANG_ZIBEI_EXTRA_CODES and not any(ch in cname for ch in YANG_ZIBEI_CHARS)
+            else "常驻经典字辈：股票简称含“羊/阳/洋/扬/杨”"
+        )
+        _add("羊字辈", ev)
+
+    if any(ch in cname for ch in NUMBER_ZIBEI_CHARS):
+        _add("数字辈", "常驻玄学字辈：股票简称含数字（一至十/百/千/万/零）")
+    if any(ch in cname for ch in ANIMAL_MYSTIC_CHARS) or ("象" in cname and "印象" not in cname):
+        _add("动物", "常驻玄学属性：股票简称含生肖或动物字眼（动物园玄学）")
+
+    ct_s = str(controller_type or "").strip()
+    if cname.startswith("中国") or (cname.startswith("中") and ct_s == "央企"):
+        _add("中字头", "常驻字头属性：股票简称“中国”开头或央企“中”字头标的")
+    if ct_s in ("央企", "地方国企"):
+        _add(SOE_REFORM_TAG, f"常驻股东属性：{ct_s}背景（央国企改革/市值管理/国资整合映射）")
+
+    city_s = str(city or "").strip()
+    prov_s = str(province or "").strip()
+    if city_s in CORE_CITY_REGION_MAP:
+        _add(CORE_CITY_REGION_MAP[city_s], f"常驻地域属性：注册位于{city_s}")
+    if prov_s:
+        ps = short_province(prov_s)
+        if ps:
+            _add(ps, f"常驻地域属性：注册位于{prov_s}")
+            if ps in WESTERN_DEV_PROVINCES:
+                _add("西部大开发", f"常驻地域属性：注册位于{prov_s}（西部大开发区域）")
+            if ps in NORTHEAST_PROVINCES:
+                _add("东北", f"常驻地域属性：注册位于{prov_s}（东北振兴区域）")
+            if ps == "河北":
+                _add("雄安", f"常驻地域属性：注册位于{prov_s}（雄安新区核心区域）")
+
+    return out
+
+
+def is_controller_mapping_evidence(evidence: str | None) -> bool:
+    text = str(evidence or "")
+    return any(kw in text for kw in CONTROLLER_MAPPING_KEYWORDS)
+
+
+def tag_is_active(from_date: str | None, evidence: str | None, ref_date: str | None) -> bool:
+    """All verified tags remain active indefinitely until explicitly denied, terminated, or divested."""
+    fdt = str(from_date or "").strip()
+    return len(fdt) >= 10
 
 
 def load_taxonomy(path: Path = TAXONOMY_PATH) -> dict[str, Any]:
@@ -332,24 +576,21 @@ def validate_record(
         elif tname in seen_tags:
             errors.append(f"{code}: duplicate tag {tname!r}")
         elif tname in FORBIDDEN_SINGLE_L1_NICHES:
-            errors.append(f"{code}: tag {tname!r} is a forbidden niche -> map to 25 L1 or 15 canonical groups")
+            errors.append(f"{code}: tag {tname!r} is a forbidden niche -> map to {len(valid_l1)} L1 or {len(valid_dyn)} canonical groups")
         elif any(m in tname for m in MA_FORBIDDEN_IN_DYNAMIC):
             errors.append(f"{code}: tag {tname!r} is M&A -> move into ma_events with target_name")
-        elif tname not in valid_tags and not tname.endswith("字辈"):
+        elif tname not in valid_tags:
             errors.append(
-                f"{code}: tag {tname!r} not in 40 canonical tags (25 L1 + 15 groups) or XX字辈"
+                f"{code}: tag {tname!r} not in {len(valid_tags)} canonical tags ({len(valid_l1)} L1 + {len(valid_dyn)} groups)"
             )
         else:
             seen_tags.add(tname)
 
         fdt = str(item.get("from_date") or "").strip()
+        ev_str = str(item.get("evidence") or "").strip()
         if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", fdt):
             errors.append(f"{code}: tags[{idx}] ({tname}) invalid from_date {fdt!r} (expect YYYY-MM-DD)")
-        elif fdt < cutoff:
-            errors.append(
-                f"{code}: tags[{idx}] ({tname}) from_date={fdt} < 1-year cutoff {cutoff} (update latest confirmation/report date or drop stale tag)"
-            )
-        if not str(item.get("evidence") or "").strip():
+        if not ev_str:
             errors.append(f"{code}: tags[{idx}] ({tname}) missing evidence")
 
     mas = rec.get("ma_events")

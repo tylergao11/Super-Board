@@ -6,6 +6,9 @@ data/raw_f10/
 data/raw_ann/
 data/raw_ann_day/
 data/raw_kline/
+data/raw_intraday/
+data/raw_kpl_concepts/
+data/intraday_days/
 data/shards/
 data/tagged/
 data/market_raw/

@@ -21,14 +21,59 @@ from common import (
 
 F10_DIR = ROOT / "data/raw_f10"
 ANN_DIR = ROOT / "data/raw_ann"
+KPL_CONCEPTS_DIR = ROOT / "data/raw_kpl_concepts"
 SHARD_DIR = ROOT / "data/shards"
 
 
-def _load_recent_pool(codes: list[str]) -> dict[str, list[dict[str, Any]]]:
+def _load_recent_pool(codes: list[str]) -> tuple[dict[str, list[dict[str, Any]]], dict[str, dict[str, int]]]:
+    """Load recent limit-up tape for each stock WITH same-day market context (top sectors & high-board leaders)."""
     out: dict[str, list[dict[str, Any]]] = {c: [] for c in codes}
+    topic_counts: dict[str, dict[str, int]] = {c: {} for c in codes}
     if not DB_PATH.exists():
-        return out
+        return out, topic_counts
     conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
+
+    day_cache: dict[str, dict[str, Any]] = {}
+
+    def _day_tape(dt: str) -> dict[str, Any]:
+        if dt in day_cache:
+            return day_cache[dt]
+        top_sectors = [
+            r[0]
+            for r in conn.execute(
+                "SELECT DISTINCT theme FROM daily_hot_news WHERE trade_date=? AND theme IS NOT NULL ORDER BY rank LIMIT 3",
+                (dt,),
+            ).fetchall()
+        ]
+        if not top_sectors:
+            top_sectors = [
+                r[0]
+                for r in conn.execute(
+                    """
+                    SELECT kpl_topic FROM daily_limit_pool
+                    WHERE trade_date=? AND kpl_topic IS NOT NULL AND kpl_topic != ''
+                    GROUP BY kpl_topic ORDER BY COUNT(*) DESC LIMIT 3
+                    """,
+                    (dt,),
+                ).fetchall()
+            ]
+        leaders = [
+            f"{r[0]}({r[1]}b:{r[2] or r[3] or ''})"
+            for r in conn.execute(
+                """
+                SELECT p.name, p.board_height, d.driver, p.kpl_topic
+                FROM daily_limit_pool p
+                LEFT JOIN daily_stock_driver d ON d.trade_date=p.trade_date AND d.code=p.code
+                WHERE p.trade_date=? AND p.board_height >= 2
+                ORDER BY p.board_height DESC, p.first_limit_time ASC LIMIT 3
+                """,
+                (dt,),
+            ).fetchall()
+        ]
+        info = {"day_top_sectors": top_sectors, "day_leaders": leaders}
+        day_cache[dt] = info
+        return info
+
     for c in codes:
         rows = conn.execute(
             """
@@ -41,18 +86,37 @@ def _load_recent_pool(codes: list[str]) -> dict[str, list[dict[str, Any]]]:
         ).fetchall()
         picked = []
         seen_topics: set[str] = set()
+        tcnt: dict[str, int] = {}
         for dt, bh, topic, reason, sname in rows:
             t = (topic or "").strip()
-            if t not in seen_topics or len(picked) < 5 or dt >= "2025-11-26":
-                if t not in seen_topics or len(picked) < 5:
-                    seen_topics.add(t)
-                    picked.append({"date": dt, "height": bh, "topic": t, "reason": reason or "", "name": sname or ""})
+            if t:
+                tcnt[t] = tcnt.get(t, 0) + 1
+            if t not in seen_topics or len(picked) < 8:
+                seen_topics.add(t)
+                tape = _day_tape(dt)
+                picked.append(
+                    {
+                        "date": dt,
+                        "height": bh,
+                        "topic": t,
+                        "reason": reason or "",
+                        "name": sname or "",
+                        "day_top_sectors": tape["day_top_sectors"],
+                        "day_leaders": tape["day_leaders"],
+                    }
+                )
         out[c] = picked
+        topic_counts[c] = dict(sorted(tcnt.items(), key=lambda kv: -kv[1])[:8])
     conn.close()
-    return out
+    return out, topic_counts
 
 
-def build_stock_evidence(code: str, pool_rows: list[dict[str, Any]], taxonomy: dict[str, Any]) -> dict[str, Any]:
+def build_stock_evidence(
+    code: str,
+    pool_rows: list[dict[str, Any]],
+    taxonomy: dict[str, Any],
+    topic_counts: dict[str, int] | None = None,
+) -> dict[str, Any]:
     f10_p = F10_DIR / f"{code}.json"
     ann_p = ANN_DIR / f"{code}.json"
     f10 = json.loads(f10_p.read_text(encoding="utf-8")) if f10_p.exists() else {"f10_status": "missing"}
@@ -86,6 +150,20 @@ def build_stock_evidence(code: str, pool_rows: list[dict[str, Any]], taxonomy: d
             break
 
     pool_name = next((r.get("name") for r in pool_rows if r.get("name")), None)
+    kpl_concepts: list[str] = []
+    kp = KPL_CONCEPTS_DIR / f"{code}.json"
+    if kp.exists():
+        try:
+            kdoc = json.loads(kp.read_text(encoding="utf-8"))
+            for item in kdoc.get("concepts") or []:
+                if isinstance(item, list) and len(item) >= 2:
+                    kpl_concepts.append(str(item[1]))
+                elif isinstance(item, dict) and item.get("name"):
+                    kpl_concepts.append(str(item["name"]))
+                elif isinstance(item, str):
+                    kpl_concepts.append(item)
+        except Exception:
+            pass
     return {
         "code": code,
         "name": clean_stock_name(f10.get("name") or pool_name or code),
@@ -104,7 +182,9 @@ def build_stock_evidence(code: str, pool_rows: list[dict[str, Any]], taxonomy: d
         "business_scope": f10.get("business_scope") or "",
         "business_review": f10.get("business_review") or "",
         "core_conception": f10.get("core_conception") or [],
+        "kpl_concepts_hint": kpl_concepts,
         "key_notices": notices,
+        "limit_up_topic_counts": topic_counts or {},
         "recent_limit_ups": pool_rows,
     }
 
@@ -128,15 +208,29 @@ def main() -> None:
     elif args.date or args.month:
         conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True)
         if args.date:
-            rows = conn.execute("SELECT DISTINCT code FROM daily_limit_pool WHERE trade_date=? ORDER BY code", (args.date,)).fetchall()
+            rows = conn.execute(
+                """
+                SELECT DISTINCT code FROM daily_limit_pool
+                WHERE trade_date=? AND (board_height >= 2 OR is_fanbao = 1 OR boards_desc LIKE '%天%板%')
+                ORDER BY code
+                """,
+                (args.date,),
+            ).fetchall()
         else:
-            rows = conn.execute("SELECT DISTINCT code FROM daily_limit_pool WHERE trade_date LIKE ? AND board_height >= 2 ORDER BY code", (f"{args.month}-%",)).fetchall()
+            rows = conn.execute(
+                """
+                SELECT DISTINCT code FROM daily_limit_pool
+                WHERE trade_date LIKE ? AND (board_height >= 2 OR is_fanbao = 1 OR boards_desc LIKE '%天%板%')
+                ORDER BY code
+                """,
+                (f"{args.month}-%",),
+            ).fetchall()
         conn.close()
         target_codes = [r[0] for r in rows]
     else:
         target_codes = list(args.codes or [])
 
-    pool_map = _load_recent_pool(target_codes)
+    pool_map, topic_cnt_map = _load_recent_pool(target_codes)
 
     def write_shard(sid: str, items: list[dict[str, Any]]) -> int:
         payload = {"shard_id": sid, "prefix": args.prefix, "count": len(items), "stocks": items}
@@ -148,7 +242,7 @@ def main() -> None:
     cur_bytes = 2
     idx = 1
     for code in target_codes:
-        item = build_stock_evidence(code, pool_map.get(code, []), taxonomy)
+        item = build_stock_evidence(code, pool_map.get(code, []), taxonomy, topic_cnt_map.get(code, {}))
         ib = len(json.dumps(item, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) + 1
         if cur and (len(cur) >= args.shard_size or (args.max_shard_bytes > 0 and cur_bytes + ib > args.max_shard_bytes)):
             sid = f"{args.prefix}_shard_{idx:03d}"

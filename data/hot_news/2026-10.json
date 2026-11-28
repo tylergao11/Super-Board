@@ -18,7 +18,7 @@
           "headline": "早盘：固态电池走强与算力配储成增量",
           "hit_count": 8,
           "rank": 1,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -30,7 +30,7 @@
           "headline": "早盘：燃油暴涨16%与美军备战打击伊朗",
           "hit_count": 3,
           "rank": 2,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -41,7 +41,7 @@
           "headline": "早盘：中东航运风险推升港口油运拉升",
           "hit_count": 2,
           "rank": 3,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -93,7 +93,7 @@
           "headline": "假期：政策显效带动重点城市楼市升温",
           "hit_count": 1,
           "rank": 8,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -141,7 +141,7 @@
           "headline": "盘中：新华传媒9连板带动，午后传媒十余股涨停",
           "hit_count": 16,
           "rank": 1,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -157,7 +157,7 @@
           "headline": "早盘：全固态电池概念延续强势，紫竹高科4连板",
           "hit_count": 7,
           "rank": 2,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -208,7 +208,7 @@
           "headline": "晨报：中信证券称明年春天房价六年下跌或结束",
           "hit_count": 3,
           "rank": 6,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -279,7 +279,7 @@
           "headline": "字节AI短剧下载破亿引爆文化传媒涨停潮",
           "hit_count": 15,
           "rank": 1,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -347,7 +347,7 @@
           "headline": "津巴布韦重申锂矿出口禁令不延期，固态电池走强",
           "hit_count": 4,
           "rank": 5,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -371,7 +371,7 @@
           "headline": "问界拟进军欧洲叠加中欧电车共识催化汽车异动",
           "hit_count": 3,
           "rank": 7,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [
@@ -404,7 +404,7 @@
           "headline": "前夜公告：东百集团拟高溢价跨界收购光芯片企业",
           "hit_count": 1,
           "rank": 10,
-          "theme": "并购"
+          "theme": "芯片"
         }
       ],
       "trade_date": "2026-10-12"
@@ -479,7 +479,7 @@
           "headline": "隔夜：字节PineDrama出圈持续引爆AI漫剧",
           "hit_count": 7,
           "rank": 4,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -495,7 +495,7 @@
           "headline": "盘中：冰雪经济与旅游景区板块逆势持续领涨",
           "hit_count": 7,
           "rank": 5,
-          "theme": "消费"
+          "theme": "冰雪经济"
         },
         {
           "codes": [
@@ -511,7 +511,7 @@
           "headline": "隔夜：荣丰控股易主复牌催化并购重组预期",
           "hit_count": 7,
           "rank": 6,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -589,7 +589,7 @@
           "headline": "隔夜短剧与DLSS 5催化，游戏出版AI语料掀涨停潮",
           "hit_count": 8,
           "rank": 1,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -634,7 +634,7 @@
           "headline": "早盘：冰雪产业延续活跃，冰山冷热晋级2连板",
           "hit_count": 2,
           "rank": 5,
-          "theme": "消费"
+          "theme": "冰雪经济"
         },
         {
           "codes": [
@@ -655,7 +655,7 @@
           "headline": "早盘：中东局势升温，三桶油股价齐创阶段新高",
           "hit_count": 2,
           "rank": 7,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -708,7 +708,7 @@
           "headline": "盘中AI漫剧与出版传媒逆势走强",
           "hit_count": 5,
           "rank": 2,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -773,7 +773,7 @@
           "headline": "午后白宫传拟放宽影子船队制裁致海运大跌",
           "hit_count": 2,
           "rank": 8,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -783,7 +783,7 @@
           "headline": "午后固态电池概念局部回暖拉升",
           "hit_count": 1,
           "rank": 9,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -874,7 +874,7 @@
           "headline": "盘中：特斯拉Roadster腾空首秀并开放中国预订",
           "hit_count": 13,
           "rank": 3,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -905,7 +905,7 @@
           "headline": "早盘竞价：新华传媒复牌11连板带动传媒走强",
           "hit_count": 6,
           "rank": 5,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1178,7 +1178,7 @@
           "headline": "盘中突发：端侧AI概念涨势扩大，半导体芯片走强",
           "hit_count": 7,
           "rank": 2,
-          "theme": "芯片"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -1194,7 +1194,7 @@
           "headline": "隔夜：苹果官宣10月28日新品发布会，触摸屏Mac将至",
           "hit_count": 7,
           "rank": 3,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -1411,7 +1411,7 @@
           "headline": "AI眼镜迈向成长期，苹果供应链紧俏催化硬件端",
           "hit_count": 5,
           "rank": 7,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -1673,7 +1673,7 @@
           "headline": "午后：9月动储销量增52%叠加抢出口，锂电走强",
           "hit_count": 10,
           "rank": 3,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1691,7 +1691,7 @@
           "headline": "盘中：“车路云一体化”22家车企入局，汽车链活跃",
           "hit_count": 9,
           "rank": 4,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -1708,7 +1708,7 @@
           "headline": "今日：苹果首款折叠屏iPhone Duo正式开售",
           "hit_count": 8,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -1849,7 +1849,7 @@
           "headline": "午后传C-V2X强标启动制定，车联网概念直线拉升",
           "hit_count": 13,
           "rank": 3,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -1869,7 +1869,7 @@
           "headline": "早盘：科瑞思重大资产重组方案出炉复牌涨停",
           "hit_count": 11,
           "rank": 4,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1942,7 +1942,7 @@
           "headline": "国内首部获龙标AI院线电影上映，游戏影视走强",
           "hit_count": 3,
           "rank": 9,
-          "theme": "传媒"
+          "theme": "AI应用"
         }
       ],
       "trade_date": "2026-10-26"
@@ -2004,7 +2004,7 @@
           "headline": "盘前并购重组催化频出 圣邦股份收购与中金交割落地",
           "hit_count": 5,
           "rank": 3,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2055,7 +2055,7 @@
           "headline": "午后催化：国产3A游戏《影之刃零》发售前预售火爆",
           "hit_count": 2,
           "rank": 7,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [],
@@ -2159,7 +2159,7 @@
           "headline": "AI眼镜迎全彩拐点，Rokid与雷鸟新品密集发布",
           "hit_count": 9,
           "rank": 3,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -2337,7 +2337,7 @@
           "headline": "高标青岛食品4连板领衔，并购重组线多点开花",
           "hit_count": 5,
           "rank": 5,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2350,7 +2350,7 @@
           "headline": "早盘：上海拟推自动驾驶出租，汽车链多股涨停",
           "hit_count": 4,
           "rank": 6,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -2363,7 +2363,7 @@
           "headline": "早盘国产3A《影之刃零》发售，影视传媒逆势走强",
           "hit_count": 4,
           "rank": 7,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -2375,7 +2375,7 @@
           "headline": "欧洲天然气首破百欧元，中远海能净利飙235%",
           "hit_count": 3,
           "rank": 8,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -2393,7 +2393,7 @@
           "headline": "午间：四部门发文加码海南自贸港贸易自由化",
           "hit_count": 0,
           "rank": 10,
-          "theme": "海南自贸港"
+          "theme": "海南"
         }
       ],
       "trade_date": "2026-10-29"
@@ -2503,7 +2503,7 @@
           "headline": "早盘：中东战备升温与中远海控绩后大涨催化航运",
           "hit_count": 1,
           "rank": 7,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [],
@@ -2519,7 +2519,7 @@
           "headline": "早盘前：华为数能与科华数能同日宣布最高提价15%",
           "hit_count": 0,
           "rank": 9,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-10-30"

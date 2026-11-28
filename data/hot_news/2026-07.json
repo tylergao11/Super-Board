@@ -105,7 +105,7 @@
           "headline": "隔夜：永太科技扣非预增超12倍催化锂电",
           "hit_count": 13,
           "rank": 4,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -199,7 +199,7 @@
           "headline": "盘中：国巨全系电容与泰晶晶振7月涨价",
           "hit_count": 7,
           "rank": 9,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -210,7 +210,7 @@
           "headline": "隔夜：恒尚节能与安洁科技公告跨界收购",
           "hit_count": 2,
           "rank": 10,
-          "theme": "并购"
+          "theme": "芯片"
         }
       ],
       "trade_date": "2026-07-01"
@@ -294,7 +294,7 @@
           "headline": "早盘：智能网联组合驾辅安全国标发布",
           "hit_count": 14,
           "rank": 3,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -608,7 +608,7 @@
           "headline": "隔夜苹果涨近5%市值破4.5万亿美元及产品涨价",
           "hit_count": 4,
           "rank": 9,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -772,7 +772,7 @@
           "headline": "周末政策：证监会完善再融资规则公开征求意见",
           "hit_count": 5,
           "rank": 7,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -786,7 +786,7 @@
           "headline": "午后突发：乌加大袭击俄炼油厂，俄面临成品油危机",
           "hit_count": 5,
           "rank": 8,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -873,7 +873,7 @@
           "headline": "夜间多家公司筹划易主及跨界并购连板催化",
           "hit_count": 7,
           "rank": 4,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -904,7 +904,7 @@
           "headline": "盘中：苹果折叠机量产在即与UTG供货落定",
           "hit_count": 6,
           "rank": 6,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -942,7 +942,7 @@
           "headline": "隔夜锂价上行带动两大锂矿龙头业绩暴增",
           "hit_count": 3,
           "rank": 9,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -952,7 +952,7 @@
           "headline": "午后：葛卫东8.3亿首投民营商业核聚变",
           "hit_count": 1,
           "rank": 10,
-          "theme": "可控核聚变"
+          "theme": "电力"
         }
       ],
       "trade_date": "2026-07-07"
@@ -1090,7 +1090,7 @@
           "headline": "午间：果链人士辟谣折叠机延期 称9月正常交付",
           "hit_count": 5,
           "rank": 7,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -1113,7 +1113,7 @@
           "headline": "隔夜：美撤销伊石油豁免及美伊冲突推升油价涨超5%",
           "hit_count": 2,
           "rank": 9,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -1262,7 +1262,7 @@
           "headline": "华虹宏力收购获批兼精测停牌，并购重组线活跃",
           "hit_count": 9,
           "rank": 5,
-          "theme": "并购"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -1279,7 +1279,7 @@
           "headline": "苹果与博通签超300亿美元协议，消费电子走强",
           "hit_count": 8,
           "rank": 6,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -1336,7 +1336,7 @@
           "headline": "美伊局势叠加俄柴油禁令，国际油价飙升超6%",
           "hit_count": 4,
           "rank": 10,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-07-09"
@@ -1536,7 +1536,7 @@
           "headline": "晚间公告催化：浙江美大与丰原药业拟易主引爆并购线",
           "hit_count": 11,
           "rank": 8,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1658,7 +1658,7 @@
           "headline": "美军再袭伊朗叠加欧洲抢购LNG推升燃气",
           "hit_count": 2,
           "rank": 7,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -1668,7 +1668,7 @@
           "headline": "午后：海南确认2030年全岛禁售燃油车",
           "hit_count": 1,
           "rank": 8,
-          "theme": "海南自贸港"
+          "theme": "海南"
         },
         {
           "codes": [
@@ -1766,7 +1766,7 @@
           "headline": "隔夜特朗普拟对霍尔木兹货运征税 国际油价涨超9%",
           "hit_count": 8,
           "rank": 4,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -1783,7 +1783,7 @@
           "headline": "盘后扩大消费规划及海南禁售燃油车催化汽车消费",
           "hit_count": 8,
           "rank": 5,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [
@@ -1959,7 +1959,7 @@
           "headline": "盘中影视院线与游戏板块接力拉升",
           "hit_count": 5,
           "rank": 5,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1973,7 +1973,7 @@
           "headline": "艾艾精工新主现身，并购重组线持续活跃",
           "hit_count": 5,
           "rank": 6,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2030,7 +2030,7 @@
           "headline": "端侧AI手机催化：Apple智能备案、豆包手机将发",
           "hit_count": 9,
           "rank": 1,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -2075,7 +2075,7 @@
           "headline": "早盘影视院线与短剧AI语料概念持续走强",
           "hit_count": 6,
           "rank": 4,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -2136,7 +2136,7 @@
           "headline": "隔夜高层上海考察强调高质量推进城市更新",
           "hit_count": 2,
           "rank": 9,
-          "theme": "地产"
+          "theme": "地产链"
         }
       ],
       "trade_date": "2026-07-16"
@@ -2232,7 +2232,7 @@
           "headline": "隔夜发酵：苹果牵手阿里百度催化AI手机端侧",
           "hit_count": 1,
           "rank": 8,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -2360,7 +2360,7 @@
           "headline": "美伊冲突推升国际油价，油气板块盘中走强",
           "hit_count": 4,
           "rank": 6,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -2410,7 +2410,7 @@
           "headline": "三部门调整电池消费税，钠电固态电池获免税",
           "hit_count": 3,
           "rank": 10,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-07-20"
@@ -2563,7 +2563,7 @@
           "headline": "早盘：小米上调手机出货目标16%，WAIC端侧AI升温",
           "hit_count": 12,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -2710,7 +2710,7 @@
           "headline": "隔夜英伟达发布Vera芯片及Rubin平台进展",
           "hit_count": 4,
           "rank": 5,
-          "theme": "英伟达链"
+          "theme": "算力"
         },
         {
           "codes": [
@@ -2723,7 +2723,7 @@
           "headline": "盘中双峡能源命脉告急推升油气与航运绕行",
           "hit_count": 4,
           "rank": 6,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -2736,7 +2736,7 @@
           "headline": "工信部宣贯光伏能耗强制国标加速产能出清",
           "hit_count": 4,
           "rank": 7,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -2771,7 +2771,7 @@
           "headline": "午后独家：苹果iPhone18系列已量产爬坡",
           "hit_count": 2,
           "rank": 10,
-          "theme": "消费电子"
+          "theme": null
         }
       ],
       "trade_date": "2026-07-22"
@@ -2863,7 +2863,7 @@
           "headline": "国资委部署新重组央企运营，并购重组暗线多股连板",
           "hit_count": 14,
           "rank": 3,
-          "theme": "并购"
+          "theme": "国企改革"
         },
         {
           "codes": [
@@ -2991,7 +2991,7 @@
           "headline": "隔夜/早盘：中东双峡告急油价飙升5%，油气板块走强",
           "hit_count": 5,
           "rank": 10,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-07-23"
@@ -3050,7 +3050,7 @@
           "headline": "隔夜：鹏鼎等百亿加码高端PCB且MLCC偏紧",
           "hit_count": 7,
           "rank": 3,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -3080,7 +3080,7 @@
           "headline": "隔夜：巨融科技拟入主ST宏达催化并购线",
           "hit_count": 6,
           "rank": 5,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -3127,7 +3127,7 @@
           "headline": "隔夜：沙特油轮遇袭且布油突破100美元关口",
           "hit_count": 1,
           "rank": 9,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-07-24"
@@ -3261,7 +3261,7 @@
           "headline": "宁德时代抛400亿注销式回购，午后电解液概念拉升",
           "hit_count": 10,
           "rank": 6,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -3376,7 +3376,7 @@
           "headline": "多起重组方案出炉，并购线领跑连板梯队",
           "hit_count": 12,
           "rank": 2,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -3568,7 +3568,7 @@
           "headline": "午后锂矿概念持续反弹，永杉锂业科达制造涨停",
           "hit_count": 8,
           "rank": 3,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -3585,7 +3585,7 @@
           "headline": "早盘汽车整车延续强势，北汽蓝谷涨停领涨",
           "hit_count": 8,
           "rank": 4,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [
@@ -3602,7 +3602,7 @@
           "headline": "隔夜苹果市值破5万亿美元，早盘MLCC拉升",
           "hit_count": 8,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -3635,7 +3635,7 @@
           "headline": "早盘影视院线短线拉升，午盘游戏板块接力走强",
           "hit_count": 7,
           "rank": 7,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -3649,7 +3649,7 @@
           "headline": "上海中心城区推进二手房收储，三区已收购551套",
           "hit_count": 5,
           "rank": 8,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -3700,7 +3700,7 @@
           "headline": "早盘：汽车整车冲高与智驾标准更新催化",
           "hit_count": 8,
           "rank": 2,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -3763,7 +3763,7 @@
           "headline": "隔夜：地方国企改革部署及多起并购易主复牌",
           "hit_count": 6,
           "rank": 6,
-          "theme": "并购"
+          "theme": "国企改革"
         },
         {
           "codes": [
@@ -3784,7 +3784,7 @@
           "headline": "隔夜：日韩两大MLCC龙头宣布涨价最高30%",
           "hit_count": 1,
           "rank": 8,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -3907,7 +3907,7 @@
           "headline": "盘中：爆款涌现成强催化，AI短剧掀涨停潮",
           "hit_count": 19,
           "rank": 3,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -4017,7 +4017,7 @@
           "headline": "午后：阿里千问内测特斯拉车机，小米发新车",
           "hit_count": 11,
           "rank": 8,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -4034,7 +4034,7 @@
           "headline": "诺德股份扭亏称锂电铜箔供需格局彻底反转",
           "hit_count": 8,
           "rank": 9,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [

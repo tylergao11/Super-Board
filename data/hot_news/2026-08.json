@@ -64,7 +64,7 @@
           "headline": "欣天科技溢价90%拟易主复牌涨停，激活并购重组暗线",
           "hit_count": 8,
           "rank": 3,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -81,7 +81,7 @@
           "headline": "午后突发：多晶硅期货主力触及涨停，光伏板块应声拉升",
           "hit_count": 8,
           "rank": 4,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -98,7 +98,7 @@
           "headline": "华强北显卡跳涨叠加手机提价潮，消费电子硬件端异动",
           "hit_count": 8,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -129,7 +129,7 @@
           "headline": "伊朗重申关闭霍尔木兹海峡，隔夜国际油价飙涨近4%",
           "hit_count": 6,
           "rank": 7,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -383,7 +383,7 @@
           "headline": "盘中：游戏板块强势拉升多股封板，北美IMAX票房新高",
           "hit_count": 12,
           "rank": 8,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -415,7 +415,7 @@
           "headline": "多晶硅期货全线涨停，“反内卷”叠加光伏国标宣贯落地",
           "hit_count": 5,
           "rank": 10,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-08-04"
@@ -543,7 +543,7 @@
           "headline": "L3/L4自动驾驶安全强制国标发布，智能网联汽车走强",
           "hit_count": 12,
           "rank": 5,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -961,7 +961,7 @@
           "headline": "早盘：美对多晶硅加税，国内八大硅料巨头签反内卷",
           "hit_count": 3,
           "rank": 8,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-08-07"
@@ -1081,7 +1081,7 @@
           "headline": "硅料八巨头自律倡议且传后续或配惩罚措施",
           "hit_count": 7,
           "rank": 6,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1105,7 +1105,7 @@
           "headline": "盘中：沈腾新片口碑引爆票房催化影视股",
           "hit_count": 2,
           "rank": 8,
-          "theme": "传媒"
+          "theme": "AI应用"
         }
       ],
       "trade_date": "2026-08-10"
@@ -1197,7 +1197,7 @@
           "headline": "多晶硅八巨头集体签反内卷倡议叫停亏损销售",
           "hit_count": 7,
           "rank": 5,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1225,7 +1225,7 @@
           "headline": "第38届百花奖名单出炉带动影视院线午盘走强",
           "hit_count": 4,
           "rank": 7,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -1403,7 +1403,7 @@
           "headline": "早盘：工业母机概念活跃，华东数控3连板",
           "hit_count": 8,
           "rank": 7,
-          "theme": "工业设备"
+          "theme": "机器人"
         },
         {
           "codes": [
@@ -1434,7 +1434,7 @@
           "headline": "午后：影视院线再度活跃，北京文化3连板",
           "hit_count": 5,
           "rank": 9,
-          "theme": "传媒"
+          "theme": "AI应用"
         }
       ],
       "trade_date": "2026-08-12"
@@ -1518,7 +1518,7 @@
           "headline": "兆日科技易主复牌涨停 并购重组梯队活跃",
           "hit_count": 9,
           "rank": 4,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1594,7 +1594,7 @@
           "headline": "早盘：文化传媒板块大幅拉升 多股快速封板",
           "hit_count": 4,
           "rank": 9,
-          "theme": "传媒"
+          "theme": "AI应用"
         }
       ],
       "trade_date": "2026-08-13"
@@ -1980,7 +1980,7 @@
           "headline": "霍尔木兹海峡周末仅5船通行，航运股直线拉升",
           "hit_count": 2,
           "rank": 10,
-          "theme": "交运"
+          "theme": "航运物流"
         }
       ],
       "trade_date": "2026-08-17"
@@ -2170,7 +2170,7 @@
           "headline": "盘中：油气十五五规划叠加霍尔木兹海峡扰动",
           "hit_count": 1,
           "rank": 10,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-08-18"
@@ -2190,7 +2190,7 @@
           "headline": "隔夜住房公积金条例大修，地产及服务链逆势走强",
           "hit_count": 6,
           "rank": 1,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -2297,7 +2297,7 @@
           "headline": "中东停火前景黯淡推升能源，油气航运链逆势活跃",
           "hit_count": 3,
           "rank": 9,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-08-19"
@@ -2412,7 +2412,7 @@
           "headline": "南京国资近5000亿资产整合，并购线走强",
           "hit_count": 7,
           "rank": 5,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2439,7 +2439,7 @@
           "headline": "午间上海出台楼市“沪八条”，最高补贴8万元",
           "hit_count": 4,
           "rank": 7,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -2575,7 +2575,7 @@
           "headline": "盘中碳酸锂期货大涨超4% 天赐材料净利暴增近十倍",
           "hit_count": 4,
           "rank": 7,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -2621,7 +2621,7 @@
           "headline": "盘初异动：固态电池与碳酸锂涨价共振",
           "hit_count": 8,
           "rank": 1,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -2726,7 +2726,7 @@
           "headline": "盘中：伊朗发布霍尔木兹海峡通行新规",
           "hit_count": 2,
           "rank": 9,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -2736,7 +2736,7 @@
           "headline": "中南文化变更重大重组方案今日复牌涨停",
           "hit_count": 1,
           "rank": 10,
-          "theme": "并购"
+          "theme": "电力"
         }
       ],
       "trade_date": "2026-08-24"
@@ -2797,7 +2797,7 @@
           "headline": "上海规划鼓励并购整合，东方证券与液冷并购催化",
           "hit_count": 8,
           "rank": 3,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -2855,7 +2855,7 @@
           "headline": "隔夜美方启动对伊朗经济孤立行动并威胁二级制裁",
           "hit_count": 5,
           "rank": 7,
-          "theme": "石油"
+          "theme": "油气"
         },
         {
           "codes": [
@@ -2881,7 +2881,7 @@
           "headline": "盘前华为Mate XT 2定档，亚马逊上调硬件零售价",
           "hit_count": 4,
           "rank": 9,
-          "theme": "消费电子"
+          "theme": "华为链"
         },
         {
           "codes": [
@@ -2893,7 +2893,7 @@
           "headline": "盘前国管公积金新政落地，首套房最高可贷340万",
           "hit_count": 3,
           "rank": 10,
-          "theme": "地产"
+          "theme": "地产链"
         }
       ],
       "trade_date": "2026-08-25"
@@ -2967,7 +2967,7 @@
           "headline": "隔夜：中国聚变等9家企业联合攻关高温超导",
           "hit_count": 4,
           "rank": 5,
-          "theme": "可控核聚变"
+          "theme": "电力"
         },
         {
           "codes": [
@@ -2992,7 +2992,7 @@
           "headline": "隔夜高盛看多金价至4900美元催化黄金珠宝",
           "hit_count": 3,
           "rank": 7,
-          "theme": "消费"
+          "theme": "有色"
         },
         {
           "codes": [
@@ -3004,7 +3004,7 @@
           "headline": "盘前：苹果、华为、小米折叠屏新机9月齐发",
           "hit_count": 3,
           "rank": 8,
-          "theme": "消费电子"
+          "theme": "华为链"
         },
         {
           "codes": [
@@ -3121,7 +3121,7 @@
           "headline": "隔夜：苹果发布会定档9月10日，首款折叠屏手机将亮相",
           "hit_count": 6,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -3284,7 +3284,7 @@
           "headline": "隔夜英伟达涨8.74%且力捧PTFE新材料",
           "hit_count": 5,
           "rank": 7,
-          "theme": "英伟达链"
+          "theme": "算力"
         },
         {
           "codes": [
@@ -3298,7 +3298,7 @@
           "headline": "盘中：苹果首款折叠屏iPhone爆料流传",
           "hit_count": 5,
           "rank": 8,
-          "theme": "消费电子"
+          "theme": null
         },
         {
           "codes": [
@@ -3377,7 +3377,7 @@
           "headline": "今日首部AI长剧《后西游记》上星定档引爆传媒",
           "hit_count": 15,
           "rank": 2,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -3418,7 +3418,7 @@
           "headline": "周末多部委房地产组合拳落地，房贷延至40年",
           "hit_count": 9,
           "rank": 4,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [

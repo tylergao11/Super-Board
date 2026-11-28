@@ -99,7 +99,7 @@
           "headline": "早盘：新一轮国企改革方案下发，并购及国改股活跃",
           "hit_count": 13,
           "rank": 4,
-          "theme": "并购"
+          "theme": "国企改革"
         },
         {
           "codes": [
@@ -139,7 +139,7 @@
           "headline": "早盘：英伟达杀入AI PC叠加Computex大会",
           "hit_count": 10,
           "rank": 6,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -190,7 +190,7 @@
           "headline": "周末：宁德时代官宣今年钠离子电池规模化量产",
           "hit_count": 7,
           "rank": 9,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -337,7 +337,7 @@
           "headline": "英伟达联合微软ARM推AIPC超级芯片",
           "hit_count": 12,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "端侧AI"
         },
         {
           "codes": [
@@ -568,7 +568,7 @@
           "headline": "盘前上海新政支持科技并购 国资重整入主案例落地",
           "hit_count": 6,
           "rank": 7,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -610,7 +610,7 @@
           "headline": "隔夜美唯一商用浓缩铀厂宣布扩产50% 核能赛道升温",
           "hit_count": 5,
           "rank": 10,
-          "theme": "可控核聚变"
+          "theme": "电力"
         }
       ],
       "trade_date": "2026-06-03"
@@ -726,7 +726,7 @@
           "headline": "玻璃基板活跃与微信A2A、AI眼镜协同催化",
           "hit_count": 12,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -912,7 +912,7 @@
           "headline": "AI材料端及玻璃基封装热议，玻璃基板午盘领涨",
           "hit_count": 15,
           "rank": 4,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -986,7 +986,7 @@
           "headline": "嘉美包装易主追觅实控人复牌，并购重组线持续活跃",
           "hit_count": 8,
           "rank": 8,
-          "theme": "并购"
+          "theme": null
         },
         {
           "codes": [
@@ -1120,7 +1120,7 @@
           "headline": "盘前：住房公积金条例拟修订，拓宽提取使用范围",
           "hit_count": 3,
           "rank": 8,
-          "theme": "地产"
+          "theme": "地产链"
         },
         {
           "codes": [
@@ -1141,7 +1141,7 @@
           "headline": "早盘：中东冲突叠加海峡收费传闻刺激油气拉升",
           "hit_count": 1,
           "rank": 10,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-06-08"
@@ -1309,7 +1309,7 @@
           "headline": "苹果WWDC发布新一代AI生态带动元件消费电子",
           "hit_count": 6,
           "rank": 7,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -1336,7 +1336,7 @@
           "headline": "宁德时代连签77万吨电解液长协搅动锂电产业链",
           "hit_count": 4,
           "rank": 9,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1347,7 +1347,7 @@
           "headline": "盘中：阿里接洽核电建小堆供电引爆可控核聚变",
           "hit_count": 2,
           "rank": 10,
-          "theme": "可控核聚变"
+          "theme": "电力"
         }
       ],
       "trade_date": "2026-06-09"
@@ -1497,7 +1497,7 @@
           "headline": "尾盘突发：光伏概念异动拉升叠加AI储能",
           "hit_count": 5,
           "rank": 9,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1511,7 +1511,7 @@
           "headline": "午后突发：宁德时代枧下窝锂矿用地注销",
           "hit_count": 5,
           "rank": 10,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         }
       ],
       "trade_date": "2026-06-10"
@@ -1617,7 +1617,7 @@
           "headline": "多晶硅期货触及涨停，光伏产能清退传闻催化反弹",
           "hit_count": 6,
           "rank": 6,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1632,7 +1632,7 @@
           "headline": "午后：津巴布韦锂矿解封叠加钠电降本，锂矿反弹",
           "hit_count": 6,
           "rank": 7,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -1658,7 +1658,7 @@
           "headline": "开盘前突发：伊朗宣布全面关闭霍尔木兹海峡",
           "hit_count": 3,
           "rank": 9,
-          "theme": "石油"
+          "theme": "油气"
         }
       ],
       "trade_date": "2026-06-11"
@@ -1961,7 +1961,7 @@
           "headline": "盘中：MLCC及被动元件领涨，消费电子元件批量封板",
           "hit_count": 14,
           "rank": 4,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -2018,7 +2018,7 @@
           "headline": "隔夜美伊确认停战重开霍尔木兹海峡，航运股竞价涨停",
           "hit_count": 6,
           "rank": 7,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -2033,7 +2033,7 @@
           "headline": "十一部门力推新能源重卡至2030年渗透率达40%",
           "hit_count": 6,
           "rank": 8,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [
@@ -2164,7 +2164,7 @@
           "headline": "亿纬锂能中报净利预增95%-110%引爆锂电板块",
           "hit_count": 8,
           "rank": 5,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -2233,7 +2233,7 @@
           "headline": "停牌7天常铝股份公告控股股东转让股权拟易主复牌",
           "hit_count": 1,
           "rank": 10,
-          "theme": "并购"
+          "theme": "有色"
         }
       ],
       "trade_date": "2026-06-16"
@@ -2308,7 +2308,7 @@
           "headline": "早盘：京东方8.6代OLED量产引爆面板与玻璃基板",
           "hit_count": 10,
           "rank": 3,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -2342,7 +2342,7 @@
           "headline": "盘前：MLCC缺货涨价交期倍增，离型膜龙头公告扩产",
           "hit_count": 7,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -2502,7 +2502,7 @@
           "headline": "机构预警Q4高端MLCC短缺，苹果产品将因芯片涨价",
           "hit_count": 9,
           "rank": 4,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -2535,7 +2535,7 @@
           "headline": "五部门部署新能源汽车下乡，华为乾崑智驾7月拟涨价",
           "hit_count": 7,
           "rank": 6,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -2789,7 +2789,7 @@
           "headline": "宁德时代枧下窝锂矿重获用地批文有望复产",
           "hit_count": 9,
           "rank": 8,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -2971,7 +2971,7 @@
           "headline": "午后：商务部等9部门发文壮大汽车后市场消费",
           "hit_count": 8,
           "rank": 7,
-          "theme": "汽车"
+          "theme": "汽车链"
         },
         {
           "codes": [
@@ -3157,7 +3157,7 @@
           "headline": "早盘：宁德时代关联方合资矿企与能源金属领涨两市",
           "hit_count": 5,
           "rank": 6,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -3181,7 +3181,7 @@
           "headline": "盘前：霍尔木兹海峡免费开放与停火预期驱动航运冲高",
           "hit_count": 2,
           "rank": 8,
-          "theme": "交运"
+          "theme": "航运物流"
         },
         {
           "codes": [
@@ -3256,7 +3256,7 @@
           "headline": "前夜昀冢科技15亿扩产MLCC，元件爆发",
           "hit_count": 10,
           "rank": 3,
-          "theme": "消费电子"
+          "theme": "通信"
         },
         {
           "codes": [
@@ -3315,7 +3315,7 @@
           "headline": "早盘游戏板块拉升，巨人网络领衔传媒走强",
           "hit_count": 2,
           "rank": 7,
-          "theme": "传媒"
+          "theme": "AI应用"
         },
         {
           "codes": [
@@ -3335,7 +3335,7 @@
           "headline": "前夜返利科技公告5.5亿转让16%控股权",
           "hit_count": 1,
           "rank": 9,
-          "theme": "并购"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -3345,7 +3345,7 @@
           "headline": "美伊续谈叠加特朗普施压油价，航空领涨",
           "hit_count": 1,
           "rank": 10,
-          "theme": "交运"
+          "theme": "消费"
         }
       ],
       "trade_date": "2026-06-25"
@@ -3415,7 +3415,7 @@
           "headline": "隔夜：美拟取消Robotaxi手动刹车踏板规定",
           "hit_count": 9,
           "rank": 3,
-          "theme": "汽车"
+          "theme": "智能驾驶"
         },
         {
           "codes": [
@@ -3447,7 +3447,7 @@
           "headline": "早盘：玻璃基板概念持续拉升带动面板消费电子走强",
           "hit_count": 7,
           "rank": 5,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -3463,7 +3463,7 @@
           "headline": "储能电芯一芯难求及算电协同拉动光储需求预期",
           "hit_count": 7,
           "rank": 6,
-          "theme": "光伏"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -3598,7 +3598,7 @@
           "headline": "早盘：可控核聚变概念盘初快速拉升封板",
           "hit_count": 7,
           "rank": 4,
-          "theme": "可控核聚变"
+          "theme": "电力"
         },
         {
           "codes": [
@@ -3656,7 +3656,7 @@
           "headline": "上半年储能签约550GWh行业供不应求",
           "hit_count": 5,
           "rank": 8,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [
@@ -3806,7 +3806,7 @@
           "headline": "康宁突破催化玻璃基板概念走强，光学光电子爆发",
           "hit_count": 15,
           "rank": 4,
-          "theme": "消费电子"
+          "theme": "芯片"
         },
         {
           "codes": [
@@ -3852,7 +3852,7 @@
           "headline": "午间工信部部署固态电池攻关，碳酸锂期货大涨8%",
           "hit_count": 14,
           "rank": 6,
-          "theme": "锂电"
+          "theme": "锂电光伏"
         },
         {
           "codes": [

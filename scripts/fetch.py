@@ -23,6 +23,7 @@ F10_DIR = ROOT / "data/raw_f10"
 ANN_DIR = ROOT / "data/raw_ann"
 RAW_ANN_DAY_DIR = ROOT / "data/raw_ann_day"
 KLINE_DIR = ROOT / "data/raw_kline"
+KPL_CONCEPTS_DIR = ROOT / "data/raw_kpl_concepts"
 MARKET_RAW_DIR = ROOT / "data/market_raw"
 NEWS_RAW_DIR = ROOT / "data/raw_news"
 ORG_MAP_PATH = ROOT / "data/cninfo_org_map.json"
@@ -828,6 +829,49 @@ def fetch_kline_cmd(codes: list[str], start_dt: str = "2026-05-01", end_dt: str 
     print(json.dumps({"total": len(codes), "ok": ok_cnt, "errors": err_cnt}, ensure_ascii=False))
 
 
+def fetch_kpl_concepts_cmd(codes: list[str], refresh: bool = False) -> None:
+    """Fetch Kaipanla per-stock concepts via GetStockIDPlate into data/raw_kpl_concepts/."""
+    KPL_CONCEPTS_DIR.mkdir(parents=True, exist_ok=True)
+    todo = [c for c in sorted(set(codes)) if refresh or not (KPL_CONCEPTS_DIR / f"{c}.json").exists()]
+    today = datetime.now(SHANGHAI_TZ).strftime("%Y-%m-%d")
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 14; V2178A Build/UP1A.231005.007)",
+    }
+
+    def _one(code: str) -> tuple[str, int, str | None]:
+        url = (
+            "https://apphwshhq.longhuvip.com/w1/api/index.php"
+            f"?a=GetStockIDPlate&apiv=w43&Type=2&c=StockL2Data&StockID={code}&PhoneOSNew=1&VerSion=5.22.0.2"
+        )
+        for _ in range(3):
+            try:
+                req = urllib.request.Request(url, headers=headers)
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    data = json.loads(resp.read().decode("utf-8"))
+                items = data.get("ListJX") or data.get("List") or []
+                concepts = [[str(x[0]), str(x[1])] for x in items if isinstance(x, list) and len(x) >= 2]
+                doc = {"code": code, "source": "kpl_live_api", "captured_date": today, "concepts": concepts}
+                (KPL_CONCEPTS_DIR / f"{code}.json").write_text(
+                    json.dumps(doc, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+                )
+                return code, len(concepts), None
+            except Exception as exc:
+                last_err = str(exc)
+                time.sleep(0.5)
+        return code, 0, last_err
+
+    ok, errs = 0, []
+    if todo:
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            for c, _n, err in ex.map(_one, todo):
+                if err:
+                    errs.append({"code": c, "error": err})
+                else:
+                    ok += 1
+    print(json.dumps({"requested": len(codes), "fetched": ok, "skipped": len(codes) - len(todo), "errors": errs[:10]}, ensure_ascii=False))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -859,6 +903,11 @@ def main() -> None:
     pk.add_argument("--end", type=str, default="2026-12-31")
     pk.add_argument("--refresh", action="store_true")
 
+    pc = sub.add_parser("kpl-concepts")
+    pc.add_argument("--codes", nargs="*", default=None)
+    pc.add_argument("--date", type=str, default=None)
+    pc.add_argument("--refresh", action="store_true")
+
     args = parser.parse_args()
     if args.cmd == "market":
         sync_market(args.from_ultra, args.date)
@@ -867,7 +916,17 @@ def main() -> None:
             codes = [str(c) for c in json.loads(args.codes_file.read_text(encoding="utf-8"))]
         elif args.date:
             conn = ensure_db()
-            codes = [r[0] for r in conn.execute("SELECT DISTINCT code FROM daily_limit_pool WHERE trade_date=? ORDER BY code", (args.date,)).fetchall()]
+            codes = [
+                r[0]
+                for r in conn.execute(
+                    """
+                    SELECT DISTINCT code FROM daily_limit_pool
+                    WHERE trade_date=? AND (board_height >= 2 OR is_fanbao = 1 OR boards_desc LIKE '%天%板%')
+                    ORDER BY code
+                    """,
+                    (args.date,),
+                ).fetchall()
+            ]
             conn.close()
         else:
             codes = list(args.codes or [])
@@ -930,6 +989,24 @@ def main() -> None:
         else:
             codes = list(args.codes or [])
         fetch_kline_cmd(codes, start_dt=args.start, end_dt=args.end, refresh=args.refresh)
+    elif args.cmd == "kpl-concepts":
+        if args.date:
+            conn = ensure_db()
+            codes = [
+                r[0]
+                for r in conn.execute(
+                    """
+                    SELECT DISTINCT code FROM daily_limit_pool
+                    WHERE trade_date=? AND (board_height >= 2 OR is_fanbao = 1 OR boards_desc LIKE '%天%板%')
+                    ORDER BY code
+                    """,
+                    (args.date,),
+                ).fetchall()
+            ]
+            conn.close()
+        else:
+            codes = list(args.codes or [])
+        fetch_kpl_concepts_cmd(codes, refresh=args.refresh)
 
 
 if __name__ == "__main__":

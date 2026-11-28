@@ -28,31 +28,31 @@
     },
     {
       "code": "000892",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "延续影视短剧+AI视频双线主线，隔夜及早间国内首部AI长剧《后西游记》爆火持续发酵叠加Anthropic发布新模型Fable 5.1，一字3连板领涨传媒与AI应用梯队",
       "source": "llm"
     },
     {
       "code": "600892",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "延续影视短剧+AI应用双线主线，国内首部AI长剧《后西游记》爆火出圈叠加Anthropic发布新模型持续催化，早盘竞价封板晋级3连板与欢瑞世纪、龙版传媒形成梯队共振",
       "source": "llm"
     },
     {
       "code": "605577",
-      "driver": "传媒",
-      "driver2": "AI应用",
+      "driver": "AI应用",
+      "driver2": null,
       "basis_type": "news",
       "basis": "延续出版传媒+AI漫剧双线主线，国内首部AI长剧《后西游记》爆火叠加Anthropic发布新模型Fable 5.1持续催化AI视频方向，早盘放量换手晋级3连板",
       "source": "llm"
     },
     {
       "code": "000635",
-      "driver": "并购",
+      "driver": "化工",
       "driver2": null,
       "basis_type": "announcement",
       "basis": "关于控股股东拟通过公开征集方式转让部分公司股份暨股票复牌公告",
@@ -132,7 +132,7 @@
     },
     {
       "code": "603778",
-      "driver": "光伏",
+      "driver": "锂电光伏",
       "driver2": null,
       "basis_type": "continue",
       "basis": "延续前期HJT/钙钛矿光伏组件主线，盘中放量反包走出4天2板",
@@ -140,7 +140,7 @@
     },
     {
       "code": "603216",
-      "driver": "地产",
+      "driver": "地产链",
       "driver2": null,
       "basis_type": "continue",
       "basis": "延续前日地产链（装修家具）后周期主线，叠加盘前房企拿地总额连续6个月降幅收窄的行业积极信号，盘中反包走出3天2板",
@@ -157,9 +157,9 @@
     {
       "code": "605118",
       "driver": "机器人",
-      "driver2": "消费电子",
+      "driver2": null,
       "basis_type": "continue",
-      "basis": "延续前期机器视觉（机器人）反包主线，同时叠加当日华为小米荣耀与高通9月集体涨价的消费电子热点催化，午后反包走出3天2板",
+      "basis": "延续前期机器视觉（机器人）反包主线，光学镜头产品聚焦工业与智能视觉方向，午后反包走出3天2板",
       "source": "llm"
     }
   ]

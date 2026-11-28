@@ -4,10 +4,10 @@
   "stocks": [
     {
       "code": "003032",
-      "driver": "机器人",
-      "driver2": null,
+      "driver": "AI应用",
+      "driver2": "机器人",
       "basis_type": "continue",
-      "basis": "6连板一字晋升市场最高标，延续具身智能教学机器人主线并引领机器人核心梯队",
+      "basis": "延续AI应用总龙主线缩量一字晋级6连板，带动恒银科技、利欧股份等AI应用梯队集体走强。",
       "source": "llm"
     },
     {
@@ -20,7 +20,7 @@
     },
     {
       "code": "002827",
-      "driver": "并购",
+      "driver": "有色",
       "driver2": null,
       "basis_type": "news",
       "basis": "4连板早盘秒板延续并购主线，叠加欣天科技溢价90%拟易主复牌及华新建材海外收购激活并购重组暗线催化",
@@ -44,7 +44,7 @@
     },
     {
       "code": "000593",
-      "driver": "石油",
+      "driver": "油气",
       "driver2": null,
       "basis_type": "announcement",
       "basis": "关于股东持股比例达到5%以上暨权益变动的提示性公告",
@@ -76,7 +76,7 @@
     },
     {
       "code": "603682",
-      "driver": "地产",
+      "driver": "地产链",
       "driver2": null,
       "basis_type": "continue",
       "basis": "2连板延续政治局会议定调下的地产链物业运营主线，叠加早间7月百城房价上海新房环比涨幅领跑消息催化",
@@ -133,7 +133,7 @@
     {
       "code": "001223",
       "driver": "通信",
-      "driver2": "消费电子",
+      "driver2": null,
       "basis_type": "continue",
       "basis": "2连板延续PCB设备及FCCL通信主线，午间受iPhone与苹果折叠新机提价预期及小米手机涨价等消费电子热点催化，13:00开盘迅速封板形成双线共振",
       "source": "llm"

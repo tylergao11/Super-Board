@@ -8,20 +8,46 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="文艺复兴" />
   <title>文艺复兴</title>
-  <link rel="icon" type="image/png" href="./assets/favicon.png" />
-  <link rel="apple-touch-icon" href="./assets/avatar.jpg" />
-  <link rel="stylesheet" href="./styles.css" />
+  <link rel="preload" as="image" href="./assets/avatar.jpg?v=3" />
+  <link rel="icon" type="image/png" href="./assets/favicon.png?v=2" />
+  <link rel="apple-touch-icon" href="./assets/avatar.jpg?v=3" />
+  <link rel="stylesheet" href="./styles.css?v=14" />
 </head>
 <body>
   <div id="viewport-frame">
+    <!-- Editorial Launch Splash: Museum-Framed Fresco -> Silky FLIP Morph to Top-Left Medallion -->
+    <div id="splash-screen" class="splash-screen" aria-hidden="true">
+      <div class="splash-veil"></div>
+      <div class="splash-center">
+        <div class="splash-frame">
+          <span class="splash-mat-bg" aria-hidden="true"></span>
+          <span class="splash-mat-inlay" aria-hidden="true"></span>
+          <img id="splash-avatar" class="splash-avatar" src="./assets/avatar.jpg?v=3" alt="" width="184" height="184" decoding="sync" fetchpriority="high" />
+        </div>
+        <div class="splash-wordmark">
+          <span class="splash-title">文艺复兴</span>
+          <span class="splash-rule" aria-hidden="true"><span id="splash-progress" class="splash-rule-fill"></span></span>
+          <span class="splash-latin">RENAISSANCE</span>
+        </div>
+      </div>
+    </div>
+
     <!-- Tier 1: Editorial Warm-Paper Primary Mobile Surface -->
-    <div id="app-shell" class="app-shell">
+    <div id="app-shell" class="app-shell splash-pending">
       <header class="topbar">
         <div class="topbar-left">
-          <img class="brand-avatar" src="./assets/avatar.jpg" alt="文艺复兴 · 达·芬奇" title="文艺复兴" width="28" height="28" decoding="async" />
+          <img id="brand-avatar" class="brand-avatar" src="./assets/avatar.jpg?v=3" alt="文艺复兴" title="文艺复兴 · 今日概览" width="28" height="28" role="button" tabindex="0" aria-label="打开文艺复兴画框与今日市场概览" decoding="sync" />
+          <button id="search-btn" class="topbar-search-btn" type="button" aria-label="查询股票或板块">
+            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" aria-hidden="true">
+              <circle cx="7" cy="7" r="4.6" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10.5 10.5L13.8 13.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span class="topbar-search-placeholder">搜股票 / 板块</span>
+          </button>
         </div>
 
         <div class="date-stepper">
+          <button id="date-latest" class="latest-btn hidden" type="button" aria-label="回到最新交易日">最新</button>
           <button id="date-prev" class="step-btn" type="button" aria-label="上一交易日">
             <svg viewBox="0 0 12 12" width="11" height="11" fill="none">
               <path d="M7.5 2.5L4 6L7.5 9.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -40,24 +66,23 @@
           </button>
         </div>
       </header>
+      <div id="day-loading-bar" class="day-loading-bar" aria-hidden="true"></div>
 
       <main id="main-layout" class="main-layout">
-        <!-- Upper Pane: Independently Scrollable Intraday Catalysts -->
-        <section class="catalyst-pane" aria-label="今日催化">
-          <div class="section-head">
-            <h2 class="section-title">今日催化</h2>
-          </div>
-          <div class="catalyst-scroll-wrap">
-            <div id="catalyst-list" class="catalyst-scroll"></div>
-            <div id="catalyst-fade" class="pane-bottom-fade" aria-hidden="true"></div>
-          </div>
+        <!-- Compact Single-Row Hot Sectors Entry + 3-Button Core Tools Strip -->
+        <section class="hub-bar-wrap" aria-label="今日热点与核心工具">
+          <div id="hub-bar" class="hub-bar"></div>
+          <div id="home-tools" class="home-tools" aria-label="题材库、异动监控与并购重组"></div>
         </section>
 
-        <!-- Lower Pane: Independently Scrollable Consecutive-Board Ladder -->
+        <!-- Primary Full-Height Consecutive-Board Ladder -->
         <section class="ladder-pane" aria-label="连板梯队">
           <div class="section-head ladder-head">
-            <h2 class="section-title">连板梯队</h2>
-            <div id="market-mood" class="market-mood"></div>
+            <div class="ladder-title-group">
+              <h2 class="section-title">连板梯队</h2>
+              <button id="ladder-mode-btn" class="ladder-mode-btn" type="button" aria-pressed="false" title="切换量价PK视角（成交额 · 换手率）">量价</button>
+            </div>
+            <div id="ladder-focus-bar" class="ladder-focus-bar" aria-label="主线高亮筛选"></div>
           </div>
           <div id="ladder-scroll" class="ladder-scroll">
             <div id="ladder-list" class="ladder-list"></div>
@@ -66,7 +91,7 @@
       </main>
     </div>
 
-    <!-- Tier 2: Editorial Bottom Sheet Modal -->
+    <!-- Tier 2: Editorial Bottom Sheet Modal (Hub / Search / Sector / Stock) -->
     <div id="sheet-backdrop" class="sheet-backdrop" aria-hidden="true"></div>
     <section id="sheet-container" class="sheet-container" role="dialog" aria-modal="true" aria-hidden="true">
       <div id="sheet-drag-zone" class="sheet-drag-zone">
@@ -76,20 +101,25 @@
       <div id="sheet-body" class="sheet-body"></div>
     </section>
 
-    <!-- Compact Date Picker Sheet -->
+    <!-- Compact Date Picker Sheet (Year + Month -> Trading Days) -->
     <div id="date-backdrop" class="sheet-backdrop date-backdrop" aria-hidden="true"></div>
     <section id="date-sheet" class="date-sheet" role="dialog" aria-modal="true" aria-hidden="true">
       <div class="sheet-drag-zone">
         <div class="sheet-handle"></div>
       </div>
       <div class="date-sheet-head">
-        <span>交易日</span>
+        <div class="date-head-left">
+          <span>交易日</span>
+          <div id="date-year-tabs" class="date-year-tabs" role="tablist" aria-label="选择年份"></div>
+        </div>
         <button id="date-close" class="sheet-close-btn" type="button" aria-label="关闭">×</button>
       </div>
+      <div id="date-cycle-wrap" class="date-cycle-wrap" aria-label="近20日最高板情绪周期"></div>
+      <div id="date-month-grid" class="date-month-grid" role="tablist" aria-label="选择月份"></div>
       <div id="date-list" class="date-list"></div>
     </section>
   </div>
 
-  <script src="./app.js" defer></script>
+  <script src="./app.js?v=16" defer></script>
 </body>
 </html>

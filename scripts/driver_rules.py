@@ -8,6 +8,14 @@ from datetime import date as dt_date, timedelta
 from pathlib import Path
 from typing import Any
 
+from common import (
+    extract_intrinsic_tags,
+    is_intrinsic_tag,
+    is_region_tag,
+    is_zibei_tag,
+    tag_is_active,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 TAXONOMY_PATH = ROOT / "taxonomy.json"
 
@@ -16,7 +24,7 @@ def load_vocab(taxonomy_path: Path = TAXONOMY_PATH) -> list[str]:
     doc = json.loads(taxonomy_path.read_text(encoding="utf-8"))
     out: list[str] = []
     seen: set[str] = set()
-    for t in [*doc.get("l1_list", []), *doc.get("dynamic_groups", []), "并购"]:
+    for t in [*doc.get("l1_list", []), *doc.get("dynamic_groups", [])]:
         if t not in seen:
             seen.add(t)
             out.append(t)
@@ -27,7 +35,38 @@ VOCAB: list[str] = load_vocab()
 VOCAB_SET: set[str] = set(VOCAB)
 
 _N_DAY_M_BOARD_RE = re.compile(r"(\d+)天(\d+)板")
-_NAME_LINE_RE = re.compile(r'[“"「]([\u4e00-\u9fa5]{1,2})[”"」]字|([\u4e00-\u9fa5])字辈')
+
+
+def is_event_theme(tag: str | None) -> bool:
+    """True for AI-surfaced event/intrinsic themes: XX字辈, province/core-city regions, 国企改革, or policy-wave 并购."""
+    s = str(tag or "").strip()
+    if s in ("并购", "国企改革"):
+        return True
+    if s.endswith("字辈") and len(s) >= 3:
+        return True
+    if is_region_tag(s):
+        return True
+    return False
+
+
+def format_region(
+    province: str | None,
+    city: str | None = None,
+    controller_province: str | None = None,
+) -> str:
+    """Compact human-readable region string for AI workflows (e.g. '浙江省·杭州市', '上海市')."""
+    prov = str(province or "").strip()
+    cty = str(city or "").strip()
+    cprov = str(controller_province or "").strip()
+    parts: list[str] = []
+    if prov:
+        parts.append(prov)
+    if cty and cty != prov:
+        parts.append(cty)
+    base = "·".join(parts)
+    if cprov and cprov != prov:
+        return f"{base}({cprov}国资)" if base else f"{cprov}国资"
+    return base
 
 
 def is_fanbao_stock(is_fanbao: int | bool | None, boards_desc: str | None) -> bool:
@@ -52,106 +91,116 @@ def fanbao_board_count(boards_desc: str | None) -> int:
     return int(m.group(2)) if m else 1
 
 
-def detect_dynamic_name_lines(
-    core_stocks: list[dict[str, Any]],
+def collect_active_event_lines(
     hot_news: list[dict[str, Any]],
-) -> dict[str, tuple[set[str], str]]:
-    """Detect active XX字辈 dynamic groupings strictly from today's hot news (no blind char-matching).
+    recent_event_lines: dict[str, dict[str, Any]] | None = None,
+) -> dict[str, dict[str, Any]]:
+    """Collect active temporary event lines (XX字辈 / XX本地) directly from AI hot_news + recent active memory.
 
-    Returns {zb_tag: (matched_core_codes, evidence_text)}.
+    AI handles discovery and matching (including multi-char names, homophones, zodiacs, and
+    news-backed regions); this function only passes through validated AI outputs.
     """
-    out: dict[str, tuple[set[str], str]] = {}
-
-    def _clean_nm(s: str) -> str:
-        s = str(s or "").strip()
-        for pref in ("*ST", "ST", "XD", "XR", "DR"):
-            if s.startswith(pref) and len(s) > len(pref):
-                s = s[len(pref) :]
-        return s
-
-    # Strictly hot-news-backed XX字辈 (e.g. 金字辈, 华字辈, 牛字辈, 羊字辈)
+    out: dict[str, dict[str, Any]] = {}
     for nw in hot_news:
         th = str(nw.get("theme") or "").strip()
-        hl = str(nw.get("headline") or "").strip()
-        dt = str(nw.get("detail") or "").strip()
-        zb_tag = ""
-        if th.endswith("字辈") and len(th) >= 3:
-            zb_tag = th
-        else:
-            m = _NAME_LINE_RE.search(f"{hl} {dt}")
-            if m:
-                ch = m.group(1) or m.group(2)
-                if ch and len(ch) == 1:
-                    zb_tag = f"{ch}字辈"
-        if not zb_tag:
+        if not is_event_theme(th):
             continue
+        hl = str(nw.get("headline") or "").strip()
+        codes = [str(c).strip() for c in (nw.get("codes") or []) if str(c).strip()]
+        if th in out:
+            out[th]["codes"] = sorted(set(out[th]["codes"]) | set(codes))
+            if not out[th]["evidence"] and hl:
+                out[th]["evidence"] = hl
+        else:
+            out[th] = {"codes": sorted(set(codes)), "evidence": hl, "source": "today_news"}
 
-        prefix = zb_tag[:-2]
-        trigger_chars = ("羊", "洋", "阳", "杨", "扬") if zb_tag == "羊字辈" else (prefix,)
-        nw_codes = {str(c) for c in (nw.get("codes") or [])}
-        matched: set[str] = set()
-        for st in core_stocks:
-            nm = _clean_nm(st.get("name", ""))
-            if any(ch in nm for ch in trigger_chars) or st["code"] in nw_codes:
-                matched.add(st["code"])
-        if matched:
-            prev_codes, prev_ev = out.get(zb_tag, (set(), hl))
-            out[zb_tag] = (prev_codes | matched, prev_ev or hl)
+    for th, info in (recent_event_lines or {}).items():
+        if not is_event_theme(th) or th in out:
+            continue
+        out[th] = {
+            "codes": sorted(set(info.get("codes") or [])),
+            "evidence": str(info.get("evidence") or f"延续近3日活跃暗线：{th}"),
+            "source": "recent_active",
+        }
 
     return out
 
 
-def candidates(conn: sqlite3.Connection, code: str, trade_date: str) -> list[str]:
-    """Return ordered valid candidate tags for a stock on trade_date (365-day window + M&A)."""
-    cutoff = ""
-    if trade_date and len(trade_date) >= 10:
-        cutoff = (dt_date.fromisoformat(trade_date[:10]) - timedelta(days=365)).isoformat()
-
-    if cutoff:
-        rows = conn.execute(
-            """
-            SELECT tag FROM stock_tags
-            WHERE code = ? AND from_date >= ?
-            ORDER BY id ASC
-            """,
-            (code, cutoff),
-        ).fetchall()
-    else:
-        rows = conn.execute(
-            """
-            SELECT tag FROM stock_tags
-            WHERE code = ?
-            ORDER BY id ASC
-            """,
-            (code,),
-        ).fetchall()
+def candidates(
+    conn: sqlite3.Connection,
+    code: str,
+    trade_date: str,
+    *,
+    include_intrinsic: bool = True,
+) -> list[str]:
+    """Return ordered valid candidate tags for a stock (stock_tags + ma_events.target_l1 + permanent intrinsic 字辈/地域)."""
+    rows = conn.execute(
+        """
+        SELECT tag, from_date, evidence FROM stock_tags
+        WHERE code = ?
+        ORDER BY id ASC
+        """,
+        (code,),
+    ).fetchall()
 
     out: list[str] = []
     seen: set[str] = set()
-    for r in rows:
-        t = str(r[0] or "").strip()
+    for t_raw, fdt, ev in rows:
+        if not tag_is_active(fdt, ev, trade_date):
+            continue
+        t = str(t_raw or "").strip()
         if t and t not in seen:
             seen.add(t)
             out.append(t)
 
-    has_ma = conn.execute(
-        "SELECT 1 FROM ma_events WHERE code = ? LIMIT 1", (code,)
-    ).fetchone()
-    if has_ma and "并购" not in seen:
-        out.append("并购")
+    ma_rows = conn.execute(
+        """
+        SELECT DISTINCT target_l1 FROM ma_events
+        WHERE code = ? AND target_l1 IS NOT NULL AND target_l1 != ''
+        ORDER BY from_date DESC, id ASC
+        """,
+        (code,),
+    ).fetchall()
+    for (tl1,) in ma_rows:
+        t = str(tl1 or "").strip()
+        if t and t not in seen:
+            seen.add(t)
+            out.append(t)
+
+    if include_intrinsic:
+        meta = conn.execute(
+            "SELECT name, province, city, controller_province, controller_type FROM stocks WHERE code = ?",
+            (code,),
+        ).fetchone()
+        if meta:
+            for itag, _ in extract_intrinsic_tags(code, meta[0], meta[1], meta[2], meta[3], meta[4]):
+                if itag not in seen:
+                    seen.add(itag)
+                    out.append(itag)
+        else:
+            prow = conn.execute(
+                "SELECT name FROM daily_limit_pool WHERE code = ? ORDER BY trade_date DESC LIMIT 1",
+                (code,),
+            ).fetchone()
+            if prow and prow[0]:
+                for itag, _ in extract_intrinsic_tags(code, prow[0]):
+                    if itag not in seen:
+                        seen.add(itag)
+                        out.append(itag)
     return out
 
 
-# Ordered keyword substring rules mapping EastMoney industry ("L1-L2-L3") to 25 canonical L1 sectors
+# Ordered keyword substring rules mapping EastMoney industry ("L1-L2-L3") to 23 canonical L1 sectors
 MAIN_BIZ_RULES: list[tuple[tuple[str, ...], str]] = [
-    (("机器人",), "机器人"),
-    (("半导体", "集成电路"), "芯片"),
-    (("光学元件", "LED", "消费电子", "显示器件", "电子设备制造", "其他电子器件"), "消费电子"),
-    (("通信设备", "通信运营", "卫星应用", "电子元件"), "通信"),
+    (("机器人", "机床"), "机器人"),
+    (("半导体", "集成电路", "光学元件", "LED", "显示器件"), "芯片"),
+    (("通信设备", "通信运营", "卫星应用", "电子元件", "其他电子器件"), "通信"),
+    (("消费电子",), "通信"),
+    (("电子设备制造",), "机器人"),
     (("计算机硬件", "云服务"), "算力"),
     (("计算机软件", "互联网服务", "IT服务", "教育信息化"), "AI应用"),
     (("互联网金融", "金融", "证券", "保险"), "金融"),
-    (("互联网商务", "网上购物", "电子商务"), "消费"),
+    (("互联网商务", "网上购物", "电子商务", "跨境电商"), "消费"),
     (
         (
             "文化传媒",
@@ -168,27 +217,30 @@ MAIN_BIZ_RULES: list[tuple[tuple[str, ...], str]] = [
             "成人教育",
             "游戏",
         ),
-        "传媒",
+        "AI应用",
     ),
-    (("轨道交通", "铁路设备"), "交运"),
-    (("汽车", "摩托车"), "汽车"),
-    (("其他交运设备",), "消费"),
+    (("轨道交通", "铁路设备", "高速公路", "工程机械"), "基建"),
+    (("港口航运", "航运", "港口", "国际贸易"), "航运物流"),
+    (("快递", "物流"), "航运物流"),
+    (("航空", "机场", "公交"), "消费"),
+    (("乘用车", "商用车", "汽车", "摩托车"), "汽车链"),
+    (("其他交运设备",), "机械设备"),
     (("国防与装备", "航天装备", "航空装备", "地面装备", "船舶", "海洋工程"), "军工"),
-    (("太阳能",), "光伏"),
-    (("储能", "电池"), "锂电"),
+    (("太阳能", "储能", "电池"), "锂电光伏"),
     (("电力", "输变电", "电机", "电气"), "电力"),
-    (("燃气", "石油"), "石油"),
+    (("燃气", "石油"), "油气"),
     (("煤炭", "焦炭"), "煤炭"),
     (("环保", "水务"), "环保"),
-    (("机械设备",), "工业设备"),
-    (("交通运输",), "交运"),
+    (("楼宇设备",), "地产链"),
+    (("机械设备",), "机械设备"),
+    (("交通运输",), "航运物流"),
     (("基础化工",), "化工"),
-    (("有色金属", "铁矿石"), "有色"),
+    (("有色金属", "铁矿石", "钢铁", "特钢"), "有色"),
     (("医药生物",), "医药"),
+    (("家具", "装修装饰", "建筑装饰设计", "陶瓷", "房地产", "玻璃"), "地产链"),
     (("食品饮料", "商贸零售", "家电", "纺织服装", "轻工制造", "休闲", "美容"), "消费"),
     (("农林牧渔",), "农业"),
-    (("房地产",), "地产"),
-    (("建筑", "建材", "钢铁"), "基建"),
+    (("建筑", "建材"), "基建"),
 ]
 
 
@@ -203,10 +255,13 @@ def map_industry_to_l1(em_industry: str | None) -> str | None:
 
 
 def main_business(em_industry: str | None, own_tags: list[str] | None = None) -> str:
-    """Resolve a stock's main business L1 from em_industry, falling back to own_tags[0]."""
+    """Resolve a stock's main business L1, strictly respecting verified stock_tags over stale em_industry."""
+    industry_tags = [t for t in (own_tags or []) if t and not is_intrinsic_tag(t)]
     mapped = map_industry_to_l1(em_industry)
-    if mapped:
+    if mapped and (not industry_tags or mapped in industry_tags):
         return mapped
+    if industry_tags:
+        return industry_tags[0]
     if own_tags:
         return own_tags[0]
     return ""
@@ -269,12 +324,14 @@ def rule_driver(
     if height >= 2 and prev_driver and prev_driver in cands:
         return prev_driver
 
+    # Rule fallback prefers real industry/cross-sector tags over passive permanent 字辈/地域
+    pool_cands = [t for t in cands if not is_intrinsic_tag(t)] or list(cands)
     news_upper = (news_text or "").upper()
-    cand_order = {t: idx for idx, t in enumerate(cands)}
+    cand_order = {t: idx for idx, t in enumerate(pool_cands)}
     if news_upper:
         best_t = None
         best_key: tuple[int, int, int] = (0, 0, 0)
-        for t in cands:
+        for t in pool_cands:
             ev = evidences_by_tag.get(t, "")
             toks = _extract_domain_tokens(ev)
             hits = sum(1 for tok in toks if tok in news_upper)
@@ -288,4 +345,4 @@ def rule_driver(
         if best_t:
             return best_t
 
-    return max(cands, key=lambda t: (same_tag_counts.get(t, 0), -cand_order[t]))
+    return max(pool_cands, key=lambda t: (same_tag_counts.get(t, 0), -cand_order[t]))
